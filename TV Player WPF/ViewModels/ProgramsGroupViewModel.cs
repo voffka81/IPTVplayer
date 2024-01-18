@@ -24,13 +24,9 @@ namespace TV_Player
 
         private void OnItemSelected()
         {
-            //var navigation = (INavigation)Application.Current.MainPage.Navigation;
-
             var programListViewModel = new ProgramsListViewModel(SelectedItem);
             var conrtrol = new ProgramsList();
             TVPlayerViewModel.Instance.SetPageContext(conrtrol, programListViewModel);
-
-
         }
     }
 }

@@ -1,4 +1,6 @@
-﻿using System.Windows.Input;
+﻿using CommunityToolkit.Mvvm.Input;
+using System.Windows.Input;
+using TV_Player.ViewModels;
 
 namespace TV_Player
 {
@@ -6,43 +8,32 @@ namespace TV_Player
     public class PlayerViewModel: ObservableViewModelBase
     {
 
-        private readonly M3UInfo _currentProgram;
 
-        private string _urlSource;
-        public string URLSource
+        private M3UInfo _currentProgram;
+        public M3UInfo SelectedProgram
         {
-            get => _urlSource;
-            set => SetProperty(ref _urlSource, value);
+            get => _currentProgram;
+            set => SetProperty(ref _currentProgram, value);
         }
 
-        public GroupInfo SelectedItem { get; set; }
-        public ICommand PlayCommand { get; }
+        public M3UInfo SelectedItem { get; set; }
+        public ICommand BackCommand { get; }
 
         public PlayerViewModel(M3UInfo selectedProgram)
         {
             _currentProgram = selectedProgram;
-            //PlayM3U8(_currentProgram.Url);
-            //_libVLC = new LibVLC();
-            //_mediaPlayer = new MediaPlayer(new Media(_libVLC, new Uri(_currentProgram.Url)));
-            //_mediaPlayer.Play();
-            //PlayCommand = new Command(OnPlayButtonClicked);
+            BackCommand = new RelayCommand(OnButtonBackClick);
+           
         }
 
-        private void OnPlayButtonClicked()
+        private void OnButtonBackClick()
         {
-            PlayM3U8(_currentProgram.Url);
+            var groupInfo = new GroupInfo() { Name = _currentProgram.GroupTitle, Count = 0 };
+
+            var programListViewModel = new ProgramsListViewModel(groupInfo);
+            var conrtrol = new ProgramsList();
+            TVPlayerViewModel.Instance.SetPageContext(conrtrol, programListViewModel);
         }
 
-        private void PlayM3U8(string url)
-        {
-            try
-            {
-                URLSource = _currentProgram.Url;
-            }
-            catch (Exception ex)
-            {
-                // Handle exceptions
-            }
-        }
     }
 }

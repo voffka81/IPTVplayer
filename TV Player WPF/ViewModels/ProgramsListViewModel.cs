@@ -24,22 +24,10 @@ namespace TV_Player
 
         private void OnItemSelected()
         {
-
             var playerViewModel = new PlayerViewModel(SelectedItem);
             var conrtrol = new VideoPlayer();
             conrtrol.SourceUrl = SelectedItem.Url;
             TVPlayerViewModel.Instance.SetPageContext(conrtrol, playerViewModel);
-            //var navigation = (INavigation)Application.Current.MainPage.Navigation;
-
-            //var playerViewModel = new PlayerViewModel(SelectedItem);
-
-            //// Create a new SecondPage and set its BindingContext to the ViewModel
-            //var playerPage = new PlayerPage
-            //{
-            //    BindingContext = playerViewModel
-            //};
-            //// Navigate to the OtherPage
-            //navigation.PushAsync(playerPage);
         }
     }
 }

@@ -3,6 +3,7 @@ using LibVLCSharp.WPF;
 using System.IO;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Forms.Integration;
 using System.Windows.Input;
 
 namespace TV_Player
@@ -77,7 +78,7 @@ namespace TV_Player
                     VideoView.MediaPlayer.Play(media);
             }
         }
-
+         
 
         private void MyUserControl_MouseDown(object sender, MouseButtonEventArgs e)
         {
@@ -109,6 +110,11 @@ namespace TV_Player
         public void HideOverlay()
         {
             overlayPanel.Visibility = Visibility.Collapsed;
+        }
+
+        private void UserControl_Unloaded(object sender, RoutedEventArgs e)
+        {
+            VideoView.MediaPlayer.Dispose();
         }
     }
 }
