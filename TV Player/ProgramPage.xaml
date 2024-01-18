@@ -1,10 +1,8 @@
 ﻿<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:local="clr-namespace:TV_Player.MAUI"
-             x:Class="TV_Player.MAUI.MainPage">
-    <ContentPage.BindingContext>
-        <local:MainViewModel />
-    </ContentPage.BindingContext>
+             x:Class="TV_Player.MAUI.ProgramPage">
+
     <ScrollView>
         <VerticalStackLayout
             Padding="30,0"
@@ -16,20 +14,13 @@
                  SelectionChangedCommand="{Binding ItemSelectedCommand}">
                 <CollectionView.ItemTemplate>
                     <DataTemplate x:DataType="local:M3UInfo">
-                        <Label Text="{Binding Name}"/>
+                        <VerticalStackLayout>
+                            <Image Source="{Binding Logo}" WidthRequest="50" HeightRequest="50"/>
+                            <Label Text="{Binding Name}" HorizontalTextAlignment="Center"/>
+                        </VerticalStackLayout>
                     </DataTemplate>
                 </CollectionView.ItemTemplate>
             </CollectionView>
-
-            <!--<Label
-                Text="Welcome to .NET Multi-platform App UI"
-                SemanticProperties.HeadingLevel="Level2"
-                SemanticProperties.Description="Welcome to dot net Multi platform App U I"
-                FontSize="18"
-                HorizontalOptions="Center" />-->
-
-
         </VerticalStackLayout>
     </ScrollView>
-
 </ContentPage>

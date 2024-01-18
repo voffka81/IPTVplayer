@@ -1,7 +1,7 @@
 ﻿using System.Net.Http.Headers;
 using System.Text.RegularExpressions;
 
-namespace TV_Player
+namespace TV_Player.MAUI
 {
     public static class M3UParser
     {
@@ -89,7 +89,7 @@ namespace TV_Player
                     GroupTitle = match.Groups["GroupTitle"].Value,
                     Logo = match.Groups["Logo"].Value,
                     Name = match.Groups["Name"].Value,
-                    Url = match.Groups["Url"].Value
+                    Url = match.Groups["URL"].Value
                 };
                 return true;
             }

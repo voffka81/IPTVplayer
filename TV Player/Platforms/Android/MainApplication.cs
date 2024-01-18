@@ -1,5 +1,6 @@
 ﻿using Android.App;
 using Android.Runtime;
+using TV_Player.MAUI;
 
 namespace TV_Player
 {

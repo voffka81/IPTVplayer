@@ -2,37 +2,37 @@
 
 namespace TV_Player.MAUI
 {
-    public class MainViewModel : ObservableViewModelBase
+    public class ProgramViewModel : ObservableViewModelBase
     {
-        private List<GroupInfo> _programs;
-        public List<GroupInfo> Programs
+        private List<M3UInfo> _programs;
+        public List<M3UInfo> Programs
         {
             get => _programs;
             set => SetProperty(ref _programs, value);
         }
 
-        public GroupInfo SelectedItem { get; set; }
+        public M3UInfo SelectedItem { get; set; }
         public ICommand ItemSelectedCommand { get; }
 
-        public MainViewModel()
+        public ProgramViewModel(GroupInfo groupInfo)
         {
             ItemSelectedCommand = new Command(OnItemSelected);
-            ProgramsData.Instance.GroupsInformation.Subscribe(x=>Programs = x);
+            ProgramsData.Instance.AllPrograms.Subscribe(x=>Programs = x.Where(p=>p.GroupTitle== groupInfo.Name).ToList());
         }
 
         private void OnItemSelected()
         {
             var navigation = (INavigation)Application.Current.MainPage.Navigation;
 
-            var programPageViewModel = new ProgramViewModel(SelectedItem);
+            var playerViewModel = new PlayerViewModel(SelectedItem);
 
             // Create a new SecondPage and set its BindingContext to the ViewModel
-            var programPage = new ProgramPage
+            var playerPage = new PlayerPage
             {
-                BindingContext = programPageViewModel
+                BindingContext = playerViewModel
             };
             // Navigate to the OtherPage
-            navigation.PushAsync(programPage);
+            navigation.PushAsync(playerPage);
         }
     }
 }

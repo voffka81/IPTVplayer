@@ -1,7 +1,7 @@
 ﻿using System.ComponentModel;
 using System.Runtime.CompilerServices;
 
-namespace TV_Player.MAUI
+namespace TV_Player
 {
     public abstract class ObservableViewModelBase : INotifyPropertyChanged
     {

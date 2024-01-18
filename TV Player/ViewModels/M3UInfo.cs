@@ -1,4 +1,4 @@
-﻿namespace TV_Player
+﻿namespace TV_Player.MAUI
 {
     public class M3UInfo
     {

@@ -1,8 +1,8 @@
 ﻿namespace TV_Player.MAUI
 {
-    public partial class AppShell : Shell
+    public partial class ProgramPage : ContentPage
     {
-        public AppShell()
+        public ProgramPage()
         {
             InitializeComponent();
         }

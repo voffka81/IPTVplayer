@@ -90,7 +90,7 @@ namespace TV_Player
                     GroupTitle = match.Groups["GroupTitle"].Value,
                     Logo = match.Groups["Logo"].Value,
                     Name = match.Groups["Name"].Value,
-                    Url = match.Groups["Url"].Value
+                    Url = match.Groups["URL"].Value
                 };
                 return true;
             }

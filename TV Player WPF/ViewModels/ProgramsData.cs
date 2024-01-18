@@ -1,6 +1,6 @@
 ﻿using System.Reactive.Subjects;
 
-namespace TV_Player.MAUI
+namespace TV_Player
 {
     public class ProgramsData
     {

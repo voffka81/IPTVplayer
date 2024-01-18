@@ -6,13 +6,13 @@
         xmlns:local="clr-namespace:TV_Player"
         mc:Ignorable="d"
         Title="TV" Height="450" Width="800">
-    <Window.Resources>
-        <local:EnumToBooleanConverter x:Key="EnumToBooleanConverter" />
-    </Window.Resources>
+    <Window.DataContext>
+        <local:MainViewModel/>
+    </Window.DataContext>
     <Grid>
         <Grid.Background>
             <ImageBrush ImageSource="Assets/bkground.jpg" />
         </Grid.Background>
-        <ContentControl Name="ControlContainer" />
+        <ContentControl Name="ControlContainer" Content="{Binding Control}" />
     </Grid>
 </Window>
