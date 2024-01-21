@@ -23,7 +23,7 @@ namespace TV_Player
         {
             _currentProgram = selectedProgram;
             BackCommand = new RelayCommand(OnButtonBackClick);
-           
+            TVPlayerViewModel.Instance.TopPanelVisible(false);
         }
 
         private void OnButtonBackClick()

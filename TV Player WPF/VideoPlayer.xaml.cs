@@ -18,15 +18,15 @@ namespace TV_Player
                 typeof(VideoPlayer), // Type of the owner class
                 new PropertyMetadata(string.Empty) // Default value
             );
-
-        LibVLC _libVLC;
-        MediaPlayer _mediaPlayer;
-
         public string SourceUrl
         {
             get { return (string)GetValue(SourceUrlProperty); }
-            set { SetValue(SourceUrlProperty, value);}
+            set { SetValue(SourceUrlProperty, value); }
         }
+
+        private LibVLC _libVLC;
+        private MediaPlayer _mediaPlayer;
+
         public VideoPlayer()
         {
             InitializeComponent();
@@ -74,7 +74,7 @@ namespace TV_Player
                     VideoView.MediaPlayer.Play(media);
             }
         }
-         
+
 
         private void MyUserControl_MouseDown(object sender, MouseButtonEventArgs e)
         {

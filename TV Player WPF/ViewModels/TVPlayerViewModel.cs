@@ -1,10 +1,14 @@
-﻿using System.Windows.Controls;
+﻿using CommunityToolkit.Mvvm.Input;
+using System.Windows.Controls;
+using System.Windows.Input;
 
 namespace TV_Player.ViewModels
 {
     public class TVPlayerViewModel
     {
         private readonly MainViewModel _mainViewModel;
+        
+        public Action ButtonBackAction { get; set; }       
 
         private static TVPlayerViewModel _instance;
         public static TVPlayerViewModel Instance
@@ -25,6 +29,16 @@ namespace TV_Player.ViewModels
             
             mainWindow.Show();
             _instance = this;
+           
+        }
+        public void TopPanelVisible(bool value)
+        {
+            _mainViewModel.IsTopPanelVisible = value;
+        }
+
+        public void SetBackButtonAction(Action action)
+        {
+            _mainViewModel.ButtonBackAction = action;
         }
 
         public void SetPageContext(ContentControl control, object viewModel)

@@ -19,7 +19,7 @@
                         <ColumnDefinition />
                         <ColumnDefinition />
                     </Grid.ColumnDefinitions>
-                    <Button Grid.Column="0" Content="Back" HorizontalAlignment="Stretch" Command="{Binding BackCommand}" />
+                    <Button Height="50" Width="50" Margin="10,0,0,0" Style="{DynamicResource ButtonBack}" Command="{Binding BackCommand}" />
                     <Button Grid.Column="1" Content="Pause" HorizontalAlignment="Stretch" Click="PauseButton_Click" />
                 </Grid>
             </StackPanel>

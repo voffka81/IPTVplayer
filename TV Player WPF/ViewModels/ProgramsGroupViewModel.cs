@@ -20,6 +20,8 @@ namespace TV_Player
         {
             ItemSelectedCommand = new RelayCommand(OnItemSelected);
             ProgramsData.Instance.GroupsInformation.Subscribe(x=>Programs = x);
+           
+            //TVPlayerViewModel.Instance.TopPanelVisible(true);
         }
 
         private void OnItemSelected()

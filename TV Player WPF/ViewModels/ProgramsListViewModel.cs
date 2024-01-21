@@ -18,8 +18,16 @@ namespace TV_Player
 
         public ProgramsListViewModel(GroupInfo groupInfo)
         {
+            TVPlayerViewModel.Instance.TopPanelVisible(true);
             ItemSelectedCommand = new RelayCommand(OnItemSelected);
-            ProgramsData.Instance.AllPrograms.Subscribe(x=>Programs = x.Where(p=>p.GroupTitle== groupInfo.Name).ToList());
+            ProgramsData.Instance.AllPrograms.Subscribe(x => Programs = x.Where(p => p.GroupTitle == groupInfo.Name).ToList());
+
+            TVPlayerViewModel.Instance.SetBackButtonAction(new Action(() =>
+            {
+                var programGroupViewModel = new ProgramsGroupViewModel();
+                var conrtrol = new ProgramsGroupGrid();
+                TVPlayerViewModel.Instance.SetPageContext(conrtrol, programGroupViewModel);
+            }));
         }
 
         private void OnItemSelected()
