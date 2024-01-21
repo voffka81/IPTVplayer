@@ -21,11 +21,11 @@
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
-        <Grid Visibility="{Binding IsTopPanelVisible,Converter={StaticResource BooleanToVisibilityConverterKey}}"  Height="70">
+        <Grid Visibility="{Binding IsTopPanelVisible,Converter={StaticResource BooleanToVisibilityConverterKey}}" Height="70">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="70"/>
                 <ColumnDefinition Width="70"/>
-                <ColumnDefinition Width="300"/>
+                <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="70"/>
             </Grid.ColumnDefinitions>
             <Button Height="50" Width="50" Margin="10,0,0,0" Style="{DynamicResource ButtonGear}" />
