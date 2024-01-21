@@ -18,7 +18,7 @@ namespace TV_Player
 
         public ProgramsListViewModel(GroupInfo groupInfo)
         {
-            TVPlayerViewModel.Instance.TopPanelVisible(true);
+            TVPlayerViewModel.Instance.TopPanelVisible(true, groupInfo.Name);
             ItemSelectedCommand = new RelayCommand(OnItemSelected);
             ProgramsData.Instance.AllPrograms.Subscribe(x => Programs = x.Where(p => p.GroupTitle == groupInfo.Name).ToList());
 

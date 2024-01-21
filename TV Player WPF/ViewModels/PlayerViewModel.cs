@@ -16,6 +16,13 @@ namespace TV_Player
             set => SetProperty(ref _currentProgram, value);
         }
 
+        private string _topPaneTitle;
+        public string TopPanelTitle
+        {
+            get => _topPaneTitle;
+            set => SetProperty(ref _topPaneTitle, value);
+        }
+
         public M3UInfo SelectedItem { get; set; }
         public ICommand BackCommand { get; }
 
@@ -23,7 +30,8 @@ namespace TV_Player
         {
             _currentProgram = selectedProgram;
             BackCommand = new RelayCommand(OnButtonBackClick);
-            TVPlayerViewModel.Instance.TopPanelVisible(false);
+            TVPlayerViewModel.Instance.TopPanelVisible(false, selectedProgram.Name);
+            TopPanelTitle = selectedProgram.Name;
         }
 
         private void OnButtonBackClick()

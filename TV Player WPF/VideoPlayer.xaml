@@ -12,15 +12,13 @@
             <StackPanel  Panel.ZIndex="10" IsHitTestVisible="True" Background="#01FFFFFF"
                              HorizontalAlignment="Stretch" MouseLeftButtonDown="MyUserControl_MouseDown" 
                              TouchDown="MyUserControl_TouchDown" >
-                <Grid x:Name="overlayPanel" Visibility="Collapsed" >
+                <Grid x:Name="overlayPanel" Visibility="Collapsed" Background="#70000000" Height="70" >
                     <Grid.ColumnDefinitions>
-                        <ColumnDefinition />
-                        <ColumnDefinition />
-                        <ColumnDefinition />
+                        <ColumnDefinition Width="70"/>
                         <ColumnDefinition />
                     </Grid.ColumnDefinitions>
                     <Button Height="50" Width="50" Margin="10,0,0,0" Style="{DynamicResource ButtonBack}" Command="{Binding BackCommand}" />
-                    <Button Grid.Column="1" Content="Pause" HorizontalAlignment="Stretch" Click="PauseButton_Click" />
+                    <TextBlock Grid.Column="1" FontSize="20" Foreground="White" Text="{Binding TopPanelTitle}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                 </Grid>
             </StackPanel>
         </vlc:VideoView>

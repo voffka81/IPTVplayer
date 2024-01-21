@@ -1,21 +1,19 @@
-﻿using CommunityToolkit.Mvvm.Input;
-using System.Windows.Controls;
-using System.Windows.Input;
+﻿using System.Windows.Controls;
 
 namespace TV_Player.ViewModels
 {
     public class TVPlayerViewModel
     {
         private readonly MainViewModel _mainViewModel;
-        
-        public Action ButtonBackAction { get; set; }       
 
-        private static TVPlayerViewModel _instance;
+        public Action ButtonBackAction { get; set; }
+
+        private static TVPlayerViewModel? _instance;
         public static TVPlayerViewModel Instance
         {
             get
             {
-                if(_instance==null)
+                if (_instance == null)
                     _instance = new TVPlayerViewModel();
                 return _instance;
             }
@@ -24,16 +22,29 @@ namespace TV_Player.ViewModels
         public TVPlayerViewModel()
         {
             _mainViewModel = new MainViewModel();
-            var mainWindow=new MainWindow();
+            var mainWindow = new MainWindow();
             mainWindow.DataContext = _mainViewModel;
-            
+
             mainWindow.Show();
             _instance = this;
-           
+
+            ShowInitialScreen();
         }
-        public void TopPanelVisible(bool value)
+
+        private void ShowInitialScreen()
+        {
+            var vm = new ProgramsGroupViewModel();
+
+            var control = new ProgramsGroupGrid();
+            control.DataContext = vm;
+
+            SetPageContext(control, vm);
+        }
+
+        public void TopPanelVisible(bool value, string title)
         {
             _mainViewModel.IsTopPanelVisible = value;
+            _mainViewModel.TopPanelTitle = title;
         }
 
         public void SetBackButtonAction(Action action)

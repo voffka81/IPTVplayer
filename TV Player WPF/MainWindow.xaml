@@ -21,10 +21,16 @@
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
-        <StackPanel Orientation="Horizontal" Visibility="{Binding IsTopPanelVisible,Converter={StaticResource BooleanToVisibilityConverterKey}}" >
+        <Grid Visibility="{Binding IsTopPanelVisible,Converter={StaticResource BooleanToVisibilityConverterKey}}"  Height="70">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="70"/>
+                <ColumnDefinition Width="70"/>
+                <ColumnDefinition />
+            </Grid.ColumnDefinitions>
             <Button Height="50" Width="50" Margin="10,0,0,0" Style="{DynamicResource ButtonGear}" />
-            <Button Height="50" Width="50" Margin="10,0,0,0" Style="{DynamicResource ButtonBack}" Command="{Binding BackCommand}" />
-        </StackPanel>
+            <Button Grid.Column="1" Height="50" Width="50" Margin="10,0,0,0" Style="{DynamicResource ButtonBack}" Command="{Binding BackCommand}" />
+            <TextBlock Grid.Column="2" FontSize="20" Foreground="White" Text="{Binding TopPanelTitle}" HorizontalAlignment="Center"/>
+        </Grid>
         <ContentControl Grid.Row="1" Name="ControlContainer" Content="{Binding Control}" />
     </Grid>
 </Window>

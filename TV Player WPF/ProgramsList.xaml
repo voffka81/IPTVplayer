@@ -7,15 +7,20 @@
              d:DesignHeight="450" d:DesignWidth="800">
     <Grid x:Name="groupsGrid">
         <ScrollViewer>
-            <ListBox ItemsSource="{Binding Programs}"
+            <ListBox ItemsSource="{Binding Programs}" Background="Transparent"
                   SelectionMode="Single"
                   SelectedItem="{Binding SelectedItem}"
                   SelectionChanged="ListBox_SelectionChanged">
+                <ListBox.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <UniformGrid Rows="4" />
+                    </ItemsPanelTemplate>
+                </ListBox.ItemsPanel>
                 <ListBox.ItemTemplate>
                     <DataTemplate>
                     <StackPanel>
-                        <Image Source="{Binding Logo}" Width="50" Height="50"/>
-                        <TextBlock Text="{Binding Name}"/>
+                        <Image Source="{Binding Logo}" Width="50" Height="50" HorizontalAlignment="Center"/>
+                        <TextBlock Text="{Binding Name}" FontSize="15" Foreground="White" HorizontalAlignment="Center"/>
                     </StackPanel>
                     </DataTemplate>
                 </ListBox.ItemTemplate>
