@@ -5,18 +5,19 @@
              xmlns:local="clr-namespace:TV_Player.MAUI"
              xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
              Title="PlayerPage"
+             xmlns:vlc="clr-namespace:LibVLCSharp.WPF;assembly=LibVLCSharp.WPF"
              Loaded="ContentPage_Loaded">
 
     <StackLayout>
-        <toolkit:MediaElement x:Name="mediaElement"
+        <!--<toolkit:MediaElement x:Name="mediaElement"
                       ShouldAutoPlay="True"
                       ShouldShowPlaybackControls="True"
                       Source="http://ost.da-tv.vip/uPVtzdGJfdG9rZW5dIiwibCI6ImE3MWU3N2ZhIiwicCI6ImE3MWU3N2ZhODM1YjMyMTYiLCJjIjoiNDk3IiwidCI6ImUzNjAwZTEwZmFmMGVhYjhhYWY1YTU2YzRkN2VjZTE5IiwiZCI6IjIzMTQ2IiwiciI6IjIzMDM4IiwibSI6InR2IiwiZHQiOiIwIn0eyJ1IjoiaHR0cDovLzQ1LjkzLjQ2LjI3Ojg4ODcvODM2MS92aWRlby5tM3U4P3Rva2V/video.m3u8"
                       HeightRequest="300"
                       WidthRequest="400"
-                       />
+                       />-->
         <!--<local:MediaViewer x:Name="libVLCSharpView"  WidthRequest="300" HeightRequest="300" HorizontalOptions="CenterAndExpand"  StreamUrl="{Binding URLSource,Source={x:Reference MyCustomView}}"/>-->
-        <Button Text="Play"  Command="{Binding PlayCommand}" />
+        <vlc:VideoView x:Name="VideoView" Panel.ZIndex="1"/>
     </StackLayout>
 
 </ContentPage>

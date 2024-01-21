@@ -1,9 +1,7 @@
 ﻿using LibVLCSharp.Shared;
 using LibVLCSharp.WPF;
-using System.IO;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Forms.Integration;
 using System.Windows.Input;
 
 namespace TV_Player
@@ -13,8 +11,6 @@ namespace TV_Player
     /// </summary>
     public partial class VideoPlayer : UserControl
     {
-        private readonly DirectoryInfo vlcLibDirectory;
-        
         public static readonly DependencyProperty SourceUrlProperty =
             DependencyProperty.Register(
                 "SourceUrl", // Name of the property
@@ -114,7 +110,7 @@ namespace TV_Player
 
         private void UserControl_Unloaded(object sender, RoutedEventArgs e)
         {
-            VideoView.MediaPlayer.Dispose();
+            VideoView.MediaPlayer?.Dispose();
         }
     }
 }

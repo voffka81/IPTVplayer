@@ -32,6 +32,5 @@ namespace TV_Player.ViewModels
             control.DataContext = viewModel;
             _mainViewModel.Control = control;
         }
-
     }
 }

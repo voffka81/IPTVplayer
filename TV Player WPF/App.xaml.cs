@@ -1,7 +1,4 @@
-﻿using DirectShowLib.BDA;
-using System.Configuration;
-using System.Data;
-using System.Windows;
+﻿using System.Windows;
 using TV_Player.ViewModels;
 
 namespace TV_Player
@@ -17,6 +14,12 @@ namespace TV_Player
             _tvPlayer = new TVPlayerViewModel();
 
             base.OnStartup(e);
+        }
+
+        protected override void OnExit(ExitEventArgs e)
+        {
+            _tvPlayer = null;
+            base.OnExit(e);
         }
     }
 }
