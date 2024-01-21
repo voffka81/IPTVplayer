@@ -1,11 +1,109 @@
 ﻿using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text.RegularExpressions;
+using System.Xml;
 
 namespace TV_Player
 {
+    public class ProgramInfo : ObservableViewModelBase
+    {
+        private string _title;
+        private int _durationValue;
+
+        public string Title { get => _title; set => SetProperty(ref _title, value); }
+        
+        public DateTime StartTime { get; set; }
+        public DateTime StopTime { get; set; }
+        public int DurationValue { get => _durationValue; set => SetProperty(ref _durationValue , value); }
+
+    }
+
+    public class ProgramGuide
+    {
+        public string Id { get; set; }
+        public string DisplayName { get; set; }
+        public List<ProgramInfo> Programs { get; set; } = new List<ProgramInfo>();
+    }
     public static class M3UParser
     {
+
+
+        public static async Task<List<ProgramGuide>> DownloadGuideFromWebAsync(string url)
+        {
+            List<ProgramGuide> epgChannels = new List<ProgramGuide>(); ;
+            using (var client = new HttpClient())
+            using (var request = new HttpRequestMessage())
+            {
+                client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/text"));
+                request.Method = HttpMethod.Get;
+                request.RequestUri = new Uri(url);
+                var response = await client.GetAsync(url);
+                response.EnsureSuccessStatusCode();
+                string responseBody = await response.Content.ReadAsStringAsync();
+                epgChannels = ParseEpg(responseBody);
+            }
+            return epgChannels;
+        }
+
+
+        private static List<ProgramGuide> ParseEpg(string epgData)
+        {
+            List<ProgramGuide> epgChannels = new List<ProgramGuide>();
+
+            using (XmlReader reader = XmlReader.Create(new System.IO.StringReader(epgData)))
+            {
+                ProgramGuide currentChannel = null;
+                XmlDocument doc = new XmlDocument();
+                doc.LoadXml(epgData);
+
+                XmlNodeList channelNodes = doc.SelectNodes("//channel");
+
+                foreach (XmlNode channelNode in channelNodes)
+                {
+                    ProgramGuide channel = new ProgramGuide();
+                    channel.Id = channelNode.Attributes["id"].Value;
+                    channel.DisplayName = channelNode.SelectSingleNode("display-name").InnerText;
+
+                    XmlNodeList programNodes = doc.SelectNodes($"//programme[@channel='{channel.Id}']");
+                    foreach (XmlNode programNode in programNodes)
+                    {
+                        ProgramInfo program = new ProgramInfo();
+                        program.Title = programNode.SelectSingleNode("title").InnerText;
+                        program.StartTime = DateTime.ParseExact(programNode.Attributes["start"].Value, "yyyyMMddHHmmss zzz", null);
+                        program.StopTime = DateTime.ParseExact(programNode.Attributes["stop"].Value, "yyyyMMddHHmmss zzz", null);
+
+                        channel.Programs.Add(program);
+                    }
+
+                    epgChannels.Add(channel);
+                }
+                //while (reader.Read())
+                //{
+                //    if (reader.NodeType == XmlNodeType.Element)
+                //    {
+                //        if (reader.Name == "channel")
+                //        {
+                //            currentChannel = new ProgramGuide();
+                //            currentChannel.Id = reader.GetAttribute("id");
+                //            currentChannel.DisplayName = reader.ReadElementContentAsString();
+                //            epgChannels.Add(currentChannel);
+                //        }
+                //        else if (reader.Name == "programme" && currentChannel != null)
+                //        {
+                //            ProgramInfo program = new ProgramInfo();
+                //            program.Title = reader.ReadElementContentAsString();
+                //            program.StartTime = DateTime.ParseExact(reader.GetAttribute("start"), "yyyyMMddHHmmss zzz", null);
+                //            program.StopTime = DateTime.ParseExact(reader.GetAttribute("stop"), "yyyyMMddHHmmss zzz", null);
+                //            currentChannel.Programs.Add(program);
+                //        }
+                //    }
+                //}
+            }
+
+            return epgChannels;
+        }
+
+
         public static async Task<List<M3UInfo>> DownloadM3UFromWebAsync(string url)
         {
             List<M3UInfo> playlistItems = new List<M3UInfo>();

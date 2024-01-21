@@ -1,4 +1,5 @@
 ﻿using CommunityToolkit.Mvvm.Input;
+using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 
@@ -14,7 +15,8 @@ namespace TV_Player
         }
 
         private bool _isTopPanelVisible;
-        public bool IsTopPanelVisible{
+        public bool IsTopPanelVisible
+        {
             get => _isTopPanelVisible;
             set => SetProperty(ref _isTopPanelVisible, value);
         }
@@ -26,15 +28,51 @@ namespace TV_Player
             set => SetProperty(ref _topPaneTitle, value);
         }
 
+        private WindowState _currentWindowState;
+        public WindowState CurrentWindowState
+        {
+            get => _currentWindowState;
+            set => SetProperty(ref _currentWindowState, value);
+        }
+
+        private WindowStyle _currentWindowStyle;
+        public WindowStyle CurrentWindowStyle
+        {
+            get => _currentWindowStyle;
+            set => SetProperty(ref _currentWindowStyle, value);
+        }
+
+        public ICommand FullscreenCommand { get; }
+
         public Action ButtonBackAction { get; set; }
         public ICommand BackCommand { get; }
 
         public MainViewModel()
-        {          
+        {
+
             BackCommand = new RelayCommand(OnButtonBackClick);
+            FullscreenCommand = new RelayCommand(OnFullSctreenButtonClick);
+
+            CurrentWindowStyle = WindowStyle.SingleBorderWindow;
         }
+
+        private void OnFullSctreenButtonClick()
+        {
+            if (CurrentWindowStyle == WindowStyle.SingleBorderWindow)
+            {
+                CurrentWindowStyle = WindowStyle.None;
+                CurrentWindowState = WindowState.Maximized;
+            }
+            else
+            {
+                CurrentWindowStyle = WindowStyle.SingleBorderWindow;
+                CurrentWindowState = WindowState.Normal;
+            }
+        }
+
         private void OnButtonBackClick()
         {
+
             ButtonBackAction?.Invoke();
         }
     }

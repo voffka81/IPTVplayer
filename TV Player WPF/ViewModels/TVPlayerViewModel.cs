@@ -54,6 +54,8 @@ namespace TV_Player.ViewModels
 
         public void SetPageContext(ContentControl control, object viewModel)
         {
+            if (_mainViewModel.Control is IDisposable disposable)
+                disposable.Dispose();
             control.DataContext = viewModel;
             _mainViewModel.Control = control;
         }
