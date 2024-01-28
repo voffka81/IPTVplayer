@@ -5,20 +5,20 @@
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="{x:Type controls:GroupButton}">
-                    <Grid x:Name="ButtonBorder" Height="70" Width="150" >
+                    <Border x:Name="ButtonBorder" Height="70" Width="150" >
                         <Grid  VerticalAlignment="Stretch" HorizontalAlignment="Stretch">
                             <Grid.RowDefinitions>
                                 <RowDefinition Height="*"/>
                                 <RowDefinition Height="0.4*"/>
                             </Grid.RowDefinitions>
-                            <Rectangle RadiusX="15" RadiusY="15" x:Name="Border" StrokeThickness="3" Stroke="Yellow" Stretch="Fill" Grid.RowSpan="2" Fill="#FF1F1E1E"/>
+                            <Rectangle RadiusX="15" RadiusY="15" x:Name="Border" StrokeThickness="2" Stroke="Yellow" Stretch="Fill" Grid.RowSpan="2" Fill="#B0000000"/>
                             <TextBlock x:Name="groupName" Text="{TemplateBinding GroupName}" FontSize="15" Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                             <TextBlock Grid.Row="1" FontSize="10" Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center" LineStackingStrategy="BlockLineHeight" LineHeight="10">
                                  <Run Text="{TemplateBinding ProgramsCount}"/>
-                                 <Run>Programs</Run>
+                                 <Run>программ</Run>
                             </TextBlock>
                         </Grid>
-                    </Grid>
+                    </Border>
                 </ControlTemplate>
             </Setter.Value>
         </Setter>
@@ -38,6 +38,54 @@ C52.656,68.369,50.522,69.253,48.252,69.253z M48.252,6.747c-1.202,0-2.332,0.468-3
 c-0.891,0.893-0.833,2.084-0.833,3.355c0,0.051,0,0.101,0,0.151c0,1.271-0.058,2.461,0.833,3.353l24.269,24.506
 c0.85,0.85,1.862,1.317,3.063,1.317c1.203,0,2.273-0.468,3.123-1.317c1.755-1.755,1.725-4.61-0.03-6.365L31.292,37.414
 c-0.781-0.781-0.788-2.047-0.007-2.828L51.438,14.43c1.754-1.755,1.753-4.61-0.001-6.365C50.587,7.215,49.454,6.747,48.252,6.747z" Stretch="Fill" Width="50"/>
+                        </Viewbox>
+                    </Border>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style x:Key="ButtonUp" TargetType="{x:Type Button}">
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="{x:Type Button}">
+                    <Border Background="Yellow" Height="50" Width="50" CornerRadius="300">
+                        <Viewbox Margin="0,6,5,5">
+                            <Path VerticalAlignment="Center" HorizontalAlignment="Center" Fill="Gray" Data="M48.252,69.253c-2.271,0-4.405-0.884-6.011-2.489L17.736,42.258c-1.646-1.645-2.546-3.921-2.479-6.255
+c-0.068-2.337,0.833-4.614,2.479-6.261L42.242,5.236c1.605-1.605,3.739-2.489,6.01-2.489c2.271,0,4.405,0.884,6.01,2.489
+c3.314,3.314,3.314,8.707,0,12.021L35.519,36l18.743,18.742c3.314,3.314,3.314,8.707,0,12.021
+C52.656,68.369,50.522,69.253,48.252,69.253z M48.252,6.747c-1.202,0-2.332,0.468-3.182,1.317L21.038,32.57
+c-0.891,0.893-0.833,2.084-0.833,3.355c0,0.051,0,0.101,0,0.151c0,1.271-0.058,2.461,0.833,3.353l24.269,24.506
+c0.85,0.85,1.862,1.317,3.063,1.317c1.203,0,2.273-0.468,3.123-1.317c1.755-1.755,1.725-4.61-0.03-6.365L31.292,37.414
+c-0.781-0.781-0.788-2.047-0.007-2.828L51.438,14.43c1.754-1.755,1.753-4.61-0.001-6.365C50.587,7.215,49.454,6.747,48.252,6.747z" Stretch="Fill" Width="50">
+                                <Path.LayoutTransform>
+                                    <RotateTransform Angle="90"></RotateTransform>
+                                </Path.LayoutTransform>
+                            </Path>
+                        </Viewbox>
+                    </Border>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+    
+    <Style x:Key="ButtonDown" TargetType="{x:Type Button}">
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="{x:Type Button}">
+                    <Border Background="Yellow" Height="50" Width="50" CornerRadius="300">
+                        <Viewbox Margin="0,6,5,5">
+                            <Path VerticalAlignment="Center" HorizontalAlignment="Center" Fill="Gray" Data="M48.252,69.253c-2.271,0-4.405-0.884-6.011-2.489L17.736,42.258c-1.646-1.645-2.546-3.921-2.479-6.255
+c-0.068-2.337,0.833-4.614,2.479-6.261L42.242,5.236c1.605-1.605,3.739-2.489,6.01-2.489c2.271,0,4.405,0.884,6.01,2.489
+c3.314,3.314,3.314,8.707,0,12.021L35.519,36l18.743,18.742c3.314,3.314,3.314,8.707,0,12.021
+C52.656,68.369,50.522,69.253,48.252,69.253z M48.252,6.747c-1.202,0-2.332,0.468-3.182,1.317L21.038,32.57
+c-0.891,0.893-0.833,2.084-0.833,3.355c0,0.051,0,0.101,0,0.151c0,1.271-0.058,2.461,0.833,3.353l24.269,24.506
+c0.85,0.85,1.862,1.317,3.063,1.317c1.203,0,2.273-0.468,3.123-1.317c1.755-1.755,1.725-4.61-0.03-6.365L31.292,37.414
+c-0.781-0.781-0.788-2.047-0.007-2.828L51.438,14.43c1.754-1.755,1.753-4.61-0.001-6.365C50.587,7.215,49.454,6.747,48.252,6.747z" Stretch="Fill" Width="50">
+                                <Path.LayoutTransform>
+                                    <RotateTransform Angle="270"></RotateTransform>
+                                </Path.LayoutTransform>
+                            </Path>
                         </Viewbox>
                     </Border>
                 </ControlTemplate>
@@ -74,5 +122,78 @@ c-0.781-0.781-0.788-2.047-0.007-2.828L51.438,14.43c1.754-1.755,1.753-4.61-0.001-
                 </ControlTemplate>
             </Setter.Value>
         </Setter>
+    </Style>
+    <Style x:Key="ListBoxView" TargetType="ListView">
+        <Setter Property="Background" Value="Transparent"/>
+        <Setter Property="VerticalAlignment" Value="Top"/>
+        <Setter Property="ScrollViewer.VerticalScrollBarVisibility" Value="Auto"/>
+        <Setter Property="ScrollViewer.CanContentScroll" Value="True"/>
+        <Setter Property="ScrollViewer.HorizontalScrollBarVisibility" Value="Disabled"/>
+        <Setter Property="ScrollViewer.PanningMode" Value="VerticalOnly"/>
+        <Setter Property="VirtualizingPanel.IsVirtualizing" Value="True"/>
+        <Setter Property="ScrollViewer.CanContentScroll" Value="True"  />
+        <Setter Property="VirtualizingStackPanel.VirtualizationMode" Value="Recycling" />
+        <Setter Property="VirtualizingPanel.IsContainerVirtualizable" Value="True" />
+        <Style.Resources>
+            <Style  x:Key="ScrollThumbs" TargetType="{x:Type Thumb}">
+                <Setter Property="Background" Value="#3E85C3" />
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="{x:Type Thumb}">
+                            <Grid Name="Grid">
+                                <Rectangle Name="Rectangle1"
+                               Width="7" MinHeight="10"
+                               Height="Auto"
+                               HorizontalAlignment="Stretch"
+                               VerticalAlignment="Stretch"
+                               Fill="{TemplateBinding Background}"
+                               RadiusX="3"
+                               RadiusY="3" />
+                            </Grid>
+                            <ControlTemplate.Triggers>
+                                <Trigger Property="IsDragging" Value="True">
+                                    <Setter TargetName="Rectangle1" Property="Border.BorderThickness" Value="2"></Setter>
+                                    <Setter TargetName="Rectangle1" Property="Border.BorderBrush" Value="#003663"></Setter>
+                                    <Setter  Property="Background" Value="#003663"></Setter>
+                                </Trigger>
+                            </ControlTemplate.Triggers>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Style>
+
+            <Style TargetType="{x:Type ScrollBar}">
+                <Setter Property="Margin" Value="0"></Setter>
+                <Setter Property="Padding" Value="0"></Setter>
+                <Setter Property="Background" Value="#ecf0f6" />
+                <Setter Property="Width" Value="19" />
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="{x:Type ScrollBar}">
+                            <Grid x:Name="GridRoot"
+                      AutomationProperties.AutomationId="HS000_AD_43"
+                      Width="{DynamicResource {x:Static SystemParameters.VerticalScrollBarWidth}}"
+                      Background="{TemplateBinding Background}">
+                                <Grid.RowDefinitions>
+                                    <RowDefinition MaxHeight="9" />
+                                    <RowDefinition Height="0.00001*" />
+                                    <RowDefinition MaxHeight="9" />
+                                </Grid.RowDefinitions>
+                                <Track x:Name="PART_Track"
+                           Grid.Row="1"
+                           Focusable="false"
+                           IsDirectionReversed="true">
+                                    <Track.Thumb>
+                                        <Thumb x:Name="Thumb"
+                                   
+                                   Style="{DynamicResource ScrollThumbs}" />
+                                    </Track.Thumb>
+                                </Track>
+                            </Grid>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Style>
+        </Style.Resources>
     </Style>
 </ResourceDictionary>

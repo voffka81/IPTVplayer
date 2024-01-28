@@ -22,20 +22,33 @@
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="70"/>
                             <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="70"/>
                         </Grid.ColumnDefinitions>
                         <Button Height="50" Width="50" Margin="10,0,0,0" Style="{DynamicResource ButtonBack}" Command="{Binding BackCommand}" />
                         <TextBlock Grid.Column="1" FontSize="20" Foreground="White" Text="{Binding TopPanelTitle}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        <Button Grid.Column="4" Height="50" Width="50" Margin="10,0,0,0" Style="{DynamicResource ButtonFullScreen}" Command="{Binding FullscreenCommand}" />
                     </Grid>
                     <Grid Grid.Row="2" Background="#70000000">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="180"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="70"/>
+                        </Grid.ColumnDefinitions>
                         <Grid.RowDefinitions>
                             <RowDefinition Height="*"/>
                             <RowDefinition Height="*"/>
                         </Grid.RowDefinitions>
-                        <TextBlock FontSize="20" Foreground="White" Text="{Binding ProgramGuideText}" HorizontalAlignment="Center" />
-                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Grid.Row="1">
-                            <TextBlock FontSize="10" Foreground="White" Text="{Binding StartProgram}" HorizontalAlignment="Center" />
+
+                        <StackPanel Grid.RowSpan="2" Orientation="Horizontal" >
+                            <Button Grid.RowSpan="2" Height="50" Width="50" Margin="10,0,10,0" Style="{DynamicResource ButtonDown}" Command="{Binding PreviousCommand}" />
+                            <TextBlock FontSize="15" Foreground="White" Text="Ch" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                            <Button Grid.RowSpan="2"  Height="50" Width="50" Margin="10,0,10,0" Style="{DynamicResource ButtonUp}" Command="{Binding NextCommand}" />
+                        </StackPanel>
+                        <TextBlock Grid.Column="1" FontSize="20" Foreground="White" Text="{Binding ProgramGuideText}" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Grid.Column="1" Grid.Row="1">
+                            <TextBlock FontSize="15" Foreground="White" Text="{Binding StartProgram}" HorizontalAlignment="Center" />
                             <ProgressBar Height="10" Foreground="Yellow" Name="progressBar" Value="{Binding DurationValue}" Maximum="100" VerticalAlignment="Center" HorizontalAlignment="Center" Width="400"/>
-                            <TextBlock FontSize="10" Foreground="White" Text="{Binding EndProgram}" HorizontalAlignment="Center" />
+                            <TextBlock FontSize="15" Foreground="White" Text="{Binding EndProgram}" HorizontalAlignment="Center" />
                         </StackPanel>
                     </Grid>
                 </Grid>

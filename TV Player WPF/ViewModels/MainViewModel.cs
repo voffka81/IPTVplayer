@@ -7,12 +7,13 @@ namespace TV_Player
 {
     public class MainViewModel : ObservableViewModelBase
     {
-        private ContentControl _control;
-        public ContentControl Control
+        private ContentControl? _control;
+        public ContentControl? Control
         {
             get => _control;
             set => SetProperty(ref _control, value);
         }
+       
 
         private bool _isTopPanelVisible;
         public bool IsTopPanelVisible
@@ -56,7 +57,7 @@ namespace TV_Player
             CurrentWindowStyle = WindowStyle.SingleBorderWindow;
         }
 
-        private void OnFullSctreenButtonClick()
+        public void OnFullSctreenButtonClick()
         {
             if (CurrentWindowStyle == WindowStyle.SingleBorderWindow)
             {

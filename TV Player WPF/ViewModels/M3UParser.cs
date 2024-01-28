@@ -1,6 +1,7 @@
 ﻿using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text.RegularExpressions;
+using System.Threading.Channels;
 using System.Xml;
 
 namespace TV_Player
@@ -11,10 +12,10 @@ namespace TV_Player
         private int _durationValue;
 
         public string Title { get => _title; set => SetProperty(ref _title, value); }
-        
+
         public DateTime StartTime { get; set; }
         public DateTime StopTime { get; set; }
-        public int DurationValue { get => _durationValue; set => SetProperty(ref _durationValue , value); }
+        public int DurationValue { get => _durationValue; set => SetProperty(ref _durationValue, value); }
 
     }
 
@@ -49,151 +50,174 @@ namespace TV_Player
         private static List<ProgramGuide> ParseEpg(string epgData)
         {
             List<ProgramGuide> epgChannels = new List<ProgramGuide>();
+            XmlReaderSettings settings = new XmlReaderSettings();
+            settings.IgnoreWhitespace = true;
+            settings.IgnoreComments = true;
 
-            using (XmlReader reader = XmlReader.Create(new System.IO.StringReader(epgData)))
+            using (XmlReader reader = XmlReader.Create(new System.IO.StringReader(epgData), settings))
             {
-                ProgramGuide currentChannel = null;
-                XmlDocument doc = new XmlDocument();
-                doc.LoadXml(epgData);
-
-                XmlNodeList channelNodes = doc.SelectNodes("//channel");
-
-                foreach (XmlNode channelNode in channelNodes)
+                try
                 {
-                    ProgramGuide channel = new ProgramGuide();
-                    channel.Id = channelNode.Attributes["id"].Value;
-                    channel.DisplayName = channelNode.SelectSingleNode("display-name").InnerText;
-
-                    XmlNodeList programNodes = doc.SelectNodes($"//programme[@channel='{channel.Id}']");
-                    foreach (XmlNode programNode in programNodes)
+                    while (reader.Read())
                     {
-                        ProgramInfo program = new ProgramInfo();
-                        program.Title = programNode.SelectSingleNode("title").InnerText;
-                        program.StartTime = DateTime.ParseExact(programNode.Attributes["start"].Value, "yyyyMMddHHmmss zzz", null);
-                        program.StopTime = DateTime.ParseExact(programNode.Attributes["stop"].Value, "yyyyMMddHHmmss zzz", null);
+                        if (reader.NodeType == XmlNodeType.Element && reader.Name == "channel")
+                        {
+                            ProgramGuide channel = new ProgramGuide();
+                            channel.Id = reader.GetAttribute("id");
+                            reader.Read();
+                            channel.DisplayName = reader.ReadElementContentAsString();
 
-                        channel.Programs.Add(program);
+                            epgChannels.Add(channel);
+                            continue;
+                        }
+
+                        if (reader.NodeType == XmlNodeType.Element && reader.Name == "programme")
+                        {
+                            ProgramInfo program = new ProgramInfo();
+
+                            var id=reader.GetAttribute("channel");
+                            var channel = epgChannels.FirstOrDefault(x => x.Id == id);
+                            program.StartTime = DateTime.ParseExact(reader.GetAttribute("start"), "yyyyMMddHHmmss zzz", null);
+                            program.StopTime = DateTime.ParseExact(reader.GetAttribute("stop"), "yyyyMMddHHmmss zzz", null);
+
+                            reader.Read();
+                            program.Title = reader.ReadElementContentAsString();
+                           
+
+                            channel.Programs.Add(program);
+                        }
+                        else if (reader.NodeType == XmlNodeType.EndElement && reader.Name == "channel")
+                        {
+                            break;
+                        }
                     }
-
-                    epgChannels.Add(channel);
                 }
-                //while (reader.Read())
-                //{
-                //    if (reader.NodeType == XmlNodeType.Element)
-                //    {
-                //        if (reader.Name == "channel")
-                //        {
-                //            currentChannel = new ProgramGuide();
-                //            currentChannel.Id = reader.GetAttribute("id");
-                //            currentChannel.DisplayName = reader.ReadElementContentAsString();
-                //            epgChannels.Add(currentChannel);
-                //        }
-                //        else if (reader.Name == "programme" && currentChannel != null)
-                //        {
-                //            ProgramInfo program = new ProgramInfo();
-                //            program.Title = reader.ReadElementContentAsString();
-                //            program.StartTime = DateTime.ParseExact(reader.GetAttribute("start"), "yyyyMMddHHmmss zzz", null);
-                //            program.StopTime = DateTime.ParseExact(reader.GetAttribute("stop"), "yyyyMMddHHmmss zzz", null);
-                //            currentChannel.Programs.Add(program);
-                //        }
-                //    }
-                //}
+                catch (Exception ex) {
             }
+        }
+            //using (XmlReader reader = XmlReader.Create(new System.IO.StringReader(epgData)))
+            //{
+            //    ProgramGuide currentChannel = null;
+            //    XmlDocument doc = new XmlDocument();
+            //    doc.LoadXml(epgData);
+
+            //    XmlNodeList channelNodes = doc.SelectNodes("//channel");
+
+            //    foreach (XmlNode channelNode in channelNodes)
+            //    {
+            //        ProgramGuide channel = new ProgramGuide();
+            //        channel.Id = channelNode.Attributes["id"].Value;
+            //        channel.DisplayName = channelNode.SelectSingleNode("display-name").InnerText;
+
+            //        XmlNodeList programNodes = doc.SelectNodes($"//programme[@channel='{channel.Id}']");
+            //        foreach (XmlNode programNode in programNodes)
+            //        {
+            //            ProgramInfo program = new ProgramInfo();
+            //            program.Title = programNode.SelectSingleNode("title").InnerText;
+            //            program.StartTime = DateTime.ParseExact(programNode.Attributes["start"].Value, "yyyyMMddHHmmss zzz", null);
+            //            program.StopTime = DateTime.ParseExact(programNode.Attributes["stop"].Value, "yyyyMMddHHmmss zzz", null);
+
+            //            channel.Programs.Add(program);
+            //        }
+
+            //        epgChannels.Add(channel);
+            //    }
+            //}
 
             return epgChannels;
         }
 
 
-        public static async Task<List<M3UInfo>> DownloadM3UFromWebAsync(string url)
+    public static async Task<List<M3UInfo>> DownloadM3UFromWebAsync(string url)
+    {
+        List<M3UInfo> playlistItems = new List<M3UInfo>();
+
+        using (var client = new HttpClient())
+        using (var request = new HttpRequestMessage())
         {
-            List<M3UInfo> playlistItems = new List<M3UInfo>();
+            client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/text"));
+            request.Method = HttpMethod.Get;
+            request.RequestUri = new Uri(url);
+            var response = await client.GetAsync(url);
+            response.EnsureSuccessStatusCode();
+            string responseBody = await response.Content.ReadAsStringAsync();
 
-            using (var client = new HttpClient())
-            using (var request = new HttpRequestMessage())
+            // Parse M3U content
+            playlistItems = ParseM3UFromString(responseBody);
+        }
+        return playlistItems;
+    }
+
+    static string[] SplitStringBeforeSeparator(string input, string separator)
+    {
+        string[] parts = input.Split(separator);
+
+        // Reconstruct the string until the separator is reached
+        int separatorIndex = input.IndexOf(separator);
+        if (separatorIndex != -1)
+        {
+            parts[0] = input.Substring(0, separatorIndex + 1);
+            for (int i = 1; i < parts.Length; i++)
             {
-                client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/text"));
-                request.Method = HttpMethod.Get;
-                request.RequestUri = new Uri(url);
-                var response = await client.GetAsync(url);
-                response.EnsureSuccessStatusCode();
-                string responseBody = await response.Content.ReadAsStringAsync();
-
-                // Parse M3U content
-                playlistItems = ParseM3UFromString(responseBody);
+                parts[i] = separator + parts[i];
             }
-            return playlistItems;
         }
 
-        static string[] SplitStringBeforeSeparator(string input, string separator)
+        return parts;
+    }
+
+    static List<M3UInfo> ParseM3UFromString(string content)
+    {
+        List<M3UInfo> playlistItems = new List<M3UInfo>();
+
+        try
         {
-            string[] parts = input.Split(separator);
+            var m3u = SplitStringBeforeSeparator(content, "#EXT");
 
-            // Reconstruct the string until the separator is reached
-            int separatorIndex = input.IndexOf(separator);
-            if (separatorIndex != -1)
+            foreach (var line in m3u)
             {
-                parts[0] = input.Substring(0, separatorIndex + 1);
-                for (int i = 1; i < parts.Length; i++)
+                if (line.StartsWith("#EXTINF:"))
                 {
-                    parts[i] = separator + parts[i];
-                }
-            }
-
-            return parts;
-        }
-
-        static List<M3UInfo> ParseM3UFromString(string content)
-        {
-            List<M3UInfo> playlistItems = new List<M3UInfo>();
-
-            try
-            {
-                var m3u = SplitStringBeforeSeparator(content, "#EXT");
-
-                foreach (var line in m3u)
-                {
-                    if (line.StartsWith("#EXTINF:"))
+                    if (TryParseM3ULine(line, out var m3uInfo))
                     {
-                        if (TryParseM3ULine(line, out var m3uInfo))
-                        {
-                            playlistItems.Add(m3uInfo);
-                        }
+                        playlistItems.Add(m3uInfo);
                     }
                 }
             }
-            catch (Exception ex)
-            {
-                Console.WriteLine("Error reading M3U file: " + ex.Message);
-            }
-
-            return playlistItems;
         }
-
-
-        static bool TryParseM3ULine(string m3uLine, out M3UInfo? info)
+        catch (Exception ex)
         {
-            info = null;
-            string pattern = @"#EXTINF:\d+ CUID=""(?<CUID>.*?)"" number=""(?<Number>.*?)"" tvg-id=""(?<TvgID>.*?)"" tvg-name=""(?<TvgName>.*?)"".*?tvg-logo=""(?<Logo>.*?)"" group-title=""(?<GroupTitle>.*?)""[^,]*,(?<Name>.*)[^\r](?<URL>.*)$";
-            Regex regex = new Regex(pattern, RegexOptions.IgnoreCase);
-
-            Match match = regex.Match(m3uLine);
-            if (match.Success)
-            {
-                info = new M3UInfo
-                {
-                    CUID = match.Groups["CUID"].Value,
-                    Number = match.Groups["Number"].Value,
-                    TvgID = match.Groups["TvgID"].Value,
-                    TvgName = match.Groups["TvgName"].Value,
-                    GroupTitle = match.Groups["GroupTitle"].Value,
-                    Logo = match.Groups["Logo"].Value,
-                    Name = match.Groups["Name"].Value,
-                    Url = match.Groups["URL"].Value
-                };
-                return true;
-            }
-
-            return false;
+            Console.WriteLine("Error reading M3U file: " + ex.Message);
         }
+
+        return playlistItems;
     }
+
+
+    static bool TryParseM3ULine(string m3uLine, out M3UInfo? info)
+    {
+        info = null;
+        string pattern = @"#EXTINF:\d+ CUID=""(?<CUID>.*?)"" number=""(?<Number>.*?)"" tvg-id=""(?<TvgID>.*?)"" tvg-name=""(?<TvgName>.*?)"".*?tvg-logo=""(?<Logo>.*?)"" group-title=""(?<GroupTitle>.*?)""[^,]*,(?<Name>.*)[^\r](?<URL>.*)$";
+        Regex regex = new Regex(pattern, RegexOptions.IgnoreCase);
+
+        Match match = regex.Match(m3uLine);
+        if (match.Success)
+        {
+            info = new M3UInfo
+            {
+                CUID = match.Groups["CUID"].Value,
+                Number = match.Groups["Number"].Value,
+                TvgID = match.Groups["TvgID"].Value,
+                TvgName = match.Groups["TvgName"].Value,
+                GroupTitle = match.Groups["GroupTitle"].Value,
+                Logo = match.Groups["Logo"].Value,
+                Name = match.Groups["Name"].Value,
+                Url = match.Groups["URL"].Value
+            };
+            return true;
+        }
+
+        return false;
+    }
+}
 }

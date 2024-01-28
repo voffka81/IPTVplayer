@@ -5,23 +5,26 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" xmlns:tv_player="clr-namespace:TV_Player"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800">
-    <Grid x:Name="groupsGrid">
-        <ScrollViewer>
-            <ListBox ItemsSource="{Binding Programs}" Background="Transparent"
-                     SelectionMode="Single"
-                     SelectedItem="{Binding SelectedItem}"
+    
+    <Grid x:Name="groupsGrid" VerticalAlignment="Center">
+        <ListView ItemsSource="{Binding Programs}" Background="Transparent"
+                     SelectionMode="Single" Style="{StaticResource ListBoxView}"
+                     SelectedItem="{Binding SelectedItem}" BorderThickness="0" 
+                     ScrollViewer.HorizontalScrollBarVisibility="Disabled" 
+                     ScrollViewer.VerticalScrollBarVisibility="Auto" 
                      SelectionChanged="ListBox_SelectionChanged">
-                <ListBox.ItemsPanel>
-                    <ItemsPanelTemplate>
-                        <UniformGrid Rows="4" />
-                    </ItemsPanelTemplate>
-                </ListBox.ItemsPanel>
-                <ListBox.ItemTemplate>
-                    <DataTemplate>
-                        <tv_player:GroupButton Style="{DynamicResource GroupButton}" GroupName="{Binding Name}" ProgramsCount="{Binding Count}"/>
-                    </DataTemplate>
-                </ListBox.ItemTemplate>
-            </ListBox>
-        </ScrollViewer>
+            <ListBox.ItemsPanel>
+                <ItemsPanelTemplate>
+                    <UniformGrid Rows="4" />
+                </ItemsPanelTemplate>
+            </ListBox.ItemsPanel>
+            <ListView.ItemTemplate>
+                <DataTemplate>
+                    <Viewbox HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+                        <tv_player:GroupButton  Style="{DynamicResource GroupButton}" GroupName="{Binding Name}" ProgramsCount="{Binding Count}"/>
+                    </Viewbox>
+                </DataTemplate>
+            </ListView.ItemTemplate>
+        </ListView>
     </Grid>
 </UserControl>

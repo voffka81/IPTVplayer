@@ -5,26 +5,35 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800">
-    <Grid x:Name="groupsGrid">
-        <ScrollViewer>
-            <ListBox ItemsSource="{Binding Programs}" Background="Transparent"
-                  SelectionMode="Single"
-                  SelectedItem="{Binding SelectedItem}"
+    <Grid x:Name="programsGrid">
+        <ListView ItemsSource="{Binding Programs}" Background="Transparent" VerticalAlignment="Top" Margin="0,50,0,0"
+                  SelectionMode="Single" Style="{StaticResource ListBoxView}"
+                  SelectedItem="{Binding SelectedItem}" BorderThickness="0"
                   SelectionChanged="ListBox_SelectionChanged">
-                <ListBox.ItemsPanel>
-                    <ItemsPanelTemplate>
-                        <UniformGrid Rows="4" />
-                    </ItemsPanelTemplate>
-                </ListBox.ItemsPanel>
-                <ListBox.ItemTemplate>
-                    <DataTemplate>
-                    <StackPanel>
-                        <Image Source="{Binding Logo}" Width="50" Height="50" HorizontalAlignment="Center"/>
-                        <TextBlock Text="{Binding Name}" FontSize="15" Foreground="White" HorizontalAlignment="Center"/>
-                    </StackPanel>
-                    </DataTemplate>
-                </ListBox.ItemTemplate>
-            </ListBox>
-        </ScrollViewer>
+            <ListView.ItemsPanel>
+                <ItemsPanelTemplate>
+                    <UniformGrid Columns="17" />
+                </ItemsPanelTemplate>
+            </ListView.ItemsPanel>
+            <ListView.ItemTemplate>
+                <DataTemplate>
+                    <Viewbox HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+                    <Border Height="145" Width="106" HorizontalAlignment="Center" CornerRadius="5" BorderBrush="Yellow" BorderThickness="2">
+                        <Grid Margin="1" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Background="#B0000000">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="*"/>
+                                <RowDefinition Height=".4*"/>
+                            </Grid.RowDefinitions>
+                            <Image Source="{Binding Logo}" MaxWidth="100" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Margin="0,0,0,10"/>
+                            
+                            <TextBlock  Grid.Row="1" Text="{Binding Name}" FontSize="15" TextAlignment="Center" Foreground="White" HorizontalAlignment="Center" TextWrapping="Wrap" Margin="1,0,1,2"/>
+                           
+                        </Grid>
+                    </Border>
+                    </Viewbox>
+                </DataTemplate>
+            </ListView.ItemTemplate>
+        </ListView>
+
     </Grid>
 </UserControl>

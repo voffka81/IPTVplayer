@@ -47,6 +47,11 @@ namespace TV_Player.ViewModels
             _mainViewModel.TopPanelTitle = title;
         }
 
+        public void FullScreenToggle()
+        {
+            _mainViewModel.OnFullSctreenButtonClick();
+        }
+
         public void SetBackButtonAction(Action action)
         {
             _mainViewModel.ButtonBackAction = action;
@@ -57,7 +62,9 @@ namespace TV_Player.ViewModels
             if (_mainViewModel.Control is IDisposable disposable)
                 disposable.Dispose();
             control.DataContext = viewModel;
+
             _mainViewModel.Control = control;
         }
+
     }
 }
