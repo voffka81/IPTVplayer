@@ -78,10 +78,7 @@ namespace TV_Player
         {
             ToggleOverlay();
         }
-        private void MyUserControl_TouchDown(object sender, TouchEventArgs e)
-        {
-            ToggleOverlay();
-        }
+       
         private void ToggleOverlay()
         {
             if (overlayPanel.Visibility == Visibility.Visible)

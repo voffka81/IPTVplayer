@@ -15,7 +15,7 @@
                   SelectionChanged="ListBox_SelectionChanged">
             <ListView.ItemsPanel>
                 <ItemsPanelTemplate>
-                    <UniformGrid Columns="17" />
+                    <UniformGrid Columns="12" />
                 </ItemsPanelTemplate>
             </ListView.ItemsPanel>
             <ListView.ItemTemplate>

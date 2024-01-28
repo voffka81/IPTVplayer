@@ -10,8 +10,7 @@
     <Grid>
         <vlc:VideoView x:Name="VideoView" Panel.ZIndex="1">
             <Grid Panel.ZIndex="10" IsHitTestVisible="True" Background="#01FFFFFF" VerticalAlignment="Stretch"
-                             HorizontalAlignment="Stretch" MouseLeftButtonDown="MyUserControl_MouseDown" 
-                             TouchDown="MyUserControl_TouchDown" >
+                             HorizontalAlignment="Stretch" MouseLeftButtonDown="MyUserControl_MouseDown">
                 <Grid  x:Name="overlayPanel" Visibility="Visible">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="70"/>
