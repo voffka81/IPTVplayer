@@ -68,7 +68,7 @@ c-0.781-0.781-0.788-2.047-0.007-2.828L51.438,14.43c1.754-1.755,1.753-4.61-0.001-
             </Setter.Value>
         </Setter>
     </Style>
-    
+
     <Style x:Key="ButtonDown" TargetType="{x:Type Button}">
         <Setter Property="Template">
             <Setter.Value>
@@ -123,6 +123,7 @@ c-0.781-0.781-0.788-2.047-0.007-2.828L51.438,14.43c1.754-1.755,1.753-4.61-0.001-
             </Setter.Value>
         </Setter>
     </Style>
+
     <Style x:Key="ListBoxView" TargetType="ListView">
         <Setter Property="Background" Value="Transparent"/>
         <Setter Property="VerticalAlignment" Value="Top"/>
@@ -136,7 +137,7 @@ c-0.781-0.781-0.788-2.047-0.007-2.828L51.438,14.43c1.754-1.755,1.753-4.61-0.001-
         <Setter Property="VirtualizingPanel.IsContainerVirtualizable" Value="True" />
         <Style.Resources>
             <Style  x:Key="ScrollThumbs" TargetType="{x:Type Thumb}">
-                <Setter Property="Background" Value="#3E85C3" />
+                <Setter Property="Background" Value="Gray" />
                 <Setter Property="Template">
                     <Setter.Value>
                         <ControlTemplate TargetType="{x:Type Thumb}">
@@ -165,7 +166,7 @@ c-0.781-0.781-0.788-2.047-0.007-2.828L51.438,14.43c1.754-1.755,1.753-4.61-0.001-
             <Style TargetType="{x:Type ScrollBar}">
                 <Setter Property="Margin" Value="0"></Setter>
                 <Setter Property="Padding" Value="0"></Setter>
-                <Setter Property="Background" Value="#ecf0f6" />
+                <Setter Property="Background" Value="Transparent" />
                 <Setter Property="Width" Value="19" />
                 <Setter Property="Template">
                     <Setter.Value>
@@ -195,5 +196,24 @@ c-0.781-0.781-0.788-2.047-0.007-2.828L51.438,14.43c1.754-1.755,1.753-4.61-0.001-
                 </Setter>
             </Style>
         </Style.Resources>
+    </Style>
+
+    <Style x:Key="ItemContStyle" TargetType="{x:Type ListViewItem}">
+        <!-- Stretch the content so that we can right-align values
+       in the Balance column. -->
+        <Setter Property="Margin" Value="2,2,2,2" />
+        <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="{x:Type ListViewItem}">
+                    <Border x:Name="DGR_Border">
+                        <GridViewRowPresenter x:Name="gridrowPresenter"
+                        Content="{TemplateBinding Property=ContentControl.Content}" 
+						/>
+                    </Border>
+                    
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
     </Style>
 </ResourceDictionary>

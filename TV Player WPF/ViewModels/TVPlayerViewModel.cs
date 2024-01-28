@@ -2,7 +2,7 @@
 
 namespace TV_Player.ViewModels
 {
-    public class TVPlayerViewModel
+    public class TVPlayerViewModel : IDisposable
     {
         private readonly MainViewModel _mainViewModel;
 
@@ -66,5 +66,10 @@ namespace TV_Player.ViewModels
             _mainViewModel.Control = control;
         }
 
+        public void Dispose()
+        {
+            if (_mainViewModel.Control is IDisposable disposable)
+                disposable.Dispose();
+        }
     }
 }

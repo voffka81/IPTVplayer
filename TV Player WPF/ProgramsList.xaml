@@ -6,9 +6,12 @@
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800">
     <Grid x:Name="programsGrid">
-        <ListView ItemsSource="{Binding Programs}" Background="Transparent" VerticalAlignment="Top" Margin="0,50,0,0"
+        <ListView x:Name="programsList"  ItemsSource="{Binding Programs}" Background="Transparent" VerticalAlignment="Top" Margin="0,50,0,0"
                   SelectionMode="Single" Style="{StaticResource ListBoxView}"
                   SelectedItem="{Binding SelectedItem}" BorderThickness="0"
+                  PreviewMouseDown="ListView_PreviewMouseDown"
+                  PreviewMouseUp="ListView_PreviewMouseUp"
+                  PreviewMouseMove="ListView_MouseMove"
                   SelectionChanged="ListBox_SelectionChanged">
             <ListView.ItemsPanel>
                 <ItemsPanelTemplate>
@@ -18,7 +21,7 @@
             <ListView.ItemTemplate>
                 <DataTemplate>
                     <Viewbox HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
-                    <Border Height="145" Width="106" HorizontalAlignment="Center" CornerRadius="5" BorderBrush="Yellow" BorderThickness="2">
+                    <Border x:Name="border" Height="145" Width="106" HorizontalAlignment="Center" CornerRadius="5" BorderBrush="Yellow" BorderThickness="2">
                         <Grid Margin="1" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Background="#B0000000">
                             <Grid.RowDefinitions>
                                 <RowDefinition Height="*"/>
@@ -31,6 +34,12 @@
                         </Grid>
                     </Border>
                     </Viewbox>
+                    <DataTemplate.Triggers>
+                        <DataTrigger Binding="{Binding IsSelected, RelativeSource={RelativeSource AncestorType={x:Type ListViewItem}}}" Value="True">
+                            <Setter TargetName="border" Property="Background" Value="red"/>
+                            <!-- Add other properties or setters as needed -->
+                        </DataTrigger>
+                    </DataTemplate.Triggers>
                 </DataTemplate>
             </ListView.ItemTemplate>
         </ListView>

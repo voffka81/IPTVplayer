@@ -1,5 +1,4 @@
 ﻿using System.Windows;
-using System.Windows.Controls.Primitives;
 using TV_Player.ViewModels;
 
 namespace TV_Player
@@ -10,13 +9,13 @@ namespace TV_Player
     public partial class App : Application
     {
         private TVPlayerViewModel _tvPlayer;
-       
-        private const string Guid = "250C5597-BA73-40DF-B2CF-DD644F044834";
+
+        private const string Guid = "ac8ab758-01e2-47c3-ad42-31e96d8203c0";
         static readonly Mutex Mutex = new Mutex(true, "{" + Guid + "}");
         protected override void OnStartup(StartupEventArgs e)
         {
             AppDomain.CurrentDomain.UnhandledException += ReportAndRestart;
-            
+
             if (!Mutex.WaitOne(TimeSpan.Zero, true))
             {
                 MessageBox.Show("Programm already running");
@@ -32,13 +31,13 @@ namespace TV_Player
         {
 
             string info = e.ExceptionObject.ToString();
-            MessageBox.Show(info,"Application");
+            var result=MessageBox.Show(info, "Application", MessageBoxButton.OK, MessageBoxImage.Stop);
             
-            Environment.Exit(1);
+            //Environment.Exit(1);
         }
         protected override void OnExit(ExitEventArgs e)
         {
-            _tvPlayer = null;
+            _tvPlayer.Dispose();
             base.OnExit(e);
         }
     }
