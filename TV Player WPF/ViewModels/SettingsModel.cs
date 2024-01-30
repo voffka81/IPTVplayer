@@ -5,7 +5,8 @@ namespace TV_Player.ViewModels
 {
     public static class SettingsModel
     {
-        private const string _filePath = "settings.json";
+        private static readonly string AppDataFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "TVPlayer");
+        private static readonly string SettingsFilePath = Path.Combine(AppDataFolder, "settings.json");
 
         public static string PlaylistURL { get; set; }
         public static bool StartFullScreen { get; set; } 
@@ -31,8 +32,10 @@ namespace TV_Player.ViewModels
             // Serialize the object to JSON
             string json = JsonConvert.SerializeObject(dataToSerialize, Formatting.Indented);
 
+            if (!Directory.Exists(AppDataFolder))
+                Directory.CreateDirectory(AppDataFolder);
             // Save the JSON to a file
-            File.WriteAllText(_filePath, json);
+            File.WriteAllText(SettingsFilePath, json);
         }
 
         public static void LoadSettings()
@@ -46,10 +49,10 @@ namespace TV_Player.ViewModels
                 StartFromLastScreen = default(bool),
                 StartFullScreen = default(bool)
             };
-            if (File.Exists(_filePath))
+            if (File.Exists(SettingsFilePath))
             {
                 // Read the JSON content from the file
-                string json = File.ReadAllText(_filePath);
+                string json = File.ReadAllText(SettingsFilePath);
                 loadedData = JsonConvert.DeserializeAnonymousType(json, loadedData);
             }
             // Assign the values to the properties
