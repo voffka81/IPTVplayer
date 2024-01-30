@@ -2,6 +2,7 @@
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using TV_Player.ViewModels;
 
 namespace TV_Player
 {
@@ -48,11 +49,14 @@ namespace TV_Player
         public Action ButtonBackAction { get; set; }
         public ICommand BackCommand { get; }
 
+        public ICommand SettingsCommand{ get; }
+
         public MainViewModel()
         {
 
             BackCommand = new RelayCommand(OnButtonBackClick);
             FullscreenCommand = new RelayCommand(OnFullSctreenButtonClick);
+            SettingsCommand = new RelayCommand(OnSettingsButtonClick);
 
             CurrentWindowStyle = WindowStyle.SingleBorderWindow;
         }
@@ -75,6 +79,11 @@ namespace TV_Player
         {
 
             ButtonBackAction?.Invoke();
+        }
+
+        private void OnSettingsButtonClick()
+        {
+            TVPlayerViewModel.Instance.ShowSettingsScreen();
         }
     }
 }

@@ -20,16 +20,14 @@ namespace TV_Player
         public ProgramsGroupViewModel()
         {
             ItemSelectedCommand = new RelayCommand(OnItemSelected);
-            _groupInformationSubscriber = ProgramsData.Instance.GroupsInformation.Subscribe(x=>Programs = x);
+            _groupInformationSubscriber = TVPlayerViewModel.Instance.PlaylistData.GroupsInformation.Subscribe(x=>Programs = x);
 
             TVPlayerViewModel.Instance.TopPanelVisible(true, "Группы");
         }
 
         private void OnItemSelected()
         {
-            var programListViewModel = new ProgramsListViewModel(SelectedItem);
-            var conrtrol = new ProgramsList();
-            TVPlayerViewModel.Instance.SetPageContext(conrtrol, programListViewModel);
+            TVPlayerViewModel.Instance.ShowProgramsListScreen(SelectedItem);
         }
 
         public void Dispose()

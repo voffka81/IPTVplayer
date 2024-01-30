@@ -216,4 +216,82 @@ c-0.781-0.781-0.788-2.047-0.007-2.828L51.438,14.43c1.754-1.755,1.753-4.61-0.001-
             </Setter.Value>
         </Setter>
     </Style>
+    
+    <LinearGradientBrush x:Key="YellowGradient" >
+        <GradientStop Offset="0" Color="LightGray"/>
+        <GradientStop Offset="1" Color="Gray"/>
+    </LinearGradientBrush>
+    
+    <Style x:Key="{x:Type CheckBox}" TargetType="CheckBox">
+        <Setter Property="SnapsToDevicePixels" Value="true"/>
+        <Setter Property="Background" Value="{StaticResource YellowGradient}" />
+        <Setter Property="OverridesDefaultStyle" Value="true" />
+        <Setter Property="FontSize" Value="18" />
+        <Setter Property="FontFamily" Value="Arial" />
+        <Setter Property="FontWeight" Value="Bold" />
+        <Setter Property="Foreground" Value="#FF03428f" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="CheckBox">
+                    <BulletDecorator Background="Transparent">
+                        <BulletDecorator.Bullet>
+                            <Grid FlowDirection="LeftToRight">
+                                <Border Name="Border"
+	Background="White"
+	CornerRadius="1"
+	BorderBrush="#FF92c8e5"
+	BorderThickness="2"
+	Width="46"
+	Height="38"
+	>
+                                    <Border 
+	  Name="ShadowBorder"
+	  CornerRadius="2" 
+	  Padding="2"
+	  ClipToBounds="True"
+	  Background="Transparent"
+	  BorderBrush="#FF92c8e5"
+	  Margin="-2,-2,0,0"
+	  BorderThickness="2,2,0,0" >
+                                        <Border.Effect>
+                                            <DropShadowEffect ShadowDepth="3" BlurRadius="7"/>
+                                        </Border.Effect>
+
+                                    </Border>
+
+                                </Border>
+                                <Path x:Name="CheckMark"  SnapsToDevicePixels="False"  Data="F1M1,14.489C1,14.489 4.963,10.525 4.963,10.525 4.963,10.525 11.328,16.89 11.328,16.89 11.328,16.89 27.034,1.183 27.034,1.183 27.034,1.183 31,5.146 31,5.146 31,5.146 11.328,24.817 11.328,24.817 11.328,24.817 1,14.489 1,14.489z" Fill="#FFFFFFFF" Height="26" Canvas.Left="0" Canvas.Top="0" Width="32"/>
+                            </Grid>
+                        </BulletDecorator.Bullet>
+                        <ContentPresenter Margin="4,0,0,0" TextBlock.Foreground="{TemplateBinding Foreground}"
+         VerticalAlignment="Center"
+         HorizontalAlignment="Left"
+         RecognizesAccessKey="True"/>
+                    </BulletDecorator>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsChecked" Value="false">
+                            <Setter TargetName="CheckMark" Property="Visibility" Value="Collapsed"/>
+                        </Trigger>
+                        <Trigger Property="IsChecked" Value="true">
+                            <Setter TargetName="Border" Property="Background" Value="{Binding Background,RelativeSource={RelativeSource AncestorType={x:Type CheckBox}}}" />
+                            <Setter TargetName="Border" Property="BorderBrush" Value="{Binding Background, RelativeSource={RelativeSource AncestorType={x:Type CheckBox}}}" />
+                            <Setter TargetName="ShadowBorder" Property="Visibility" Value="Hidden" />
+
+                        </Trigger>
+
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style x:Key="TextBox" TargetType="TextBox">
+        <Setter Property="FontFamily" Value="Arial"></Setter>
+        <Setter Property="FontWeight" Value="Bold"></Setter>
+        <Setter Property="FontSize" Value="25"></Setter>
+        <Setter Property="Foreground"  Value="Gray"></Setter>
+        <Setter Property="HorizontalAlignment" Value="Center"></Setter>
+        <Setter Property="VerticalAlignment" Value="Center"></Setter>
+        <Setter Property="TextAlignment" Value="Left"></Setter>
+    </Style>
 </ResourceDictionary>

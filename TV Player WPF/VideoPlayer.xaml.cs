@@ -3,6 +3,7 @@ using LibVLCSharp.WPF;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using System.Windows.Threading;
 
 namespace TV_Player
 {
@@ -16,10 +17,16 @@ namespace TV_Player
         private LibVLC _libVLC;
         private MediaPlayer _mediaPlayer;
         private PlayerViewModel _viewModel;
-
+        private DispatcherTimer _overlayAutoHideTimer;
+        
         public VideoPlayer()
         {
             InitializeComponent();
+
+            _overlayAutoHideTimer = new DispatcherTimer();
+            _overlayAutoHideTimer.Interval = TimeSpan.FromSeconds(3);
+            _overlayAutoHideTimer.Tick += _overlayAutoHideTimer_Tick;
+            _overlayAutoHideTimer.Start();
 
             _libVLC = new LibVLC(enableDebugLogs: true);
             _mediaPlayer = new MediaPlayer(_libVLC);
@@ -28,7 +35,6 @@ namespace TV_Player
                 _viewModel = (PlayerViewModel)e.NewValue;
                 _viewModel.SourceUrlChangedEvent += _viewModel_SourceUrlChangedEvent;
             };
-            
 
             VideoView.Loaded += (sender, e) =>
             {
@@ -39,7 +45,7 @@ namespace TV_Player
                 AutoPlay();
             };
             Unloaded += VideoPlayer_Unloaded;
-        }
+        }        
 
         private void _viewModel_SourceUrlChangedEvent(string videoURL)
         {
@@ -82,20 +88,28 @@ namespace TV_Player
         private void ToggleOverlay()
         {
             if (overlayPanel.Visibility == Visibility.Visible)
-            {
+            {                
                 HideOverlay();
             }
             else
-            {
+            {               
                 ShowOverlay();
             }
         }
+
+        private void _overlayAutoHideTimer_Tick(object? sender, EventArgs e)
+        {
+            HideOverlay();
+        }
+
         public void ShowOverlay()
         {
+            _overlayAutoHideTimer.Start();
             overlayPanel.Visibility = Visibility.Visible;
         }
         public void HideOverlay()
         {
+            _overlayAutoHideTimer.Stop();
             overlayPanel.Visibility = Visibility.Collapsed;
         }
         private void UserControl_Unloaded(object sender, RoutedEventArgs e)

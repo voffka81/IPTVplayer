@@ -11,7 +11,14 @@ namespace TV_Player
         public delegate void SourceUrlChanged(string videoURL);
         public event SourceUrlChanged SourceUrlChangedEvent;
 
-        private M3UInfo _currentProgram;       
+        private M3UInfo _currentProgram;
+
+        private bool _isProgramInfoVisible;
+        public bool IsProgramInfoVisible
+        {
+            get => _isProgramInfoVisible;
+            set => SetProperty(ref _isProgramInfoVisible, value);
+        }
 
         private string _topPaneTitle;
         public string TopPanelTitle
@@ -71,7 +78,7 @@ namespace TV_Player
             PreviousCommand = new RelayCommand(PreviousProgram);
             FullscreenCommand = new RelayCommand(TVPlayerViewModel.Instance.FullScreenToggle);
 
-            _programSubscriber = ProgramsData.Instance.AllPrograms.Subscribe(x =>
+            _programSubscriber = TVPlayerViewModel.Instance.PlaylistData.AllPrograms.Subscribe(x =>
             {
                 _programs = x.Where(p => p.GroupTitle == _currentProgram.GroupTitle).ToList();
                 _currentProgramIndex = _programs.Select((program, index) => new { program, index })
@@ -79,7 +86,7 @@ namespace TV_Player
                 .Select(x => x.index)
                 .FirstOrDefault();
             });
-           
+
             UpdateUI();
         }
 
@@ -89,7 +96,7 @@ namespace TV_Player
             TopPanelTitle = _currentProgram.Name;
             SourceUrlChangedEvent?.Invoke(_currentProgram.Url);
 
-            _programGuideDisposable = ProgramsData.Instance.ProgramGuideInfo.Subscribe(x =>
+            _programGuideDisposable = TVPlayerViewModel.Instance.PlaylistData.ProgramGuideInfo.Subscribe(x =>
             {
                 try
                 {
@@ -125,23 +132,33 @@ namespace TV_Player
         }
         private void UpdateScreenInfo()
         {
-            _currentProgramInfo = _currentGuide.Programs.FirstOrDefault(d => d.StartTime <= DateTime.Now && d.StopTime >= DateTime.Now);
-            if (_currentProgramInfo.Title != ProgramGuideText)
+            try
             {
-                ProgramGuideText = _currentProgramInfo.Title;
-                StartProgram = _currentProgramInfo.StartTime.ToShortTimeString();
-                EndProgram = _currentProgramInfo.StopTime.ToShortTimeString();
+                _currentProgramInfo = _currentGuide.Programs.FirstOrDefault(d => d.StartTime <= DateTime.Now && d.StopTime >= DateTime.Now);
+                if (_currentProgramInfo == null)
+                {
+                    IsProgramInfoVisible = false;
+                }
+                else if (_currentProgramInfo.Title != ProgramGuideText)
+                {
+                    IsProgramInfoVisible = true;
+                    ProgramGuideText = _currentProgramInfo.Title;
+                    StartProgram = _currentProgramInfo.StartTime.ToShortTimeString();
+                    EndProgram = _currentProgramInfo.StopTime.ToShortTimeString();
+
+                    var programMinutes = (_currentProgramInfo.StopTime - _currentProgramInfo.StartTime).TotalMinutes;
+                    DurationValue = (int)((DateTime.Now - _currentProgramInfo.StartTime).TotalMinutes / programMinutes * 100);
+                }
+
             }
-            var programMinutes = (_currentProgramInfo.StopTime - _currentProgramInfo.StartTime).TotalMinutes;
-            DurationValue = (int)((DateTime.Now - _currentProgramInfo.StartTime).TotalMinutes / programMinutes * 100);
+            catch
+            { }
         }
         private void OnButtonBackClick()
         {
             var groupInfo = new GroupInfo() { Name = _currentProgram.GroupTitle, Count = 0 };
 
-            var programListViewModel = new ProgramsListViewModel(groupInfo);
-            var conrtrol = new ProgramsList();
-            TVPlayerViewModel.Instance.SetPageContext(conrtrol, programListViewModel);
+            TVPlayerViewModel.Instance.ShowProgramsListScreen(groupInfo);
         }
         public void Dispose()
         {

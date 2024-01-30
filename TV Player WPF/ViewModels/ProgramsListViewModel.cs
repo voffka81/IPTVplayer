@@ -16,26 +16,22 @@ namespace TV_Player
         public M3UInfo SelectedItem { get; set; }
         public ICommand ItemSelectedCommand { get; }
         private IDisposable _programSubscriber;
+
         public ProgramsListViewModel(GroupInfo groupInfo)
         {
             TVPlayerViewModel.Instance.TopPanelVisible(true, groupInfo.Name);
             ItemSelectedCommand = new RelayCommand(OnItemSelected);
-            _programSubscriber = ProgramsData.Instance.AllPrograms.Subscribe(x => Programs = x.Where(p => p.GroupTitle == groupInfo.Name).ToList());
+            _programSubscriber = TVPlayerViewModel.Instance.PlaylistData.AllPrograms.Subscribe(x => Programs = x.Where(p => p.GroupTitle == groupInfo.Name).ToList());
 
             TVPlayerViewModel.Instance.SetBackButtonAction(new Action(() =>
             {
-                var programGroupViewModel = new ProgramsGroupViewModel();
-                var conrtrol = new ProgramsGroupGrid();
-                TVPlayerViewModel.Instance.SetPageContext(conrtrol, programGroupViewModel);
+                TVPlayerViewModel.Instance.ShowProgramsGroupScreen();
             }));
         }
 
         private void OnItemSelected()
         {
-            var playerViewModel = new PlayerViewModel(SelectedItem);
-            var conrtrol = new VideoPlayer();
-            conrtrol.SourceUrl = SelectedItem.Url;
-            TVPlayerViewModel.Instance.SetPageContext(conrtrol, playerViewModel);
+            TVPlayerViewModel.Instance.ShowPlayerScreen(SelectedItem);
         }
 
         public void Dispose()
