@@ -12,7 +12,8 @@
         <CheckBox Margin="10"  Foreground="White" FontSize="25" IsChecked="{Binding StartLastScreen}">Запоминать последний выбор</CheckBox>
         <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
             <Button Grid.Column="1" Height="70" Width="70" Margin="10,0,50,0" Style="{DynamicResource ButtonBack}" Command="{Binding BackCommand}" />
-            <Button HorizontalAlignment="Center" FontSize="25" Command="{Binding SaveCommand}">Сохранить</Button>
+            <Button HorizontalAlignment="Center" Height="70" Width="70" Style="{DynamicResource ButtonConfirm}" Command="{Binding SaveCommand}" />
+            
         </StackPanel>
     </StackPanel>
 </UserControl>

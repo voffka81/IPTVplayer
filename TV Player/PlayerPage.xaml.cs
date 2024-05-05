@@ -1,111 +1,78 @@
-using LibVLCSharp.Shared;
 
 namespace TV_Player.MAUI;
+using System;
+using System.IO;
+using System.Net.Http;
+using System.Threading.Tasks;
+using System.Timers;
+
 
 public partial class PlayerPage : ContentPage
 {
-    public static BindableProperty StreamUrlProperty = BindableProperty.Create(nameof(StreamUrl)
-         , typeof(string)
-         , typeof(MediaViewer)
-         , ""
-         , defaultBindingMode: BindingMode.TwoWay);
+   
+    private const string StreamUrl = "http://ost.da-tv.vip/uPVtzdGJfdG9rZW5dIiwibCI6ImE3MWU3N2ZhIiwicCI6ImE3MWU3N2ZhODM1YjMyMTYiLCJjIjoiOTcyIiwidCI6ImUzNjAwZTEwZmFmMGVhYjhhYWY1YTU2YzRkN2VjZTE5IiwiZCI6IjIzMTQ2IiwiciI6IjIzMDM4IiwibSI6InR2IiwiZHQiOiIwIn0eyJ1IjoiaHR0cDovLzQ1LjkzLjQ2LjI3Ojg4ODcvODQwMC92aWRlby5tM3U4P3Rva2V/tracks-v1a1/mono.m3u8?cid=972&did=23146&m=1&rid=23038&token=e3600e10faf0eab8aaf5a56c4d7ece19";
+    //MediaPlayer _mediaPlayer;
+    private const int RefreshIntervalMs = 1000; // Refresh interval in milliseconds
+    private readonly string tempFilePath;
+    private Timer timer;
 
-    public string StreamUrl
-    {
-        get => (string)GetValue(StreamUrlProperty);
-        set
-        {
-            SetValue(StreamUrlProperty, value);
-        }
-    }
-
-    LibVLC _libVLC;
-    MediaPlayer _mediaPlayer;
-
-    
-    public VideoPlayer()
+    public PlayerPage()
     {
         InitializeComponent();
 
-        _libVLC = new LibVLC(enableDebugLogs: true);
-        _mediaPlayer = new MediaPlayer(_libVLC);
+        tempFilePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "temp_media.mp4");
+        StartStreaming();
+    }
 
-        VideoView.Loaded += (sender, e) =>
+    private void StartStreaming()
+    {
+        try
         {
-            VideoView.MediaPlayer = _mediaPlayer;
-            VideoView.MouseLeftButtonDown += VideoView_MouseLeftButtonDown;
-            VideoView.MediaPlayer.EnableMouseInput = false;
-            VideoView.PreviewMouseLeftButtonDown += VideoView_MouseLeftButtonDown;
-            AutoPlay();
-        };
-        Unloaded += VideoPlayer_Unloaded;
-
-    }
-
-    private void VideoView_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
-    {
-        ToggleOverlay();
-    }
-
-    private void VideoPlayer_Unloaded(object sender, RoutedEventArgs e)
-    {
-        VideoView.Dispose();
-    }
-
-
-    void PauseButton_Click(object sender, RoutedEventArgs e)
-    {
-        if (VideoView.MediaPlayer.IsPlaying)
+            // Initialize the timer
+            timer = new Timer(RefreshIntervalMs);
+            timer.Elapsed += async (sender, e) => await UpdateTempFile();
+            timer.AutoReset = true;
+            timer.Start();
+        }
+        catch (Exception ex)
         {
-            VideoView.MediaPlayer.Pause();
+            Console.WriteLine($"Error starting stream: {ex.Message}");
         }
     }
 
-    private void AutoPlay()
+    private async Task UpdateTempFile()
     {
-        if (!VideoView.MediaPlayer.IsPlaying)
+        try
         {
+            // Download the stream data
+            byte[] streamData = await DownloadStreamData(StreamUrl);
 
-            using (var media = new Media(_libVLC, new Uri(SourceUrl)))
-                VideoView.MediaPlayer.Play(media);
+            // Write the stream data to the temporary file
+            if (streamData != null)
+            {
+                await File.WriteAllBytesAsync(tempFilePath, streamData);
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error updating temporary file: {ex.Message}");
         }
     }
 
-
-    private void MyUserControl_MouseDown(object sender, MouseButtonEventArgs e)
+    private async Task<byte[]> DownloadStreamData(string streamUrl)
     {
-        ToggleOverlay();
-    }
-
-    private void MyUserControl_TouchDown(object sender, TouchEventArgs e)
-    {
-        ToggleOverlay();
-    }
-
-    private void ToggleOverlay()
-    {
-        if (overlayPanel.Visibility == Visibility.Visible)
+        using (HttpClient client = new HttpClient())
         {
-            HideOverlay();
-        }
-        else
-        {
-            ShowOverlay();
+            // Download the stream asynchronously
+            return await client.GetByteArrayAsync(streamUrl);
         }
     }
 
-    public void ShowOverlay()
+    protected override void OnAppearing()
     {
-        overlayPanel.Visibility = Visibility.Visible;
-    }
-
-    public void HideOverlay()
-    {
-        overlayPanel.Visibility = Visibility.Collapsed;
-    }
-
-    private void UserControl_Unloaded(object sender, RoutedEventArgs e)
-    {
-        VideoView.MediaPlayer?.Dispose();
+        base.OnAppearing();
+        // Set the MediaElement source to the temporary file when the page appears
+        mediaElement.Source = tempFilePath;
+        mediaElement.ShouldAutoPlay = true; // Auto-play the media
     }
 }

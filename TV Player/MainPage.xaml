@@ -15,20 +15,24 @@
                             SelectedItem="{Binding SelectedItem}"
                  SelectionChangedCommand="{Binding ItemSelectedCommand}">
                 <CollectionView.ItemTemplate>
-                    <DataTemplate x:DataType="local:M3UInfo">
-                        <Label Text="{Binding Name}"/>
+                    <DataTemplate x:DataType="local:GroupInfo">
+                        <Border x:Name="ButtonBorder">
+                            <Grid>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="*"/>
+                                    <RowDefinition Height="0.4*"/>
+                                </Grid.RowDefinitions>
+                                <Rectangle RadiusX="15" RadiusY="15" x:Name="Border" StrokeThickness="2" Stroke="Yellow" Grid.RowSpan="2" Fill="#B0000000"/>
+                                <Label x:Name="groupName" Text="{TemplateBinding GroupName}" FontSize="15" TextColor="White" HorizontalOptions="Center" VerticalOptions="Center"/>
+                                <HorizontalStackLayout Grid.Row="1" >
+                                    <Label Text="{TemplateBinding ProgramsCount}" FontSize="10" TextColor="White" HorizontalOptions="Center" VerticalOptions="Center" LineHeight="10"/>
+                                    <Label FontSize="10" TextColor="White" HorizontalOptions="Center" VerticalOptions="Center" LineHeight="10">программ</Label >
+                                </HorizontalStackLayout>
+                            </Grid>
+                        </Border>
                     </DataTemplate>
                 </CollectionView.ItemTemplate>
             </CollectionView>
-
-            <!--<Label
-                Text="Welcome to .NET Multi-platform App UI"
-                SemanticProperties.HeadingLevel="Level2"
-                SemanticProperties.Description="Welcome to dot net Multi platform App U I"
-                FontSize="18"
-                HorizontalOptions="Center" />-->
-
-
         </VerticalStackLayout>
     </ScrollView>
 

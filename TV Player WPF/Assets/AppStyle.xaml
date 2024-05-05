@@ -45,6 +45,43 @@ c-0.781-0.781-0.788-2.047-0.007-2.828L51.438,14.43c1.754-1.755,1.753-4.61-0.001-
         </Setter>
     </Style>
 
+    <Style x:Key="ButtonConfirm" TargetType="{x:Type Button}">
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="{x:Type Button}">
+                    <Border Background="LightGreen" Height="50" Width="50" CornerRadius="300">
+                        <Path Width="40" Height="40" Fill="Gray" Stretch="Fill" Data="M50.131649,63.741954 C47.860649,63.741954 45.726649,62.857954 44.120649,61.252954 L17.736,42.258 C16.09,40.613 15.19,38.337 15.257,36.003 15.189,33.666 16.091317,31.389 17.737317,29.742 L29.656036,13.830155 C31.261036,12.225155 33.393719,11.341155 35.664719,11.341155 37.935719,11.341155 40.069719,12.225155 41.674719,13.830155 44.988719,17.144155 44.988719,22.537155 41.674719,25.851155 L35.519,36 56.141649,49.230954 C59.455649,52.544954 59.455649,57.937954 56.141649,61.251954 54.535649,62.857954 52.401649,63.741954 50.131649,63.741954 z M35.664719,15.341155 C34.462719,15.341155 33.332719,15.809155 32.482719,16.658155 L21.038,32.57 C20.147,33.463 20.205,34.654 20.205,35.925 20.205,35.976 20.205,36.026 20.205,36.076 20.205,37.347 20.147,38.537 21.038,39.429 L47.186649,58.423954 C48.036649,59.273954 49.048649,59.740954 50.249649,59.740954 51.452649,59.740954 52.522649,59.272954 53.372649,58.423954 55.127649,56.668954 55.097649,53.813954 53.342649,52.058954 L31.292,37.414 C30.511,36.633 30.504,35.367 31.285,34.586 L38.850719,23.024155 C40.604719,21.269155 40.603719,18.414155 38.849719,16.659155 37.999719,15.809155 36.866719,15.341155 35.664719,15.341155 z" >
+                            <Path.RenderTransform>
+                                <TransformGroup>
+                                    <TranslateTransform X="-42"/>
+                                    <RotateTransform Angle="-90"/>
+                                </TransformGroup>
+                            </Path.RenderTransform>
+                        </Path>
+                    </Border>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style x:Key="ButtonClose" TargetType="{x:Type Button}">
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="{x:Type Button}">
+                    <Border Background="Red" Height="50" Width="50" CornerRadius="300">
+                        <Path Fill="#FFF4F4F5" HorizontalAlignment="Center" Height="35" Stroke="Black" Stretch="Fill" VerticalAlignment="Center" Width="30">
+                            <Path.Data>
+                                <PathGeometry Figures="M37.037194,7.2021995 L26.096188,22.041976 14.061081,7.7110519 11.032645,10.623983 23.403814,25.437079 12.403519,38.730884 16.26689,41.383471 26.112258,28.966796 36.580749,41.639484 40.194871,38.695324 28.770656,25.593375 40.319496,9.9857232 z"/>
+                            </Path.Data>
+                        </Path>
+                    </Border>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    
+
     <Style x:Key="ButtonUp" TargetType="{x:Type Button}">
         <Setter Property="Template">
             <Setter.Value>

@@ -1,5 +1,4 @@
-﻿using LibVLCSharp.Shared;
-using System.Windows.Input;
+﻿using System.Windows.Input;
 
 namespace TV_Player.MAUI
 {
@@ -26,6 +25,7 @@ namespace TV_Player.MAUI
             //_libVLC = new LibVLC();
             //_mediaPlayer = new MediaPlayer(new Media(_libVLC, new Uri(_currentProgram.Url)));
             //_mediaPlayer.Play();
+            URLSource = _currentProgram.Url;
             PlayCommand = new Command(OnPlayButtonClicked);
         }
 
@@ -40,7 +40,7 @@ namespace TV_Player.MAUI
             {
                 URLSource = _currentProgram.Url;
             }
-            catch (Exception ex)
+            catch 
             {
                 // Handle exceptions
             }

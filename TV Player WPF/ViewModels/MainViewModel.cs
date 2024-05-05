@@ -37,14 +37,8 @@ namespace TV_Player
             set => SetProperty(ref _currentWindowState, value);
         }
 
-        private WindowStyle _currentWindowStyle;
-        public WindowStyle CurrentWindowStyle
-        {
-            get => _currentWindowStyle;
-            set => SetProperty(ref _currentWindowStyle, value);
-        }
-
         public ICommand FullscreenCommand { get; }
+        public ICommand CloseAppCommand { get; }
 
         public Action ButtonBackAction { get; set; }
         public ICommand BackCommand { get; }
@@ -57,22 +51,24 @@ namespace TV_Player
             BackCommand = new RelayCommand(OnButtonBackClick);
             FullscreenCommand = new RelayCommand(OnFullSctreenButtonClick);
             SettingsCommand = new RelayCommand(OnSettingsButtonClick);
-
-            CurrentWindowStyle = WindowStyle.SingleBorderWindow;
+            CloseAppCommand = new RelayCommand(OnCloseAppButtonClick);
         }
 
         public void OnFullSctreenButtonClick()
         {
-            if (CurrentWindowStyle == WindowStyle.SingleBorderWindow)
+            if (CurrentWindowState == WindowState.Normal)
             {
-                CurrentWindowStyle = WindowStyle.None;
                 CurrentWindowState = WindowState.Maximized;
             }
             else
             {
-                CurrentWindowStyle = WindowStyle.SingleBorderWindow;
                 CurrentWindowState = WindowState.Normal;
             }
+        }
+
+        private void OnCloseAppButtonClick()
+        {
+            Environment.Exit(0);
         }
 
         private void OnButtonBackClick()

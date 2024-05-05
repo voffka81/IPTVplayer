@@ -4,6 +4,7 @@ namespace TV_Player.MAUI
 {
     public class MainViewModel : ObservableViewModelBase
     {
+        private IDisposable _groupsSubscriber;
         private List<GroupInfo> _programs;
         public List<GroupInfo> Programs
         {
@@ -17,7 +18,7 @@ namespace TV_Player.MAUI
         public MainViewModel()
         {
             ItemSelectedCommand = new Command(OnItemSelected);
-            ProgramsData.Instance.GroupsInformation.Subscribe(x=>Programs = x);
+            _groupsSubscriber = TVPlayerViewModel.Instance.PlaylistData.GroupsInformation.Subscribe(x => Programs = x);
         }
 
         private void OnItemSelected()
@@ -33,6 +34,8 @@ namespace TV_Player.MAUI
             };
             // Navigate to the OtherPage
             navigation.PushAsync(programPage);
+
+            _groupsSubscriber.Dispose();
         }
     }
 }

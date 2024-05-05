@@ -4,7 +4,7 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:TV_Player"
-        mc:Ignorable="d" WindowStyle="{Binding CurrentWindowStyle}" WindowState="{Binding CurrentWindowState}"
+        mc:Ignorable="d" WindowStyle="None" WindowState="{Binding CurrentWindowState}"
         Title="TV" Height="450" Width="800">
     <Window.Resources>
         <local:BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverterKey"/>
@@ -26,11 +26,13 @@
                 <ColumnDefinition Width="80"/>
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="80"/>
+                <ColumnDefinition Width="80"/>
             </Grid.ColumnDefinitions>
             <Button Height="70" Width="70" Margin="10,0,0,0" Style="{DynamicResource ButtonGear}" Command="{Binding SettingsCommand}" />
             <Button Grid.Column="1" Height="70" Width="70" Margin="10,0,0,0" Style="{DynamicResource ButtonBack}" Command="{Binding BackCommand}" />
             <TextBlock Grid.Column="2" FontSize="30" Foreground="White" Text="{Binding TopPanelTitle}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-            <Button Grid.Column="4" Height="70" Width="70" Margin="10,0,0,0" Style="{DynamicResource ButtonFullScreen}" Command="{Binding FullscreenCommand}" />
+            <Button Grid.Column="3" Height="70" Width="70" Margin="10,0,0,0" Style="{DynamicResource ButtonFullScreen}" Command="{Binding FullscreenCommand}" />
+            <Button Grid.Column="4" Height="70" Width="70" Margin="10,0,0,0" Style="{DynamicResource ButtonClose}" Command="{Binding CloseAppCommand}" />
         </Grid>
         <ContentControl Grid.Row="1" Name="ControlContainer" Content="{Binding Control}" />
     </Grid>
