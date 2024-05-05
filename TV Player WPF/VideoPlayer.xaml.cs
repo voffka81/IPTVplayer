@@ -17,16 +17,16 @@ namespace TV_Player
         private LibVLC _libVLC;
         private MediaPlayer _mediaPlayer;
         private PlayerViewModel _viewModel;
-        private DispatcherTimer _overlayAutoHideTimer;
+        //private DispatcherTimer _overlayAutoHideTimer;
         
         public VideoPlayer()
         {
             InitializeComponent();
 
-            _overlayAutoHideTimer = new DispatcherTimer();
-            _overlayAutoHideTimer.Interval = TimeSpan.FromSeconds(3);
-            _overlayAutoHideTimer.Tick += _overlayAutoHideTimer_Tick;
-            _overlayAutoHideTimer.Start();
+            //_overlayAutoHideTimer = new DispatcherTimer();
+            //_overlayAutoHideTimer.Interval = TimeSpan.FromSeconds(3);
+            //_overlayAutoHideTimer.Tick += _overlayAutoHideTimer_Tick;
+            //_overlayAutoHideTimer.Start();
 
             _libVLC = new LibVLC(enableDebugLogs: true);
             _mediaPlayer = new MediaPlayer(_libVLC);
@@ -58,6 +58,7 @@ namespace TV_Player
 
         private void VideoView_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
+            
             ToggleOverlay();
         }
 
@@ -88,7 +89,8 @@ namespace TV_Player
         private void ToggleOverlay()
         {
             if (overlayPanel.Visibility == Visibility.Visible)
-            {                
+            {
+                _viewModel.ProgramGuideVisible = false;
                 HideOverlay();
             }
             else
@@ -104,12 +106,12 @@ namespace TV_Player
 
         public void ShowOverlay()
         {
-            _overlayAutoHideTimer.Start();
+            //_overlayAutoHideTimer.Start();
             overlayPanel.Visibility = Visibility.Visible;
         }
         public void HideOverlay()
         {
-            _overlayAutoHideTimer.Stop();
+           // _overlayAutoHideTimer.Stop();
             overlayPanel.Visibility = Visibility.Collapsed;
         }
         private void UserControl_Unloaded(object sender, RoutedEventArgs e)

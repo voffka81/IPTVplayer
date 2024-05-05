@@ -117,6 +117,11 @@ namespace TV_Player.ViewModels
             _mainViewModel.OnFullSctreenButtonClick();
         }
 
+        public void CloseAppCommand()
+        {
+            _mainViewModel.OnCloseAppButtonClick();
+        }
+
         public void SetBackButtonAction(Action action)
         {
             _mainViewModel.ButtonBackAction = action;

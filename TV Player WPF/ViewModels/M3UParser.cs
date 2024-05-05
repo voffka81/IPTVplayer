@@ -13,7 +13,7 @@ namespace TV_Player
         public string Title { get => _title; set => SetProperty(ref _title, value); }
 
         public DateTime StartTime { get; set; }
-        public DateTime StopTime { get; set; }
+        public DateTime EndTime { get; set; }
         public int DurationValue { get => _durationValue; set => SetProperty(ref _durationValue, value); }
 
     }
@@ -75,7 +75,7 @@ namespace TV_Player
                             var id = reader.GetAttribute("channel");
                             var channel = epgChannels.FirstOrDefault(x => x.Id == id);
                             program.StartTime = DateTime.ParseExact(reader.GetAttribute("start"), "yyyyMMddHHmmss zzz", null);
-                            program.StopTime = DateTime.ParseExact(reader.GetAttribute("stop"), "yyyyMMddHHmmss zzz", null);
+                            program.EndTime = DateTime.ParseExact(reader.GetAttribute("stop"), "yyyyMMddHHmmss zzz", null);
 
                             reader.Read();
                             program.Title = reader.ReadElementContentAsString();

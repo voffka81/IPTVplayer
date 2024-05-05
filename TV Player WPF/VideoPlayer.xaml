@@ -26,10 +26,32 @@
                             <ColumnDefinition Width="80"/>
                             <ColumnDefinition Width="*"/>
                             <ColumnDefinition Width="80"/>
+                            <ColumnDefinition Width="80"/>
                         </Grid.ColumnDefinitions>
                         <Button Height="50" Width="70" Margin="10,0,0,0" Style="{DynamicResource ButtonBack}" Command="{Binding BackCommand}" />
                         <TextBlock Grid.Column="1" FontSize="20" Foreground="White" Text="{Binding TopPanelTitle}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                        <Button Grid.Column="4" Height="70" Width="50" Margin="10,0,0,0" Style="{DynamicResource ButtonFullScreen}" Command="{Binding FullscreenCommand}" />
+                        <Button Grid.Column="2" Height="70" Width="50" Margin="10,0,0,0" Style="{DynamicResource ButtonFullScreen}" Command="{Binding FullscreenCommand}" />
+                        <Button Grid.Column="3" Height="70" Width="70" Margin="10,0,0,0" Style="{DynamicResource ButtonClose}" Command="{Binding CloseAppCommand}" />
+                    </Grid>
+                    <Grid Grid.Row="1" Width="400" HorizontalAlignment="Left" Background="#B0000000"
+                          Visibility="{Binding ProgramGuideVisible,Converter={StaticResource BooleanToVisibilityConverterKey}}">
+                        <ItemsControl Name="SidebarListView" ItemsSource="{Binding Programs}"
+                                  Background="Transparent"
+                                  BorderThickness="0"
+                                  ScrollViewer.HorizontalScrollBarVisibility="Hidden"
+                                  ScrollViewer.VerticalScrollBarVisibility="Hidden">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <StackPanel Orientation="Vertical">
+                                        <TextBlock Text="{Binding Title}" HorizontalAlignment="Stretch" TextWrapping="Wrap" FontSize="15" Foreground="White" TextAlignment="Left" Margin="1,0,1,2"/>
+                                        <StackPanel Orientation="Horizontal">
+                                            <TextBlock Text="{Binding StartTime ,StringFormat={}{0:HH:mm}}" FontSize="12" TextAlignment="Center" Foreground="White" HorizontalAlignment="Center" TextWrapping="Wrap" Margin="1,0,1,2"/>
+                                            <TextBlock Text="{Binding EndTime ,StringFormat={}{0:HH:mm}}" FontSize="12" TextAlignment="Center" Foreground="White" HorizontalAlignment="Center" TextWrapping="Wrap" Margin="10,0,1,2"/>
+                                        </StackPanel>
+                                    </StackPanel>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
                     </Grid>
                     <Grid Grid.Row="2" Background="#B0000000">
                         <Grid.ColumnDefinitions>
@@ -53,6 +75,9 @@
                                 <ProgressBar Height="10" Foreground="Yellow" Name="progressBar" Value="{Binding DurationValue}" Maximum="100" VerticalAlignment="Center" HorizontalAlignment="Center" Width="400"/>
                                 <TextBlock FontSize="15" Foreground="White" Text="{Binding EndProgram}" HorizontalAlignment="Center" />
                             </StackPanel>
+                            <Grid.InputBindings>
+                                <MouseBinding MouseAction="LeftClick" Command="{Binding ShowProgramListCommand}"/>
+                            </Grid.InputBindings>
                         </Grid>
                     </Grid>
                 </Grid>

@@ -1,4 +1,5 @@
 ﻿using CommunityToolkit.Mvvm.Input;
+using System;
 using System.Reactive.Linq;
 using System.Windows.Input;
 using TV_Player.ViewModels;
@@ -54,12 +55,28 @@ namespace TV_Player
             get => _endProgram;
             set => SetProperty(ref _endProgram, value);
         }
+        
+        private bool _programGuideVisible;
+        public bool ProgramGuideVisible
+        {
+            get => _programGuideVisible;
+            set => SetProperty(ref _programGuideVisible, value);
+        }
+
+        List<ProgramInfo> _programsOnCurrentChannel;
+        public List<ProgramInfo> Programs
+        {
+            get => _programsOnCurrentChannel;
+            set => SetProperty(ref _programsOnCurrentChannel, value);
+        }
 
         private List<M3UInfo> _programs;
         public ICommand BackCommand { get; }
         public ICommand FullscreenCommand { get; }
         public ICommand NextCommand { get; }
         public ICommand PreviousCommand { get; }
+        public ICommand ShowProgramListCommand { get; }
+        public ICommand CloseAppCommand { get; }
 
         private ProgramGuide _currentGuide;
         private ProgramInfo _currentProgramInfo;
@@ -77,6 +94,9 @@ namespace TV_Player
             NextCommand = new RelayCommand(NextProgram);
             PreviousCommand = new RelayCommand(PreviousProgram);
             FullscreenCommand = new RelayCommand(TVPlayerViewModel.Instance.FullScreenToggle);
+            CloseAppCommand = new RelayCommand(TVPlayerViewModel.Instance.CloseAppCommand);
+            ShowProgramListCommand = new RelayCommand(ShowProgramList);
+            ProgramGuideVisible = false;
 
             _programSubscriber = TVPlayerViewModel.Instance.PlaylistData.AllPrograms.Subscribe(x =>
             {
@@ -101,6 +121,7 @@ namespace TV_Player
                 try
                 {
                     _currentGuide = x.FirstOrDefault(p => p.Id == _currentProgram.TvgID);
+                  
                     UpdateScreenInfo();
 
                     _timer = Observable.Interval(TimeSpan.FromMinutes(1)).Subscribe(x =>
@@ -121,6 +142,7 @@ namespace TV_Player
             _programGuideDisposable?.Dispose();
             UpdateUI();
         }
+
         private void NextProgram()
         {
             _currentProgramIndex += 1;
@@ -130,11 +152,19 @@ namespace TV_Player
             _programGuideDisposable?.Dispose();
             UpdateUI();
         }
+
+        private void ShowProgramList()
+        {
+            ProgramGuideVisible = true;
+        }
+
         private void UpdateScreenInfo()
         {
             try
             {
-                _currentProgramInfo = _currentGuide.Programs.FirstOrDefault(d => d.StartTime <= DateTime.Now && d.StopTime >= DateTime.Now);
+                _currentProgramInfo = _currentGuide.Programs.FirstOrDefault(d => d.StartTime <= DateTime.Now && d.EndTime >= DateTime.Now);
+                Programs = _currentGuide.Programs.Skip(_currentGuide.Programs.FindIndex(x=>x.Title==_currentProgramInfo.Title)).Take(7).ToList();
+
                 if (_currentProgramInfo == null)
                 {
                     IsProgramInfoVisible = false;
@@ -144,9 +174,9 @@ namespace TV_Player
                     IsProgramInfoVisible = true;
                     ProgramGuideText = _currentProgramInfo.Title;
                     StartProgram = _currentProgramInfo.StartTime.ToShortTimeString();
-                    EndProgram = _currentProgramInfo.StopTime.ToShortTimeString();
+                    EndProgram = _currentProgramInfo.EndTime.ToShortTimeString();
 
-                    var programMinutes = (_currentProgramInfo.StopTime - _currentProgramInfo.StartTime).TotalMinutes;
+                    var programMinutes = (_currentProgramInfo.EndTime - _currentProgramInfo.StartTime).TotalMinutes;
                     DurationValue = (int)((DateTime.Now - _currentProgramInfo.StartTime).TotalMinutes / programMinutes * 100);
                 }
 

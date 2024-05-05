@@ -66,7 +66,7 @@ namespace TV_Player
             }
         }
 
-        private void OnCloseAppButtonClick()
+        public void OnCloseAppButtonClick()
         {
             Environment.Exit(0);
         }
