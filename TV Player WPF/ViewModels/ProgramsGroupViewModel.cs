@@ -7,6 +7,7 @@ namespace TV_Player
     public class ProgramsGroupViewModel : ObservableViewModelBase, IDisposable
     {
         private List<GroupInfo> _programs;
+
         public List<GroupInfo> Programs
         {
             get => _programs;
@@ -20,7 +21,7 @@ namespace TV_Player
         public ProgramsGroupViewModel()
         {
             ItemSelectedCommand = new RelayCommand(OnItemSelected);
-            _groupInformationSubscriber = TVPlayerViewModel.Instance.PlaylistData.GroupsInformation.Subscribe(x=>Programs = x);
+            _groupInformationSubscriber = TVPlayerViewModel.Instance.PlaylistData.GroupsInformation.Subscribe(x => Programs = SettingsModel.HiddenGroups == null ? x : x.Where(g => !SettingsModel.HiddenGroups.Contains(g.Name.ToLower())).ToList());
 
             TVPlayerViewModel.Instance.TopPanelVisible(true, "Группы");
         }

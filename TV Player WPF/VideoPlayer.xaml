@@ -64,7 +64,7 @@
                             <TextBlock FontSize="15" Foreground="White" Text="Ch" HorizontalAlignment="Center" VerticalAlignment="Center" />
                             <Button Grid.RowSpan="2"  Height="70" Width="50" Margin="10,0,10,0" Style="{DynamicResource ButtonUp}" Command="{Binding NextCommand}" />
                         </StackPanel>
-                        <Grid Grid.Column="1" x:Name="programInfo" Visibility="{Binding IsProgramInfoVisible,Converter={StaticResource BooleanToVisibilityConverterKey}}">
+                        <Grid Grid.Column="1" x:Name="programInfo" Visibility="{Binding IsProgramInfoVisible,Converter={StaticResource BooleanToVisibilityConverterKey}}" Background="#0F000000">
                             <Grid.RowDefinitions>
                                 <RowDefinition Height="*"/>
                                 <RowDefinition Height="*"/>

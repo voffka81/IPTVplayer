@@ -4,9 +4,9 @@
 "ProjectType" = "8:{978C614F-708E-4E1A-B201-565925725DBA}"
 "IsWebType" = "8:FALSE"
 "ProjectName" = "8:TVPlayerSetup"
-"LanguageId" = "3:1049"
-"CodePage" = "3:1251"
-"UILanguageId" = "3:1049"
+"LanguageId" = "3:0"
+"CodePage" = "3:1252"
+"UILanguageId" = "3:0"
 "SccProjectName" = "8:"
 "SccLocalPath" = "8:"
 "SccAuxPath" = "8:"
@@ -13416,7 +13416,7 @@
         }
         "MsiBootstrapper"
         {
-        "LangId" = "3:1049"
+        "LangId" = "3:0"
         "RequiresElevation" = "11:FALSE"
         }
         "Product"
@@ -13424,7 +13424,7 @@
         "Name" = "8:Microsoft Visual Studio"
         "ProductName" = "8:TVPlayerSetup"
         "ProductCode" = "8:{9C9771D7-D3C6-49DD-9F5C-1B99F0808FE6}"
-        "PackageCode" = "8:{17F7FB4A-FCDB-42DC-AD6F-5B58EF7FC484}"
+        "PackageCode" = "8:{734B0943-71FD-40D7-A9FC-97A7146D90CF}"
         "UpgradeCode" = "8:{659EC3EB-443A-41ED-BD14-696FEBD8DDBF}"
         "AspNetVersion" = "8:2.0.50727.0"
         "RestartWWWService" = "11:FALSE"

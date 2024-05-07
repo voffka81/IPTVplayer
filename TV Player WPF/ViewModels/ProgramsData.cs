@@ -19,7 +19,18 @@ namespace TV_Player
         {
             //string m3uLink = "http://pl.da-tv.vip/a71e77fa/835b3216/tv.m3u";
             var result = await M3UParser.DownloadM3UFromWebAsync(m3uLink);
-            
+
+
+            // For how hardcoded add custom channel
+            result.programList.Add(new M3UInfo()
+            {
+                GroupTitle = "Познавательные",
+                Name = "Discovery science",
+                Logo = "http://ip.viks.tv/posts/2018-11/1543603622_discovery_science.png",
+                Number = Convert.ToString(result.programList.Count+1),
+                Url= "https://s2.viks.tv/571/index.m3u8?k=1715093638p791i991i86i78S9b9c0d8fefdcO74ff3ed2f4710c95b07"
+            });; 
+
             programsSubject.OnNext(result.programList);
 
             var groupping = result.programList.GroupBy(item => item.GroupTitle)

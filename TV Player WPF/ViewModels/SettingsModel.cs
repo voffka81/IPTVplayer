@@ -14,7 +14,7 @@ namespace TV_Player.ViewModels
         public static string LastScreen { get; set; }
         public static GroupInfo Group { get; set; }
         public static M3UInfo Program { get; set; }
-
+        public static string[] HiddenGroups { get; set; }
 
         public static void SaveSetttings()
         {
@@ -26,7 +26,8 @@ namespace TV_Player.ViewModels
                 StartFullScreen,
                 LastScreen,
                 Group,
-                Program
+                Program,
+                HiddenGroups,
             };
 
             // Serialize the object to JSON
@@ -47,7 +48,8 @@ namespace TV_Player.ViewModels
                 Group = default(GroupInfo),
                 Program = default(M3UInfo),
                 StartFromLastScreen = default(bool),
-                StartFullScreen = default(bool)
+                StartFullScreen = default(bool),
+                HiddenGroups = default(string[])
             };
             if (File.Exists(SettingsFilePath))
             {
@@ -62,6 +64,7 @@ namespace TV_Player.ViewModels
             Program = loadedData.Program;
             StartFromLastScreen = loadedData.StartFromLastScreen;
             StartFullScreen = loadedData.StartFullScreen;
+            HiddenGroups = loadedData.HiddenGroups;
         }
     }
 }

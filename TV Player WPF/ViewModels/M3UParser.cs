@@ -1,4 +1,5 @@
-﻿using System.Net.Http;
+﻿using System.IO;
+using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text.RegularExpressions;
 using System.Xml;
@@ -114,8 +115,16 @@ namespace TV_Player
 
         public static async Task<(List<M3UInfo> programList, string programGuide)> DownloadM3UFromWebAsync(string url)
         {
-            var fileData=await ReadFile(url);
-            // Parse M3U content
+            string fileData;
+            if (Uri.IsWellFormedUriString(url,UriKind.Absolute))
+            {
+                fileData = await ReadFile(url);
+            }
+            else
+            {
+                fileData= File.ReadAllText(url);
+            }
+            
             return ParseM3UFromString(fileData);
         }
         private static string[] SplitStringBeforeSeparator(string input, string separator)
@@ -170,7 +179,8 @@ namespace TV_Player
         private static bool TryParseM3ULine(string m3uLine, out M3UInfo? info)
         {
             info = null;
-            string pattern = @"#EXTINF:\d+ CUID=""(?<CUID>.*?)"" number=""(?<Number>.*?)"" tvg-id=""(?<TvgID>.*?)"" tvg-name=""(?<TvgName>.*?)"".*?tvg-logo=""(?<Logo>.*?)"" group-title=""(?<GroupTitle>.*?)""[^,]*,(?<Name>.*)[^\r](?<URL>.*)$";
+            //string pattern = @"#EXTINF:\d+ CUID=""(?<CUID>.*?)"" number=""(?<Number>.*?)"" tvg-id=""(?<TvgID>.*?)"" tvg-name=""(?<TvgName>.*?)"".*?tvg-logo=""(?<Logo>.*?)"" group-title=""(?<GroupTitle>.*?)""[^,]*,(?<Name>.*)[^\r](?<URL>.*)$";
+            string pattern = @"#EXTINF:(?:-?\d+)\s+?(?:CUID=""(?<CUID>.*?)""\s+)?(?:number=""(?<Number>.*?)""\s+)?(?:tvg-id=""(?<TvgID>.*?)""\s+)?(?:tvg-name=""(?<TvgName>.*?)""\s+)?(?:tvg-logo=""(?<Logo>.*?)""\s+)?(?:group-title=""(?<GroupTitle>.*?)"")[^,]*,(?<Name>.*)[^\r](?<URL>.*)$";
             Regex regex = new Regex(pattern, RegexOptions.IgnoreCase);
 
             Match match = regex.Match(m3uLine);
