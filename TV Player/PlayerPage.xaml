@@ -7,6 +7,6 @@
              >
 
     <StackLayout>
-        <toolkit:MediaElement x:Name="mediaElement"/>
+        <local:MediaViewer x:Name="videoViewer" WidthRequest="300" HeightRequest="300" HorizontalOptions="CenterAndExpand" StreamUrl="{Binding VideoUrl}" />
     </StackLayout>
 </ContentPage>

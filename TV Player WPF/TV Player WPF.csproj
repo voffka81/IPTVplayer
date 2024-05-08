@@ -20,14 +20,13 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="CommunityToolkit.Mvvm" Version="8.2.2" />
+	 <PackageReference Include="CommunityToolkit.Mvvm" Version="8.2.2" />
     <PackageReference Include="LibVLCSharp" Version="3.8.2">
       <TreatAsUsed>true</TreatAsUsed>
     </PackageReference>
     <PackageReference Include="LibVLCSharp.WPF" Version="3.8.2" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
     <PackageReference Include="System.Reactive" Version="6.0.0" />
-    <PackageReference Include="VideoLAN.LibVLC.Windows" Version="3.0.20" />
   </ItemGroup>
 
   <ItemGroup>

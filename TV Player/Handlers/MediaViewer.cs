@@ -1,6 +1,7 @@
 ﻿
 namespace TV_Player.MAUI
 {
+
     public class MediaViewer : ContentView
     {
         //private MediaPlayer _mediaPlayer;

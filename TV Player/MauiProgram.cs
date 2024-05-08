@@ -1,5 +1,4 @@
 ﻿
-using CommunityToolkit.Maui;
 
 namespace TV_Player.MAUI
 {
@@ -10,7 +9,6 @@ namespace TV_Player.MAUI
             var builder = MauiApp.CreateBuilder();
             builder
                 .UseMauiApp<App>()
-                .UseMauiCommunityToolkitMediaElement()
                 .ConfigureFonts(fonts =>
                 {
                     fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");

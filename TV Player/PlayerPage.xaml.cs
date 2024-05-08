@@ -67,12 +67,4 @@ public partial class PlayerPage : ContentPage
             return await client.GetByteArrayAsync(streamUrl);
         }
     }
-
-    protected override void OnAppearing()
-    {
-        base.OnAppearing();
-        // Set the MediaElement source to the temporary file when the page appears
-        mediaElement.Source = tempFilePath;
-        mediaElement.ShouldAutoPlay = true; // Auto-play the media
-    }
 }
