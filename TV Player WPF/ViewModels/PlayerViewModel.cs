@@ -116,11 +116,11 @@ namespace TV_Player
             TopPanelTitle = _currentProgram.Name;
             SourceUrlChangedEvent?.Invoke(_currentProgram.Url);
 
-            _programGuideDisposable = TVPlayerViewModel.Instance.PlaylistData.ProgramGuideInfo.Subscribe(x =>
+            _programGuideDisposable = TVPlayerViewModel.Instance.PlaylistData.ProgramGuideInfo.Subscribe(async x =>
             {
                 try
                 {
-                    _currentGuide = x.FirstOrDefault(p => p.Id == _currentProgram.TvgID);
+                    _currentGuide = await TVPlayerViewModel.Instance.PlaylistData.GetGuideByProgram(_currentProgram.TvgID);
                   
                     UpdateScreenInfo();
 
