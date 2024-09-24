@@ -33,8 +33,11 @@ namespace TV_Player
 
         public static async Task DownloadGuideFromWebAsync(string url)
         {
+            var fileName = "guide.xml";
+            string programDataPath = Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData);
+            string filePath = Path.Combine(programDataPath, "TV_Player", fileName);
 
-            var filePath = "guide.xml";
+
             if (File.Exists(filePath))
             {
                 DateTime creationTime = File.GetCreationTime(filePath);
@@ -56,6 +59,7 @@ namespace TV_Player
             {
                 channelsContent = await DownloadXMLProgram(url);
             }
+            Directory.CreateDirectory(Path.GetDirectoryName(filePath));
             await File.WriteAllTextAsync(filePath, channelsContent);
         }
 
@@ -107,7 +111,12 @@ namespace TV_Player
             settings.DtdProcessing = DtdProcessing.Parse;
             settings.Async = true;
             ProgramGuide channel = null;
-            using (XmlReader reader = XmlReader.Create("guide.xml", settings))
+            
+            var fileName = "guide.xml";
+            string programDataPath = Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData);
+            string filePath = Path.Combine(programDataPath, "TV_Player", fileName);
+
+            using (XmlReader reader = XmlReader.Create(filePath, settings))
             {
                 try
                 {
