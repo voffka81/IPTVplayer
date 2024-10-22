@@ -9,13 +9,14 @@
         <ListView x:Name="programsList"  ItemsSource="{Binding Programs}" Background="Transparent" VerticalAlignment="Top" Margin="0,50,0,0"
                   SelectionMode="Single" Style="{StaticResource ListBoxView}"
                   SelectedItem="{Binding SelectedItem}" BorderThickness="0"
+                  SnapsToDevicePixels="True"
                   PreviewMouseDown="ListView_PreviewMouseDown"
                   PreviewMouseUp="ListView_PreviewMouseUp"
                   PreviewMouseMove="ListView_MouseMove"
                   SelectionChanged="ListBox_SelectionChanged">
             <ListView.ItemsPanel>
                 <ItemsPanelTemplate>
-                    <UniformGrid Columns="12" />
+                    <UniformGrid Columns="12" VirtualizingPanel.IsVirtualizing="True" VirtualizingPanel.VirtualizationMode="Recycling"/>
                 </ItemsPanelTemplate>
             </ListView.ItemsPanel>
             <ListView.ItemTemplate>

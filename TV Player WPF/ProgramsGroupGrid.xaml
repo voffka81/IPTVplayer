@@ -15,7 +15,7 @@
                      SelectionChanged="ListBox_SelectionChanged">
             <ListBox.ItemsPanel>
                 <ItemsPanelTemplate>
-                    <UniformGrid Rows="4" />
+                    <UniformGrid Columns="4" VirtualizingPanel.IsVirtualizing="True" VirtualizingPanel.VirtualizationMode="Recycling"/>
                 </ItemsPanelTemplate>
             </ListBox.ItemsPanel>
             <ListView.ItemTemplate>

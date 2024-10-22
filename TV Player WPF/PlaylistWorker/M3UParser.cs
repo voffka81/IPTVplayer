@@ -247,7 +247,7 @@ namespace TV_Player
         private static bool TryParseM3ULine(string m3uLine, out M3UInfo? info)
         {
             info = null;
-            string pattern = @"#EXTINF:(-?\d+)\s+?(?:timeshift=""(?<Timeshift>.*?)""\s+)?(?:catchup-days=""(?<CatchupDays>.*?)""\s+)?(?:catchup-type=""(?<CatchupType>.*?)""\s+)?(?:CUID=""(?<CUID>.*?)""\s+)?(?:number=""(?<Number>.*?)""\s+)?(?:tvg-id=""(?<TvgID>.*?)""\s+)?(?:tvg-name=""(?<TvgName>.*?)""\s+)?(?:group-title=""(?<GroupTitle>.*?)""\s+)?(?:tvg-logo=""(?<Logo>.*?)""\s*)?(?:group-title=""(?<GroupTitle>.*?)"")?(?:,(?<Name>.*?)\s*\r?\n(?<URL>.*))";
+            string pattern = @"#EXTINF:(-?\d+)\s*?(?:timeshift=""(?<Timeshift>.*?)""\s+)?(?:catchup-days=""(?<CatchupDays>.*?)""\s+)?(?:catchup-type=""(?<CatchupType>.*?)""\s+)?(?:CUID=""(?<CUID>.*?)""\s+)?(?:number=""(?<Number>.*?)""\s+)?(?:tvg-id=""(?<TvgID>.*?)""\s+)?(?:tvg-name=""(?<TvgName>.*?)""\s+)?(?:group-title=""(?<GroupTitle>.*?)""\s+)?(?:tvg-logo=""(?<Logo>.*?)""\s*)?(?:group-title=""(?<GroupTitle>.*?)"")?(?:,(?<Name>.*?)\s*\r?\n(?<URL>.*))";
             //string pattern = @"#EXTINF:(-?\d+)\s+?(?:timeshift=""(?<Timeshift>.*?)""\s+)?(?:catchup-days=""(?<CatchupDays>.*?)""\s+)?(?:catchup-type=""(?<CatchupType>.*?)""\s+)?(?:CUID=""(?<CUID>.*?)""\s+)?(?:number=""(?<Number>.*?)""\s+)?(?:tvg-id=""(?<TvgID>.*?)""\s+)?(?:tvg-name=""(?<TvgName>.*?)""\s+)?(?:group-title=""(?<GroupTitle>.*?)""\s+)?(?:tvg-logo=""(?<Logo>.*?)"")?,(?<Name>.*?)\s*\r?\n(?<URL>.*)";
             Regex regex = new Regex(pattern, RegexOptions.IgnoreCase);
 
@@ -260,7 +260,7 @@ namespace TV_Player
                     Number = match.Groups["Number"].Value,
                     TvgID = match.Groups["TvgID"].Value,
                     TvgName = match.Groups["TvgName"].Value,
-                    GroupTitle = match.Groups["GroupTitle"].Value,
+                    GroupTitle = string.IsNullOrEmpty(match.Groups["GroupTitle"].Value)? "undefined":match.Groups["GroupTitle"].Value,
                     Logo = match.Groups["Logo"].Value,
                     Name = match.Groups["Name"].Value,
                     Url = match.Groups["URL"].Value
