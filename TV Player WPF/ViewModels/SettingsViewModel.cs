@@ -38,7 +38,7 @@ namespace TV_Player.ViewModels
 
             StartFullScreen = SettingsModel.StartFullScreen;
             StartLastScreen = SettingsModel.StartFromLastScreen;
-            PlaylistURL = SettingsModel.PlaylistURL;
+          //  PlaylistURL = SettingsModel.PlaylistURL;
         }
 
         private void OnBackCommand()
@@ -50,7 +50,7 @@ namespace TV_Player.ViewModels
         {
             SettingsModel.StartFullScreen = StartFullScreen;
             SettingsModel.StartFromLastScreen = StartLastScreen;
-            SettingsModel.PlaylistURL = PlaylistURL;
+            //SettingsModel.PlaylistURL = PlaylistURL;
 
             SettingsModel.SaveSetttings();
             TVPlayerViewModel.Instance.InitializeTVWithData(); 

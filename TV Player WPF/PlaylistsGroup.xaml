@@ -1,0 +1,30 @@
+﻿<UserControl x:Class="TV_Player.PlaylistsGroup"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" xmlns:tv_player="clr-namespace:TV_Player"
+             mc:Ignorable="d" 
+             d:DesignHeight="450" d:DesignWidth="800">
+    
+    <Grid VerticalAlignment="Center">
+        <ListView ItemsSource="{Binding Programs}" Background="Transparent"
+                     SelectionMode="Single" Style="{StaticResource ListBoxView}"
+                     SelectedItem="{Binding SelectedItem}" BorderThickness="0" 
+                     ScrollViewer.HorizontalScrollBarVisibility="Disabled" 
+                     ScrollViewer.VerticalScrollBarVisibility="Auto" 
+                     SelectionChanged="ListBox_SelectionChanged">
+            <ListBox.ItemsPanel>
+                <ItemsPanelTemplate>
+                    <UniformGrid Rows="4" />
+                </ItemsPanelTemplate>
+            </ListBox.ItemsPanel>
+            <ListView.ItemTemplate>
+                <DataTemplate>
+                    <Viewbox HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+                        <tv_player:GroupButton  Style="{DynamicResource GroupButton}" GroupName="{Binding Name}" />
+                    </Viewbox>
+                </DataTemplate>
+            </ListView.ItemTemplate>
+        </ListView>
+    </Grid>
+</UserControl>

@@ -4,7 +4,7 @@ using TV_Player.ViewModels;
 
 namespace TV_Player
 {
-    public class ProgramsGroupViewModel : ObservableViewModelBase, IDisposable
+    public class PlaylistsGroupViewModel : ObservableViewModelBase, IDisposable
     {
         private List<GroupInfo> _programs;
 
@@ -18,22 +18,17 @@ namespace TV_Player
         public ICommand ItemSelectedCommand { get; }
         public IDisposable _groupInformationSubscriber;
 
-        public ProgramsGroupViewModel()
+        public PlaylistsGroupViewModel()
         {
             ItemSelectedCommand = new RelayCommand(OnItemSelected);
-            _groupInformationSubscriber = TVPlayerViewModel.Instance.CurrentProgrmsData.GroupsInformation.Subscribe(x => Programs = SettingsModel.HiddenGroups == null ? x : x.Where(g => !SettingsModel.HiddenGroups.Contains(g.Name.ToLower())).ToList());
+            Programs = TVPlayerViewModel.Instance.PlayListsData.Select(x=>new GroupInfo() { Name =x.Key,Count=0}).ToList();
 
             TVPlayerViewModel.Instance.TopPanelVisible(true, "Группы");
-
-            TVPlayerViewModel.Instance.SetBackButtonAction(new Action(() =>
-            {
-                TVPlayerViewModel.Instance.ShowPlaylistsGroupScreen();
-            }));
         }
 
         private void OnItemSelected()
         {
-            TVPlayerViewModel.Instance.ShowProgramsListScreen(SelectedItem);
+            TVPlayerViewModel.Instance.ShowProgramsGroupScreen(SelectedItem.Name);
         }
 
         public void Dispose()

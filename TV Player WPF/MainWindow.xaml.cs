@@ -1,4 +1,5 @@
 ﻿using System.Windows;
+using System.Windows.Input;
 
 namespace TV_Player
 {
@@ -7,6 +8,14 @@ namespace TV_Player
         public MainWindow()
         {
             InitializeComponent();
+        }
+
+        private void UserControl_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (DataContext is MainViewModel viewModel)
+            {
+                viewModel.OnKeyDownCommand.Execute(e);
+            }
         }
     }
 }

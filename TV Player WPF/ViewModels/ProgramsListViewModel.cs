@@ -17,15 +17,15 @@ namespace TV_Player
         public ICommand ItemSelectedCommand { get; }
         private IDisposable _programSubscriber;
 
-        public ProgramsListViewModel(GroupInfo groupInfo)
+        public ProgramsListViewModel(string playlistName,GroupInfo groupInfo)
         {
             TVPlayerViewModel.Instance.TopPanelVisible(true, groupInfo.Name);
             ItemSelectedCommand = new RelayCommand(OnItemSelected);
-            _programSubscriber = TVPlayerViewModel.Instance.PlaylistData.AllPrograms.Subscribe(x => Programs = x.Where(p => p.GroupTitle == groupInfo.Name).ToList());
+            _programSubscriber = TVPlayerViewModel.Instance.CurrentProgrmsData.AllPrograms.Subscribe(x => Programs = x.Where(p => p.GroupTitle == groupInfo.Name).ToList());
 
             TVPlayerViewModel.Instance.SetBackButtonAction(new Action(() =>
             {
-                TVPlayerViewModel.Instance.ShowProgramsGroupScreen();
+                TVPlayerViewModel.Instance.ShowProgramsGroupScreen(playlistName);
             }));
         }
 

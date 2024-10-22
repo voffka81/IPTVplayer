@@ -12,11 +12,12 @@ namespace TV_Player
         public IObservable<List<GroupInfo>> GroupsInformation => groupsSubject;
 
         public IObservable<Unit> ProgramGuideInfo => programGuideSubject;
-        public ProgramsData()
-        {            
+        public ProgramsData(string name,string playlistURL)
+        {
+            Task.Run(() => GetPrograms(name,playlistURL));
         }
 
-        private async Task GetPrograms(string m3uLink)
+        private async Task GetPrograms(string name,string m3uLink)
         {
             //string m3uLink = "http://pl.da-tv.vip/a71e77fa/835b3216/tv.m3u";
             var result = await M3UParser.DownloadM3UFromWebAsync(m3uLink);
@@ -28,7 +29,7 @@ namespace TV_Player
                                .ToList();
             groupsSubject.OnNext(groupping);
 
-            await Task.Run(() => GetProgramGuide(result.programGuide));
+            await Task.Run(() => GetProgramGuide(name,result.programGuide));
         }
 
         public Task<ProgramGuide> GetGuideByProgram(string channelID)
@@ -36,16 +37,12 @@ namespace TV_Player
             return M3UParser.ParseEpg(channelID);
         }
 
-        private async Task GetProgramGuide(string guideLink)
+        private async Task GetProgramGuide(string name, string guideLink)
         {
             //guideLink = "http://epg.da-tv.vip/107-light.xml";
-            await M3UParser.DownloadGuideFromWebAsync(guideLink);
+            await M3UParser.DownloadGuideFromWebAsync(name,guideLink);
             programGuideSubject.OnNext(Unit.Default);
         }
-
-        internal void GetData(string playlistURL)
-        {
-            Task.Run(() => GetPrograms(playlistURL));
-        }
+        
     }
 }

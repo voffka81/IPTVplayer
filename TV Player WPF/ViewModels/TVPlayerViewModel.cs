@@ -5,9 +5,14 @@ namespace TV_Player.ViewModels
     public class TVPlayerViewModel : IDisposable
     {
         private readonly MainViewModel _mainViewModel;
-        public ProgramsData PlaylistData { get; private set; }
+
+        public ProgramsData CurrentProgrmsData { get; private set; }
+
+        public Dictionary<string,ProgramsData> PlayListsData { get; private set; }
 
         public Action ButtonBackAction { get; set; }
+
+        private string _currentPlaylistName;
 
         private static TVPlayerViewModel? _instance;
         public static TVPlayerViewModel Instance
@@ -22,7 +27,7 @@ namespace TV_Player.ViewModels
 
         public TVPlayerViewModel()
         {
-            PlaylistData = new ProgramsData();
+            PlayListsData=new Dictionary<string,ProgramsData>();
 
             _mainViewModel = new MainViewModel();
             var mainWindow = new MainWindow();
@@ -37,15 +42,20 @@ namespace TV_Player.ViewModels
 
         public void InitializeTVWithData()
         {
-            if (!string.IsNullOrEmpty(SettingsModel.PlaylistURL))
+            if (SettingsModel.Playlists!=null && SettingsModel.Playlists.Any())
             {
+                foreach(var playlist in SettingsModel.Playlists)
+                {
+                    PlayListsData.Add(playlist.Key, new ProgramsData(playlist.Key,playlist.Value));
+                }
+
                 if (SettingsModel.StartFullScreen)
                     FullScreenToggle();
-                PlaylistData.GetData(SettingsModel.PlaylistURL);
+
                 if (SettingsModel.StartFromLastScreen)
                     SelectScreen();
                 else
-                    ShowProgramsGroupScreen();
+                    ShowPlaylistsGroupScreen();
             }
             else
             {
@@ -64,13 +74,28 @@ namespace TV_Player.ViewModels
                     ShowPlayerScreen(SettingsModel.Program);
                     break;
                 default:
-                    ShowProgramsGroupScreen();
+                    ShowPlaylistsGroupScreen();
                     break;
             }
         }
 
-        public void ShowProgramsGroupScreen()
+        public void ShowPlaylistsGroupScreen()
         {
+            var vm = new PlaylistsGroupViewModel();
+            var control = new PlaylistsGroup();
+            control.DataContext = vm;
+
+            SettingsModel.LastScreen = nameof(ProgramsGroupViewModel);
+            SetPageContext(control, vm);
+        }
+
+
+        public void ShowProgramsGroupScreen(string groupName)
+        {
+            var selectedData = PlayListsData.First(x => x.Key == groupName);
+            _currentPlaylistName = selectedData.Key;
+            CurrentProgrmsData = selectedData.Value;
+
             var vm = new ProgramsGroupViewModel();
 
             var control = new ProgramsGroupGrid();
@@ -83,7 +108,7 @@ namespace TV_Player.ViewModels
         public void ShowProgramsListScreen(GroupInfo group)
         {
             SettingsModel.Group = group;
-            var programListViewModel = new ProgramsListViewModel(group);
+            var programListViewModel = new ProgramsListViewModel(_currentPlaylistName,group);
             var conrtrol = new ProgramsList();
             SettingsModel.LastScreen = nameof(ProgramsListViewModel);
             SetPageContext(conrtrol, programListViewModel);

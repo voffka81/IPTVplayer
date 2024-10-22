@@ -5,10 +5,10 @@ namespace TV_Player.ViewModels
 {
     public static class SettingsModel
     {
-        private static readonly string AppDataFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "TVPlayer");
+        private static readonly string AppDataFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), "TVPlayer");
         private static readonly string SettingsFilePath = Path.Combine(AppDataFolder, "settings.json");
 
-        public static string PlaylistURL { get; set; }
+        public static Dictionary<string,string> Playlists { get; set; }
         public static bool StartFullScreen { get; set; } 
         public static bool StartFromLastScreen { get; set; } 
         public static string LastScreen { get; set; }
@@ -21,7 +21,7 @@ namespace TV_Player.ViewModels
             // Create an anonymous object to hold the properties
             var dataToSerialize = new
             {
-                PlaylistURL,
+                Playlists,
                 StartFromLastScreen,
                 StartFullScreen,
                 LastScreen,
@@ -43,7 +43,7 @@ namespace TV_Player.ViewModels
         {
             var loadedData = new
             {
-                PlaylistURL = default(string),
+                Playlists = default(Dictionary<string,string>),
                 LastScreen = default(string),
                 Group = default(GroupInfo),
                 Program = default(M3UInfo),
@@ -58,7 +58,7 @@ namespace TV_Player.ViewModels
                 loadedData = JsonConvert.DeserializeAnonymousType(json, loadedData);
             }
             // Assign the values to the properties
-            PlaylistURL = loadedData.PlaylistURL;
+            Playlists = loadedData.Playlists;
             LastScreen = loadedData.LastScreen;
             Group = loadedData.Group;
             Program = loadedData.Program;

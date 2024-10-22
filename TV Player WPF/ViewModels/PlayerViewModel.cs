@@ -98,7 +98,7 @@ namespace TV_Player
             ShowProgramListCommand = new RelayCommand(ShowProgramList);
             ProgramGuideVisible = false;
 
-            _programSubscriber = TVPlayerViewModel.Instance.PlaylistData.AllPrograms.Subscribe(x =>
+            _programSubscriber = TVPlayerViewModel.Instance.CurrentProgrmsData.AllPrograms.Subscribe(x =>
             {
                 _programs = x.Where(p => p.GroupTitle == _currentProgram.GroupTitle).ToList();
                 _currentProgramIndex = _programs.Select((program, index) => new { program, index })
@@ -116,11 +116,11 @@ namespace TV_Player
             TopPanelTitle = _currentProgram.Name;
             SourceUrlChangedEvent?.Invoke(_currentProgram.Url);
 
-            _programGuideDisposable = TVPlayerViewModel.Instance.PlaylistData.ProgramGuideInfo.Subscribe(async x =>
+            _programGuideDisposable = TVPlayerViewModel.Instance.CurrentProgrmsData.ProgramGuideInfo.Subscribe(async x =>
             {
                 try
                 {
-                    _currentGuide = await TVPlayerViewModel.Instance.PlaylistData.GetGuideByProgram(_currentProgram.TvgID);
+                    _currentGuide = await TVPlayerViewModel.Instance.CurrentProgrmsData.GetGuideByProgram(_currentProgram.TvgID);
                   
                     UpdateScreenInfo();
 

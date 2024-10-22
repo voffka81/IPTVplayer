@@ -31,11 +31,11 @@ namespace TV_Player
     public static class M3UParser
     {
 
-        public static async Task DownloadGuideFromWebAsync(string url)
+        public static async Task DownloadGuideFromWebAsync(string name, string url)
         {
-            var fileName = "guide.xml";
+            var fileName = name+"_guide.xml";
             string programDataPath = Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData);
-            string filePath = Path.Combine(programDataPath, "TV_Player", fileName);
+            string filePath = Path.Combine(programDataPath, "TVPlayer", fileName);
 
 
             if (File.Exists(filePath))
@@ -247,8 +247,8 @@ namespace TV_Player
         private static bool TryParseM3ULine(string m3uLine, out M3UInfo? info)
         {
             info = null;
-            //string pattern = @"#EXTINF:\d+ CUID=""(?<CUID>.*?)"" number=""(?<Number>.*?)"" tvg-id=""(?<TvgID>.*?)"" tvg-name=""(?<TvgName>.*?)"".*?tvg-logo=""(?<Logo>.*?)"" group-title=""(?<GroupTitle>.*?)""[^,]*,(?<Name>.*)[^\r](?<URL>.*)$";
-            string pattern = @"#EXTINF:(-?\d+)\s+?(?:timeshift=""(?<Timeshift>.*?)""\s+)?(?:catchup-days=""(?<CatchupDays>.*?)""\s+)?(?:catchup-type=""(?<CatchupType>.*?)""\s+)?(?:CUID=""(?<CUID>.*?)""\s+)?(?:number=""(?<Number>.*?)""\s+)?(?:tvg-id=""(?<TvgID>.*?)""\s+)?(?:tvg-name=""(?<TvgName>.*?)""\s+)?(?:group-title=""(?<GroupTitle>.*?)""\s+)?(?:tvg-logo=""(?<Logo>.*?)"")?,(?<Name>.*?)\s*\r?\n(?<URL>.*)";
+            string pattern = @"#EXTINF:(-?\d+)\s+?(?:timeshift=""(?<Timeshift>.*?)""\s+)?(?:catchup-days=""(?<CatchupDays>.*?)""\s+)?(?:catchup-type=""(?<CatchupType>.*?)""\s+)?(?:CUID=""(?<CUID>.*?)""\s+)?(?:number=""(?<Number>.*?)""\s+)?(?:tvg-id=""(?<TvgID>.*?)""\s+)?(?:tvg-name=""(?<TvgName>.*?)""\s+)?(?:group-title=""(?<GroupTitle>.*?)""\s+)?(?:tvg-logo=""(?<Logo>.*?)""\s*)?(?:group-title=""(?<GroupTitle>.*?)"")?(?:,(?<Name>.*?)\s*\r?\n(?<URL>.*))";
+            //string pattern = @"#EXTINF:(-?\d+)\s+?(?:timeshift=""(?<Timeshift>.*?)""\s+)?(?:catchup-days=""(?<CatchupDays>.*?)""\s+)?(?:catchup-type=""(?<CatchupType>.*?)""\s+)?(?:CUID=""(?<CUID>.*?)""\s+)?(?:number=""(?<Number>.*?)""\s+)?(?:tvg-id=""(?<TvgID>.*?)""\s+)?(?:tvg-name=""(?<TvgName>.*?)""\s+)?(?:group-title=""(?<GroupTitle>.*?)""\s+)?(?:tvg-logo=""(?<Logo>.*?)"")?,(?<Name>.*?)\s*\r?\n(?<URL>.*)";
             Regex regex = new Regex(pattern, RegexOptions.IgnoreCase);
 
             Match match = regex.Match(m3uLine);

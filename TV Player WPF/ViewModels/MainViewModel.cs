@@ -36,6 +36,7 @@ namespace TV_Player
             get => _currentWindowState;
             set => SetProperty(ref _currentWindowState, value);
         }
+        public ICommand OnKeyDownCommand { get; }
 
         public ICommand FullscreenCommand { get; }
         public ICommand CloseAppCommand { get; }
@@ -47,7 +48,7 @@ namespace TV_Player
 
         public MainViewModel()
         {
-
+            OnKeyDownCommand = new RelayCommand<KeyEventArgs>(OnKeyDown);
             BackCommand = new RelayCommand(OnButtonBackClick);
             FullscreenCommand = new RelayCommand(OnFullSctreenButtonClick);
             SettingsCommand = new RelayCommand(OnSettingsButtonClick);
@@ -80,6 +81,18 @@ namespace TV_Player
         private void OnSettingsButtonClick()
         {
             TVPlayerViewModel.Instance.ShowSettingsScreen();
+        }
+
+        private void OnKeyDown(KeyEventArgs e)
+        {
+            if (e.Key == Key.Escape)
+            {
+                Environment.Exit(0);
+            }
+            if (e.Key == Key.Back)
+            {
+                ButtonBackAction?.Invoke();
+            }
         }
     }
 }
