@@ -57,7 +57,8 @@ namespace TV_Player.ViewModels
 
             StartFullScreen = SettingsModel.StartFullScreen;
             StartLastScreen = SettingsModel.StartFromLastScreen;
-            Playlists = new ObservableCollection<KeyValuePair<string, string>>(SettingsModel.Playlists);
+
+            Playlists = SettingsModel.Playlists == null ? ([]) : new ObservableCollection<KeyValuePair<string, string>>(SettingsModel.Playlists);
         }
 
         private void OnAddPlaylistCommand()
@@ -80,7 +81,7 @@ namespace TV_Player.ViewModels
         {
             SettingsModel.StartFullScreen = StartFullScreen;
             SettingsModel.StartFromLastScreen = StartLastScreen;
-            SettingsModel.Playlists.Clear();
+            SettingsModel.Playlists?.Clear();
             SettingsModel.Playlists = Playlists.ToDictionary<string, string>();
             SettingsModel.SaveSetttings();
             TVPlayerViewModel.Instance.InitializeTVWithData();

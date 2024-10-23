@@ -147,12 +147,6 @@
         }
         "Entry"
         {
-        "MsmKey" = "8:_0F6898914F30525BD175B27D17D6D24B"
-        "OwnerKey" = "8:_7AD1823E695545AC85765461F3083D3D"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
         "MsmKey" = "8:_115CB21DD76F4536981D436582AC2F35"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
@@ -831,6 +825,12 @@
         }
         "Entry"
         {
+        "MsmKey" = "8:_47CB2382C4320B813D09B279484CFC40"
+        "OwnerKey" = "8:_7AD1823E695545AC85765461F3083D3D"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
         "MsmKey" = "8:_4822F7CAC9A144EC8F828CA0BB457C5F"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
@@ -845,6 +845,24 @@
         {
         "MsmKey" = "8:_486C0EBBA99D4EFD88559158943E9BAC"
         "OwnerKey" = "8:_UNDEFINED"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_489F1774042CA9677A7499308C354C98"
+        "OwnerKey" = "8:_7AD1823E695545AC85765461F3083D3D"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_489F1774042CA9677A7499308C354C98"
+        "OwnerKey" = "8:_C6489C493FB24B68BEA4B4B5A10B74B2"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_489F1774042CA9677A7499308C354C98"
+        "OwnerKey" = "8:_7E2B2A5831B2FEE1C25D9D6A967A8B3D"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
@@ -941,6 +959,12 @@
         {
         "MsmKey" = "8:_5429E5A733944B248493DC04A4DCD1CB"
         "OwnerKey" = "8:_UNDEFINED"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_542FA7A5BB86B3A9407444C6C4FC2864"
+        "OwnerKey" = "8:_7AD1823E695545AC85765461F3083D3D"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
@@ -1521,6 +1545,12 @@
         }
         "Entry"
         {
+        "MsmKey" = "8:_7E2B2A5831B2FEE1C25D9D6A967A8B3D"
+        "OwnerKey" = "8:_7AD1823E695545AC85765461F3083D3D"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
         "MsmKey" = "8:_7E965D15802644DE885F8037B829C508"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
@@ -1607,6 +1637,12 @@
         {
         "MsmKey" = "8:_8713288ABA3E43EB9C1AC02E03435C54"
         "OwnerKey" = "8:_UNDEFINED"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_87204147D234FF660F124828E6F5B6BA"
+        "OwnerKey" = "8:_7AD1823E695545AC85765461F3083D3D"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
@@ -1739,12 +1775,6 @@
         {
         "MsmKey" = "8:_941123BD448F444DA6C712765001B2F5"
         "OwnerKey" = "8:_UNDEFINED"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
-        "MsmKey" = "8:_9420318644B3C3B0321BA4DDCF790070"
-        "OwnerKey" = "8:_7AD1823E695545AC85765461F3083D3D"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
@@ -1955,24 +1985,6 @@
         {
         "MsmKey" = "8:_A75E6850F2F643D78DF8AA96212B4A7C"
         "OwnerKey" = "8:_UNDEFINED"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
-        "MsmKey" = "8:_A89B7324E66C4DDD0E49D04BB9255963"
-        "OwnerKey" = "8:_7AD1823E695545AC85765461F3083D3D"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
-        "MsmKey" = "8:_A89B7324E66C4DDD0E49D04BB9255963"
-        "OwnerKey" = "8:_C6489C493FB24B68BEA4B4B5A10B74B2"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
-        "MsmKey" = "8:_A89B7324E66C4DDD0E49D04BB9255963"
-        "OwnerKey" = "8:_E39AF07715B2A15AE05ADD1AEB7E3534"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
@@ -2577,12 +2589,6 @@
         }
         "Entry"
         {
-        "MsmKey" = "8:_DE3405F7D44696DB3A9AD25E64561E61"
-        "OwnerKey" = "8:_7AD1823E695545AC85765461F3083D3D"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
         "MsmKey" = "8:_DF38273401FC4CF18479458D15CCD854"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
@@ -2621,12 +2627,6 @@
         {
         "MsmKey" = "8:_E2AA59D066294FDDB4E435ABE24C4B25"
         "OwnerKey" = "8:_UNDEFINED"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
-        "MsmKey" = "8:_E39AF07715B2A15AE05ADD1AEB7E3534"
-        "OwnerKey" = "8:_7AD1823E695545AC85765461F3083D3D"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
@@ -2920,6 +2920,12 @@
         "Entry"
         {
         "MsmKey" = "8:_UNDEFINED"
+        "OwnerKey" = "8:_7E2B2A5831B2FEE1C25D9D6A967A8B3D"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_UNDEFINED"
         "OwnerKey" = "8:_C6489C493FB24B68BEA4B4B5A10B74B2"
         "MsmSig" = "8:_UNDEFINED"
         }
@@ -2927,12 +2933,6 @@
         {
         "MsmKey" = "8:_UNDEFINED"
         "OwnerKey" = "8:_7AD1823E695545AC85765461F3083D3D"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
-        "MsmKey" = "8:_UNDEFINED"
-        "OwnerKey" = "8:_E39AF07715B2A15AE05ADD1AEB7E3534"
         "MsmSig" = "8:_UNDEFINED"
         }
     }
@@ -3483,37 +3483,6 @@
             "Register" = "3:1"
             "Exclude" = "11:FALSE"
             "IsDependency" = "11:FALSE"
-            "IsolateTo" = "8:"
-            }
-            "{9F6F8455-1EF1-4B85-886A-4223BCC8E7F7}:_0F6898914F30525BD175B27D17D6D24B"
-            {
-            "AssemblyRegister" = "3:1"
-            "AssemblyIsInGAC" = "11:FALSE"
-            "AssemblyAsmDisplayName" = "8:System.Reactive, Version=6.0.0.0, Culture=neutral, PublicKeyToken=94bc3704cddfc263, processorArchitecture=MSIL"
-                "ScatterAssemblies"
-                {
-                    "_0F6898914F30525BD175B27D17D6D24B"
-                    {
-                    "Name" = "8:System.Reactive.dll"
-                    "Attributes" = "3:512"
-                    }
-                }
-            "SourcePath" = "8:System.Reactive.dll"
-            "TargetName" = "8:"
-            "Tag" = "8:"
-            "Folder" = "8:_479B4B7944544040B917571140E85516"
-            "Condition" = "8:"
-            "Transitive" = "11:FALSE"
-            "Vital" = "11:TRUE"
-            "ReadOnly" = "11:FALSE"
-            "Hidden" = "11:FALSE"
-            "System" = "11:FALSE"
-            "Permanent" = "11:FALSE"
-            "SharedLegacy" = "11:FALSE"
-            "PackageAs" = "3:1"
-            "Register" = "3:1"
-            "Exclude" = "11:FALSE"
-            "IsDependency" = "11:TRUE"
             "IsolateTo" = "8:"
             }
             "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_115CB21DD76F4536981D436582AC2F35"
@@ -5787,6 +5756,37 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
+            "{9F6F8455-1EF1-4B85-886A-4223BCC8E7F7}:_47CB2382C4320B813D09B279484CFC40"
+            {
+            "AssemblyRegister" = "3:1"
+            "AssemblyIsInGAC" = "11:FALSE"
+            "AssemblyAsmDisplayName" = "8:System.Reactive, Version=6.0.0.0, Culture=neutral, PublicKeyToken=94bc3704cddfc263, processorArchitecture=MSIL"
+                "ScatterAssemblies"
+                {
+                    "_47CB2382C4320B813D09B279484CFC40"
+                    {
+                    "Name" = "8:System.Reactive.dll"
+                    "Attributes" = "3:512"
+                    }
+                }
+            "SourcePath" = "8:System.Reactive.dll"
+            "TargetName" = "8:"
+            "Tag" = "8:"
+            "Folder" = "8:_479B4B7944544040B917571140E85516"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:TRUE"
+            "IsolateTo" = "8:"
+            }
             "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_4822F7CAC9A144EC8F828CA0BB457C5F"
             {
             "SourcePath" = "8:..\\TV Player WPF\\bin\\Release\\net8.0-windows\\libvlc\\win-x64\\lua\\http\\css\\ui-lightness\\images\\ui-icons_ef8c08_256x240.png"
@@ -5845,6 +5845,37 @@
             "Register" = "3:1"
             "Exclude" = "11:FALSE"
             "IsDependency" = "11:FALSE"
+            "IsolateTo" = "8:"
+            }
+            "{9F6F8455-1EF1-4B85-886A-4223BCC8E7F7}:_489F1774042CA9677A7499308C354C98"
+            {
+            "AssemblyRegister" = "3:1"
+            "AssemblyIsInGAC" = "11:FALSE"
+            "AssemblyAsmDisplayName" = "8:LibVLCSharp, Version=3.8.2.0, Culture=neutral, processorArchitecture=MSIL"
+                "ScatterAssemblies"
+                {
+                    "_489F1774042CA9677A7499308C354C98"
+                    {
+                    "Name" = "8:LibVLCSharp.dll"
+                    "Attributes" = "3:512"
+                    }
+                }
+            "SourcePath" = "8:LibVLCSharp.dll"
+            "TargetName" = "8:"
+            "Tag" = "8:"
+            "Folder" = "8:_479B4B7944544040B917571140E85516"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:TRUE"
             "IsolateTo" = "8:"
             }
             "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_4BB2CDF2389948AF83814D320F78913D"
@@ -6165,6 +6196,37 @@
             "Register" = "3:1"
             "Exclude" = "11:FALSE"
             "IsDependency" = "11:FALSE"
+            "IsolateTo" = "8:"
+            }
+            "{9F6F8455-1EF1-4B85-886A-4223BCC8E7F7}:_542FA7A5BB86B3A9407444C6C4FC2864"
+            {
+            "AssemblyRegister" = "3:1"
+            "AssemblyIsInGAC" = "11:FALSE"
+            "AssemblyAsmDisplayName" = "8:Newtonsoft.Json, Version=13.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL"
+                "ScatterAssemblies"
+                {
+                    "_542FA7A5BB86B3A9407444C6C4FC2864"
+                    {
+                    "Name" = "8:Newtonsoft.Json.dll"
+                    "Attributes" = "3:512"
+                    }
+                }
+            "SourcePath" = "8:Newtonsoft.Json.dll"
+            "TargetName" = "8:"
+            "Tag" = "8:"
+            "Folder" = "8:_479B4B7944544040B917571140E85516"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:TRUE"
             "IsolateTo" = "8:"
             }
             "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_5469181919AA482A80FADF59EDE4114F"
@@ -8109,6 +8171,37 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
+            "{9F6F8455-1EF1-4B85-886A-4223BCC8E7F7}:_7E2B2A5831B2FEE1C25D9D6A967A8B3D"
+            {
+            "AssemblyRegister" = "3:1"
+            "AssemblyIsInGAC" = "11:FALSE"
+            "AssemblyAsmDisplayName" = "8:LibVLCSharp.WPF, Version=3.8.2.0, Culture=neutral, processorArchitecture=MSIL"
+                "ScatterAssemblies"
+                {
+                    "_7E2B2A5831B2FEE1C25D9D6A967A8B3D"
+                    {
+                    "Name" = "8:LibVLCSharp.WPF.dll"
+                    "Attributes" = "3:512"
+                    }
+                }
+            "SourcePath" = "8:LibVLCSharp.WPF.dll"
+            "TargetName" = "8:"
+            "Tag" = "8:"
+            "Folder" = "8:_479B4B7944544040B917571140E85516"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:TRUE"
+            "IsolateTo" = "8:"
+            }
             "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_7E965D15802644DE885F8037B829C508"
             {
             "SourcePath" = "8:..\\TV Player WPF\\bin\\Release\\net8.0-windows\\libvlc\\win-x64\\lua\\http\\custom.lua"
@@ -8407,6 +8500,37 @@
             "Register" = "3:1"
             "Exclude" = "11:FALSE"
             "IsDependency" = "11:FALSE"
+            "IsolateTo" = "8:"
+            }
+            "{9F6F8455-1EF1-4B85-886A-4223BCC8E7F7}:_87204147D234FF660F124828E6F5B6BA"
+            {
+            "AssemblyRegister" = "3:1"
+            "AssemblyIsInGAC" = "11:FALSE"
+            "AssemblyAsmDisplayName" = "8:CommunityToolkit.Mvvm, Version=8.2.0.0, Culture=neutral, PublicKeyToken=4aff67a105548ee2, processorArchitecture=MSIL"
+                "ScatterAssemblies"
+                {
+                    "_87204147D234FF660F124828E6F5B6BA"
+                    {
+                    "Name" = "8:CommunityToolkit.Mvvm.dll"
+                    "Attributes" = "3:512"
+                    }
+                }
+            "SourcePath" = "8:CommunityToolkit.Mvvm.dll"
+            "TargetName" = "8:"
+            "Tag" = "8:"
+            "Folder" = "8:_479B4B7944544040B917571140E85516"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:TRUE"
             "IsolateTo" = "8:"
             }
             "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_87CA56B5107147C68C7C46F75CFC83C6"
@@ -8847,37 +8971,6 @@
             "Register" = "3:1"
             "Exclude" = "11:FALSE"
             "IsDependency" = "11:FALSE"
-            "IsolateTo" = "8:"
-            }
-            "{9F6F8455-1EF1-4B85-886A-4223BCC8E7F7}:_9420318644B3C3B0321BA4DDCF790070"
-            {
-            "AssemblyRegister" = "3:1"
-            "AssemblyIsInGAC" = "11:FALSE"
-            "AssemblyAsmDisplayName" = "8:Newtonsoft.Json, Version=13.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL"
-                "ScatterAssemblies"
-                {
-                    "_9420318644B3C3B0321BA4DDCF790070"
-                    {
-                    "Name" = "8:Newtonsoft.Json.dll"
-                    "Attributes" = "3:512"
-                    }
-                }
-            "SourcePath" = "8:Newtonsoft.Json.dll"
-            "TargetName" = "8:"
-            "Tag" = "8:"
-            "Folder" = "8:_479B4B7944544040B917571140E85516"
-            "Condition" = "8:"
-            "Transitive" = "11:FALSE"
-            "Vital" = "11:TRUE"
-            "ReadOnly" = "11:FALSE"
-            "Hidden" = "11:FALSE"
-            "System" = "11:FALSE"
-            "Permanent" = "11:FALSE"
-            "SharedLegacy" = "11:FALSE"
-            "PackageAs" = "3:1"
-            "Register" = "3:1"
-            "Exclude" = "11:FALSE"
-            "IsDependency" = "11:TRUE"
             "IsolateTo" = "8:"
             }
             "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_9518A0EA90B14A91831DF93FA6EBE1B6"
@@ -9589,37 +9682,6 @@
             "Register" = "3:1"
             "Exclude" = "11:FALSE"
             "IsDependency" = "11:FALSE"
-            "IsolateTo" = "8:"
-            }
-            "{9F6F8455-1EF1-4B85-886A-4223BCC8E7F7}:_A89B7324E66C4DDD0E49D04BB9255963"
-            {
-            "AssemblyRegister" = "3:1"
-            "AssemblyIsInGAC" = "11:FALSE"
-            "AssemblyAsmDisplayName" = "8:LibVLCSharp, Version=3.8.2.0, Culture=neutral, processorArchitecture=MSIL"
-                "ScatterAssemblies"
-                {
-                    "_A89B7324E66C4DDD0E49D04BB9255963"
-                    {
-                    "Name" = "8:LibVLCSharp.dll"
-                    "Attributes" = "3:512"
-                    }
-                }
-            "SourcePath" = "8:LibVLCSharp.dll"
-            "TargetName" = "8:"
-            "Tag" = "8:"
-            "Folder" = "8:_479B4B7944544040B917571140E85516"
-            "Condition" = "8:"
-            "Transitive" = "11:FALSE"
-            "Vital" = "11:TRUE"
-            "ReadOnly" = "11:FALSE"
-            "Hidden" = "11:FALSE"
-            "System" = "11:FALSE"
-            "Permanent" = "11:FALSE"
-            "SharedLegacy" = "11:FALSE"
-            "PackageAs" = "3:1"
-            "Register" = "3:1"
-            "Exclude" = "11:FALSE"
-            "IsDependency" = "11:TRUE"
             "IsolateTo" = "8:"
             }
             "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_A8EAB36E63784EC5A31931EADF64B79F"
@@ -11644,37 +11706,6 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{9F6F8455-1EF1-4B85-886A-4223BCC8E7F7}:_DE3405F7D44696DB3A9AD25E64561E61"
-            {
-            "AssemblyRegister" = "3:1"
-            "AssemblyIsInGAC" = "11:FALSE"
-            "AssemblyAsmDisplayName" = "8:CommunityToolkit.Mvvm, Version=8.2.0.0, Culture=neutral, PublicKeyToken=4aff67a105548ee2, processorArchitecture=MSIL"
-                "ScatterAssemblies"
-                {
-                    "_DE3405F7D44696DB3A9AD25E64561E61"
-                    {
-                    "Name" = "8:CommunityToolkit.Mvvm.dll"
-                    "Attributes" = "3:512"
-                    }
-                }
-            "SourcePath" = "8:CommunityToolkit.Mvvm.dll"
-            "TargetName" = "8:"
-            "Tag" = "8:"
-            "Folder" = "8:_479B4B7944544040B917571140E85516"
-            "Condition" = "8:"
-            "Transitive" = "11:FALSE"
-            "Vital" = "11:TRUE"
-            "ReadOnly" = "11:FALSE"
-            "Hidden" = "11:FALSE"
-            "System" = "11:FALSE"
-            "Permanent" = "11:FALSE"
-            "SharedLegacy" = "11:FALSE"
-            "PackageAs" = "3:1"
-            "Register" = "3:1"
-            "Exclude" = "11:FALSE"
-            "IsDependency" = "11:TRUE"
-            "IsolateTo" = "8:"
-            }
             "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_DF38273401FC4CF18479458D15CCD854"
             {
             "SourcePath" = "8:..\\TV Player WPF\\bin\\Release\\net8.0-windows\\libvlc\\win-x64\\plugins\\stream_out\\libstream_out_transcode_plugin.dll"
@@ -11813,37 +11844,6 @@
             "Register" = "3:1"
             "Exclude" = "11:FALSE"
             "IsDependency" = "11:FALSE"
-            "IsolateTo" = "8:"
-            }
-            "{9F6F8455-1EF1-4B85-886A-4223BCC8E7F7}:_E39AF07715B2A15AE05ADD1AEB7E3534"
-            {
-            "AssemblyRegister" = "3:1"
-            "AssemblyIsInGAC" = "11:FALSE"
-            "AssemblyAsmDisplayName" = "8:LibVLCSharp.WPF, Version=3.8.2.0, Culture=neutral, processorArchitecture=MSIL"
-                "ScatterAssemblies"
-                {
-                    "_E39AF07715B2A15AE05ADD1AEB7E3534"
-                    {
-                    "Name" = "8:LibVLCSharp.WPF.dll"
-                    "Attributes" = "3:512"
-                    }
-                }
-            "SourcePath" = "8:LibVLCSharp.WPF.dll"
-            "TargetName" = "8:"
-            "Tag" = "8:"
-            "Folder" = "8:_479B4B7944544040B917571140E85516"
-            "Condition" = "8:"
-            "Transitive" = "11:FALSE"
-            "Vital" = "11:TRUE"
-            "ReadOnly" = "11:FALSE"
-            "Hidden" = "11:FALSE"
-            "System" = "11:FALSE"
-            "Permanent" = "11:FALSE"
-            "SharedLegacy" = "11:FALSE"
-            "PackageAs" = "3:1"
-            "Register" = "3:1"
-            "Exclude" = "11:FALSE"
-            "IsDependency" = "11:TRUE"
             "IsolateTo" = "8:"
             }
             "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_E3DF25A7DBEF49DDA25D5750B7E6526B"
@@ -13422,20 +13422,20 @@
         "Product"
         {
         "Name" = "8:Microsoft Visual Studio"
-        "ProductName" = "8:TVPlayerSetup"
-        "ProductCode" = "8:{9C9771D7-D3C6-49DD-9F5C-1B99F0808FE6}"
-        "PackageCode" = "8:{734B0943-71FD-40D7-A9FC-97A7146D90CF}"
+        "ProductName" = "8:TVPlayer"
+        "ProductCode" = "8:{C2107D93-6768-43F7-966F-793FA3DD860F}"
+        "PackageCode" = "8:{B6C699C1-E068-42DF-9156-9250CD36572B}"
         "UpgradeCode" = "8:{659EC3EB-443A-41ED-BD14-696FEBD8DDBF}"
         "AspNetVersion" = "8:2.0.50727.0"
         "RestartWWWService" = "11:FALSE"
         "RemovePreviousVersions" = "11:TRUE"
         "DetectNewerInstalledVersion" = "11:TRUE"
         "InstallAllUsers" = "11:FALSE"
-        "ProductVersion" = "8:1.1.0"
+        "ProductVersion" = "8:1.5.0"
         "Manufacturer" = "8:Voffka"
         "ARPHELPTELEPHONE" = "8:"
         "ARPHELPLINK" = "8:"
-        "Title" = "8:TVPlayerSetup"
+        "Title" = "8:TVPlayer Setup"
         "Subject" = "8:"
         "ARPCONTACT" = "8:Vladimir"
         "Keywords" = "8:"
