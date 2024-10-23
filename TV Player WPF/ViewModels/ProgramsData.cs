@@ -10,10 +10,12 @@ namespace TV_Player
         private readonly ReplaySubject<Unit> programGuideSubject = new ReplaySubject<Unit>();
         public IObservable<List<M3UInfo>> AllPrograms => programsSubject;
         public IObservable<List<GroupInfo>> GroupsInformation => groupsSubject;
-
         public IObservable<Unit> ProgramGuideInfo => programGuideSubject;
+
+        private readonly string _programName;
         public ProgramsData(string name,string playlistURL)
         {
+            _programName = name;
             Task.Run(() => GetPrograms(name,playlistURL));
         }
 
@@ -34,7 +36,7 @@ namespace TV_Player
 
         public Task<ProgramGuide> GetGuideByProgram(string channelID)
         {
-            return M3UParser.ParseEpg(channelID);
+            return M3UParser.ParseEpg(_programName,channelID);
         }
 
         private async Task GetProgramGuide(string name, string guideLink)

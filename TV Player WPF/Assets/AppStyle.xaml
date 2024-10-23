@@ -15,7 +15,7 @@
                             <TextBlock x:Name="groupName" Text="{TemplateBinding GroupName}" FontSize="15" Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                             <TextBlock Grid.Row="1" FontSize="10" Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center" LineStackingStrategy="BlockLineHeight" LineHeight="10">
                                  <Run Text="{TemplateBinding ProgramsCount}"/>
-                                 <Run>программ</Run>
+                                 <Run Text="{DynamicResource programs}"/>
                             </TextBlock>
                         </Grid>
                     </Border>
@@ -101,9 +101,9 @@ c-0.781-0.781-0.788-2.047-0.007-2.828L51.438,14.43c1.754-1.755,1.753-4.61-0.001-
             <Setter.Value>
                 <ControlTemplate TargetType="{x:Type Button}">
                     <Border Background="Red" Height="50" Width="50" CornerRadius="300">
-                        <Path Fill="#FFF4F4F5" HorizontalAlignment="Center" Height="35" Stroke="Black" Stretch="Fill" VerticalAlignment="Center" Width="30">
+                        <Path Fill="#FFF4F4F5" HorizontalAlignment="Center" Height="7" Stroke="Black" Stretch="Fill" VerticalAlignment="Center" Width="30">
                             <Path.Data>
-                                <PathGeometry Figures="M7.225951,21.044638 L7.1408542,25.087499 43.923114,25.087499 43.984694,20.800105 z"/>
+                                <PathGeometry Figures="M7.0900176,20.854068 L7.1408542,25.087499 43.923114,25.087499 43.984694,20.800105 z"/>
                             </Path.Data>
                         </Path>
                     </Border>

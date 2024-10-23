@@ -1,4 +1,5 @@
-﻿using System.Windows.Controls;
+﻿using System.Windows;
+using System.Windows.Controls;
 
 namespace TV_Player.ViewModels
 {
@@ -12,7 +13,7 @@ namespace TV_Player.ViewModels
 
         public Action ButtonBackAction { get; set; }
 
-        private string _currentPlaylistName;
+        public string _currentPlaylistName;
 
         private static TVPlayerViewModel? _instance;
         public static TVPlayerViewModel Instance
@@ -44,6 +45,7 @@ namespace TV_Player.ViewModels
         {
             if (SettingsModel.Playlists!=null && SettingsModel.Playlists.Any())
             {
+                SetLanguageDictionary();
                 PlayListsData.Clear();
                 foreach (var playlist in SettingsModel.Playlists)
                 {
@@ -62,6 +64,24 @@ namespace TV_Player.ViewModels
             {
                 ShowSettingsScreen();
             }
+        }
+
+        private void SetLanguageDictionary()
+        {
+            ResourceDictionary dict = new ResourceDictionary();
+            switch (Thread.CurrentThread.CurrentCulture.ToString())
+            {
+                case "en-US":
+                    dict.Source = new Uri("..\\Assets\\en-US.xaml", UriKind.Relative);
+                    break;
+                case "ru-RU":
+                    dict.Source = new Uri("..\\Assets\\ru-RU.xaml", UriKind.Relative);
+                    break;
+                default:
+                    dict.Source = new Uri("..\\Assets\\en-US.xaml", UriKind.Relative);
+                    break;
+            }
+            Application.Current.Resources.MergedDictionaries.Add(dict);
         }
 
         public void SelectScreen()

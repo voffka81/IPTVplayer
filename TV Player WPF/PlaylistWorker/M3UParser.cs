@@ -103,7 +103,7 @@ namespace TV_Player
             }
         }
 
-        public static async Task<ProgramGuide> ParseEpg(string channelId)
+        public static async Task<ProgramGuide> ParseEpg(string groupName, string channelId)
         {
             XmlReaderSettings settings = new XmlReaderSettings();
             settings.IgnoreWhitespace = true;
@@ -112,9 +112,9 @@ namespace TV_Player
             settings.Async = true;
             ProgramGuide channel = null;
             
-            var fileName = "guide.xml";
+            var fileName = groupName+"_guide.xml";
             string programDataPath = Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData);
-            string filePath = Path.Combine(programDataPath, "TV_Player", fileName);
+            string filePath = Path.Combine(programDataPath, "TVPlayer", fileName);
 
             using (XmlReader reader = XmlReader.Create(filePath, settings))
             {
