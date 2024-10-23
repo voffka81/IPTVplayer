@@ -2920,7 +2920,7 @@
         "Entry"
         {
         "MsmKey" = "8:_UNDEFINED"
-        "OwnerKey" = "8:_7E2B2A5831B2FEE1C25D9D6A967A8B3D"
+        "OwnerKey" = "8:_7AD1823E695545AC85765461F3083D3D"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
@@ -2932,7 +2932,7 @@
         "Entry"
         {
         "MsmKey" = "8:_UNDEFINED"
-        "OwnerKey" = "8:_7AD1823E695545AC85765461F3083D3D"
+        "OwnerKey" = "8:_7E2B2A5831B2FEE1C25D9D6A967A8B3D"
         "MsmSig" = "8:_UNDEFINED"
         }
     }
@@ -13423,15 +13423,15 @@
         {
         "Name" = "8:Microsoft Visual Studio"
         "ProductName" = "8:TVPlayer"
-        "ProductCode" = "8:{C2107D93-6768-43F7-966F-793FA3DD860F}"
-        "PackageCode" = "8:{B6C699C1-E068-42DF-9156-9250CD36572B}"
+        "ProductCode" = "8:{9F9ABE34-8B9D-4CE0-80C1-02EB6071803D}"
+        "PackageCode" = "8:{19C3A08E-D757-410E-8E8C-4B36C302DB37}"
         "UpgradeCode" = "8:{659EC3EB-443A-41ED-BD14-696FEBD8DDBF}"
         "AspNetVersion" = "8:2.0.50727.0"
         "RestartWWWService" = "11:FALSE"
         "RemovePreviousVersions" = "11:TRUE"
         "DetectNewerInstalledVersion" = "11:TRUE"
         "InstallAllUsers" = "11:FALSE"
-        "ProductVersion" = "8:1.5.0"
+        "ProductVersion" = "8:1.5.1"
         "Manufacturer" = "8:Voffka"
         "ARPHELPTELEPHONE" = "8:"
         "ARPHELPLINK" = "8:"
