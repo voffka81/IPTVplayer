@@ -17,5 +17,11 @@ namespace TV_Player
                 viewModel.OnKeyDownCommand.Execute(e);
             }
         }
+
+        protected override void OnManipulationBoundaryFeedback(ManipulationBoundaryFeedbackEventArgs e)
+        {
+            e.Handled = true;
+        }
+
     }
 }

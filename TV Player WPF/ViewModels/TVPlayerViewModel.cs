@@ -44,7 +44,8 @@ namespace TV_Player.ViewModels
         {
             if (SettingsModel.Playlists!=null && SettingsModel.Playlists.Any())
             {
-                foreach(var playlist in SettingsModel.Playlists)
+                PlayListsData.Clear();
+                foreach (var playlist in SettingsModel.Playlists)
                 {
                     PlayListsData.Add(playlist.Key, new ProgramsData(playlist.Key,playlist.Value));
                 }

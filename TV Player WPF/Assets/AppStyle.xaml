@@ -80,7 +80,38 @@ c-0.781-0.781-0.788-2.047-0.007-2.828L51.438,14.43c1.754-1.755,1.753-4.61-0.001-
         </Setter>
     </Style>
 
-    
+    <Style x:Key="ButtonAdd" TargetType="{x:Type Button}">
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="{x:Type Button}">
+                    <Border Background="Green" Height="50" Width="50" CornerRadius="300">
+                        <Path Fill="#FFF4F4F5" HorizontalAlignment="Center" Height="35" Stroke="Black" Stretch="Fill" VerticalAlignment="Center" Width="30">
+                            <Path.Data>
+                                <PathGeometry Figures="M23.531502,6.7801739 L23.553471,20.766701 7.225951,21.044638 7.1408542,25.087499 23.177883,25.087499 23.051064,42.665812 28.15887,42.751559 28.194953,25.087499 43.923114,25.087499 43.984694,20.800105 28.242605,20.852246 28.284472,6.737454 z"/>
+                            </Path.Data>
+                        </Path>
+                    </Border>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style x:Key="ButtonRemove" TargetType="{x:Type Button}">
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="{x:Type Button}">
+                    <Border Background="Red" Height="50" Width="50" CornerRadius="300">
+                        <Path Fill="#FFF4F4F5" HorizontalAlignment="Center" Height="35" Stroke="Black" Stretch="Fill" VerticalAlignment="Center" Width="30">
+                            <Path.Data>
+                                <PathGeometry Figures="M7.225951,21.044638 L7.1408542,25.087499 43.923114,25.087499 43.984694,20.800105 z"/>
+                            </Path.Data>
+                        </Path>
+                    </Border>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
 
     <Style x:Key="ButtonUp" TargetType="{x:Type Button}">
         <Setter Property="Template">
@@ -248,17 +279,17 @@ c-0.781-0.781-0.788-2.047-0.007-2.828L51.438,14.43c1.754-1.755,1.753-4.61-0.001-
                         Content="{TemplateBinding Property=ContentControl.Content}" 
 						/>
                     </Border>
-                    
+
                 </ControlTemplate>
             </Setter.Value>
         </Setter>
     </Style>
-    
+
     <LinearGradientBrush x:Key="YellowGradient" >
         <GradientStop Offset="0" Color="LightGray"/>
         <GradientStop Offset="1" Color="Gray"/>
     </LinearGradientBrush>
-    
+
     <Style x:Key="{x:Type CheckBox}" TargetType="CheckBox">
         <Setter Property="SnapsToDevicePixels" Value="true"/>
         <Setter Property="Background" Value="{StaticResource YellowGradient}" />
@@ -297,7 +328,7 @@ c-0.781-0.781-0.788-2.047-0.007-2.828L51.438,14.43c1.754-1.755,1.753-4.61-0.001-
                                     </Border>
 
                                 </Border>
-                                <Path x:Name="CheckMark"  SnapsToDevicePixels="False"  Data="F1M1,14.489C1,14.489 4.963,10.525 4.963,10.525 4.963,10.525 11.328,16.89 11.328,16.89 11.328,16.89 27.034,1.183 27.034,1.183 27.034,1.183 31,5.146 31,5.146 31,5.146 11.328,24.817 11.328,24.817 11.328,24.817 1,14.489 1,14.489z" Fill="#FFFFFFFF" Height="26" Canvas.Left="0" Canvas.Top="0" Width="32"/>
+                                <Path x:Name="CheckMark"  SnapsToDevicePixels="False" Data="F1M1,14.489C1,14.489 4.963,10.525 4.963,10.525 4.963,10.525 11.328,16.89 11.328,16.89 11.328,16.89 27.034,1.183 27.034,1.183 27.034,1.183 31,5.146 31,5.146 31,5.146 11.328,24.817 11.328,24.817 11.328,24.817 1,14.489 1,14.489z" Fill="#FFFFFFFF" Height="26" Canvas.Left="0" Canvas.Top="0" Width="32"/>
                             </Grid>
                         </BulletDecorator.Bullet>
                         <ContentPresenter Margin="4,0,0,0" TextBlock.Foreground="{TemplateBinding Foreground}"

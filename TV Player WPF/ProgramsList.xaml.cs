@@ -35,13 +35,13 @@ namespace TV_Player
             }
         }
 
-        private void ListView_PreviewMouseDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
+        private void ListView_PreviewMouseDown(object sender, MouseButtonEventArgs e)
         {
             _isDragging = true;
             _mousePosition = e.GetPosition(null);
         }
 
-        private void ListView_MouseMove(object sender, System.Windows.Input.MouseEventArgs e)
+        private void ListView_MouseMove(object sender, MouseEventArgs e)
         {
                 if (e.LeftButton == MouseButtonState.Pressed)
                 {
@@ -66,8 +66,8 @@ namespace TV_Player
                         }
                     }
                 }
-        }       
-
+        }
+        
         private void ListView_PreviewMouseUp(object sender, System.Windows.Input.MouseButtonEventArgs e)
         {
             _isDragging = false;

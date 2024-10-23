@@ -1,4 +1,5 @@
 ﻿using System.Windows.Controls;
+using System.Windows;
 
 namespace TV_Player
 {
@@ -11,5 +12,9 @@ namespace TV_Player
         {
             InitializeComponent();
         }
+
+        private void OpenAddPlayList_Click(object sender, System.Windows.RoutedEventArgs e) => AddPlayList.Visibility = Visibility.Visible;
+
+        private void AddPlayList_Click(object sender, RoutedEventArgs e) => AddPlayList.Visibility = Visibility.Collapsed;
     }
 }
