@@ -162,6 +162,7 @@ namespace TV_Player
         {
             try
             {
+                if (_currentProgram == null) return;
                 _currentProgramInfo = _currentGuide.Programs.FirstOrDefault(d => d.StartTime <= DateTime.Now && d.EndTime >= DateTime.Now);
                 Programs = _currentGuide.Programs.Skip(_currentGuide.Programs.FindIndex(x=>x.Title==_currentProgramInfo.Title)).Take(7).ToList();
 

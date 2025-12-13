@@ -33,7 +33,7 @@ namespace TV_Player
 
         public static async Task DownloadGuideFromWebAsync(string name, string url)
         {
-            var fileName = name+"_guide.xml";
+            var fileName = name + "_guide.xml";
             string programDataPath = Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData);
             string filePath = Path.Combine(programDataPath, "TVPlayer", fileName);
 
@@ -48,7 +48,8 @@ namespace TV_Player
                 {
                     return;
                 }
-            };
+            }
+            ;
             var channelsContent = string.Empty;
 
             if (url.Contains(".gz"))
@@ -111,8 +112,8 @@ namespace TV_Player
             settings.DtdProcessing = DtdProcessing.Parse;
             settings.Async = true;
             ProgramGuide channel = null;
-            
-            var fileName = groupName+"_guide.xml";
+
+            var fileName = groupName + "_guide.xml";
             string programDataPath = Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData);
             string filePath = Path.Combine(programDataPath, "TVPlayer", fileName);
 
@@ -227,7 +228,8 @@ namespace TV_Player
                     {
                         if (TryParseM3ULine(line, out var m3uInfo))
                         {
-                            playlistItems.Add(m3uInfo);
+                            if (!string.IsNullOrEmpty(m3uInfo?.Url))
+                                playlistItems.Add(m3uInfo);
                         }
                     }
                     if (line.StartsWith("#EXTM3U"))
@@ -260,7 +262,7 @@ namespace TV_Player
                     Number = match.Groups["Number"].Value,
                     TvgID = match.Groups["TvgID"].Value,
                     TvgName = match.Groups["TvgName"].Value,
-                    GroupTitle = string.IsNullOrEmpty(match.Groups["GroupTitle"].Value)? "undefined":match.Groups["GroupTitle"].Value,
+                    GroupTitle = string.IsNullOrEmpty(match.Groups["GroupTitle"].Value) ? "undefined" : match.Groups["GroupTitle"].Value,
                     Logo = match.Groups["Logo"].Value,
                     Name = match.Groups["Name"].Value,
                     Url = match.Groups["URL"].Value

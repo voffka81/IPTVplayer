@@ -12,7 +12,7 @@
                   SnapsToDevicePixels="True"
                   VirtualizingStackPanel.IsVirtualizing="True" 
                   VirtualizingStackPanel.VirtualizationMode="Recycling" 
-                   VirtualizingStackPanel.CacheLength="5"
+                  VirtualizingStackPanel.CacheLength="20"
                   PreviewMouseDown="ListView_PreviewMouseDown"
                   PreviewMouseUp="ListView_PreviewMouseUp"
                   PreviewMouseMove="ListView_MouseMove"
@@ -25,18 +25,18 @@
             <ListView.ItemTemplate>
                 <DataTemplate>
                     <Viewbox HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
-                    <Border x:Name="border" Height="145" Width="106" HorizontalAlignment="Center" CornerRadius="5" BorderBrush="Yellow" BorderThickness="2">
-                        <Grid Margin="1" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Background="#B0000000">
-                            <Grid.RowDefinitions>
-                                <RowDefinition Height="*"/>
-                                <RowDefinition Height=".4*"/>
-                            </Grid.RowDefinitions>
-                            <Image Source="{Binding Logo}" MaxWidth="100" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Margin="0,0,0,10"/>
-                            
-                            <TextBlock  Grid.Row="1" Text="{Binding Name}" FontSize="15" TextAlignment="Center" Foreground="White" HorizontalAlignment="Center" TextWrapping="Wrap" Margin="1,0,1,2"/>
-                           
-                        </Grid>
-                    </Border>
+                        <Border x:Name="border" Height="145" Width="106" HorizontalAlignment="Center" CornerRadius="5" BorderBrush="Yellow" BorderThickness="2">
+                            <Grid Margin="1" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Background="#B0000000">
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="*"/>
+                                    <RowDefinition Height=".4*"/>
+                                </Grid.RowDefinitions>
+                                <Image Source="{Binding Logo}" MaxWidth="100" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Margin="0,0,0,10"/>
+
+                                <TextBlock  Grid.Row="1" Text="{Binding Name}" FontSize="15" TextAlignment="Center" Foreground="White" HorizontalAlignment="Center" TextWrapping="Wrap" Margin="1,0,1,2"/>
+
+                            </Grid>
+                        </Border>
                     </Viewbox>
                     <DataTemplate.Triggers>
                         <DataTrigger Binding="{Binding IsSelected, RelativeSource={RelativeSource AncestorType={x:Type ListViewItem}}}" Value="True">

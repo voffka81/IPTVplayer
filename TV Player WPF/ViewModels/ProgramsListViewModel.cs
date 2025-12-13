@@ -1,7 +1,6 @@
 ﻿using CommunityToolkit.Mvvm.Input;
 using System.Collections.ObjectModel;
 using System.Reactive.Linq;
-using System.Reactive;
 using System.Windows.Input;
 using TV_Player.ViewModels;
 using System.Windows;
@@ -43,7 +42,7 @@ namespace TV_Player
              TVPlayerViewModel.Instance.CurrentProgrmsData.AllPrograms.ObserveOn(Scheduler.Default)
                    .Subscribe(newPrograms =>
                    {
-                       var filteredPrograms = newPrograms.Where(p => p.GroupTitle == groupInfo.Name).ToList();
+                       var filteredPrograms = newPrograms.Where(p => p.GroupTitle == groupInfo.Name && !string.IsNullOrEmpty(p.Url)).ToList();
 
                        Programs.Clear();
                        const int batchSize = 100; // Define the batch size

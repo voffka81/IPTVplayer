@@ -23,7 +23,7 @@ namespace TV_Player
             ItemSelectedCommand = new RelayCommand(OnItemSelected);
             _groupInformationSubscriber = TVPlayerViewModel.Instance.CurrentProgrmsData.GroupsInformation.Subscribe(x => Programs = SettingsModel.HiddenGroups == null ? x : x.Where(g => !SettingsModel.HiddenGroups.Contains(g.Name.ToLower())).ToList());
 
-            TVPlayerViewModel.Instance.TopPanelVisible(true, "Группы");
+            TVPlayerViewModel.Instance.TopPanelVisible(true, "Groups");
 
             TVPlayerViewModel.Instance.SetBackButtonAction(new Action(() =>
             {
