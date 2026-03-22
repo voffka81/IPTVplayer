@@ -66,16 +66,28 @@ namespace TV_Player
 
         private static async Task<string> DownloadXMLProgram(string url)
         {
-            using (var client = new HttpClient())
-            using (var request = new HttpRequestMessage())
+            try
             {
-                client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/text"));
-                request.Method = HttpMethod.Get;
-                request.RequestUri = new Uri(url);
-                var response = await client.GetAsync(url);
-                response.EnsureSuccessStatusCode();
-                string responseBody = await response.Content.ReadAsStringAsync();
-                return responseBody;
+                using (var client = new HttpClient())
+                using (var request = new HttpRequestMessage())
+                {
+                    client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/text"));
+                    request.Method = HttpMethod.Get;
+                    request.RequestUri = new Uri(url);
+                    var response = await client.GetAsync(url);
+                    response.EnsureSuccessStatusCode();
+                    return await response.Content.ReadAsStringAsync();
+                }
+            }
+            catch (HttpRequestException ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Network error downloading XML from {url}: {ex.Message}");
+                throw;
+            }
+            catch (UriFormatException ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Invalid URL: {url} - {ex.Message}");
+                throw;
             }
         }
 
@@ -91,15 +103,22 @@ namespace TV_Player
                 using MemoryStream decompressedStream = new MemoryStream();
                 await decompressionStream.CopyToAsync(decompressedStream);
 
-                // Step 3: Get the inner XML as a string
                 string xmlContent = Encoding.UTF8.GetString(decompressedStream.ToArray());
-
-                // Output the XML content
                 return xmlContent;
+            }
+            catch (HttpRequestException ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Network error downloading gzip from {url}: {ex.Message}");
+                return null;
+            }
+            catch (InvalidOperationException ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Invalid gzip data: {ex.Message}");
+                return null;
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"An error occurred: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"Error decompressing gzip: {ex.Message}");
                 return null;
             }
         }
@@ -116,6 +135,12 @@ namespace TV_Player
             var fileName = groupName + "_guide.xml";
             string programDataPath = Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData);
             string filePath = Path.Combine(programDataPath, "TVPlayer", fileName);
+
+            if (!File.Exists(filePath))
+            {
+                System.Diagnostics.Debug.WriteLine($"EPG file not found: {filePath}");
+                return null;
+            }
 
             using (XmlReader reader = XmlReader.Create(filePath, settings))
             {
@@ -134,7 +159,6 @@ namespace TV_Player
                                 };
                                 reader.Read();
                                 channel.DisplayName = reader.ReadElementContentAsString();
-
                             }
                             continue;
                         }
@@ -145,22 +169,33 @@ namespace TV_Player
 
                             var id = reader.GetAttribute("channel");
                             if (id != channelId) continue;
-                            program.StartTime = DateTime.ParseExact(reader.GetAttribute("start"), "yyyyMMddHHmmss zzz", null);
-                            program.EndTime = DateTime.ParseExact(reader.GetAttribute("stop"), "yyyyMMddHHmmss zzz", null);
+                            
+                            if (!DateTime.TryParseExact(reader.GetAttribute("start"), "yyyyMMddHHmmss zzz", System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.None, out var startTime))
+                                continue;
+                            if (!DateTime.TryParseExact(reader.GetAttribute("stop"), "yyyyMMddHHmmss zzz", System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.None, out var endTime))
+                                continue;
+                                
+                            program.StartTime = startTime;
+                            program.EndTime = endTime;
 
                             reader.Read();
                             program.Title = reader.ReadElementContentAsString();
 
                             channel.Programs.Add(program);
                         }
-                        else if (reader.NodeType == XmlNodeType.EndElement && reader.Name == "channel")
-                        {
-                            // break;
-                        }
                     }
+                }
+                catch (XmlException ex)
+                {
+                    System.Diagnostics.Debug.WriteLine($"XML parsing error in EPG file: {ex.Message}");
+                }
+                catch (FileNotFoundException ex)
+                {
+                    System.Diagnostics.Debug.WriteLine($"EPG file not found: {ex.Message}");
                 }
                 catch (Exception ex)
                 {
+                    System.Diagnostics.Debug.WriteLine($"Unexpected error parsing EPG: {ex.Message}");
                 }
             }
             return channel;
@@ -168,18 +203,29 @@ namespace TV_Player
 
         private static async Task<string> ReadFile(string url)
         {
-            string responseBody;
-            using (var client = new HttpClient())
-            using (var request = new HttpRequestMessage())
+            try
             {
-                client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/text"));
-                request.Method = HttpMethod.Get;
-                request.RequestUri = new Uri(url);
-                var response = await client.GetAsync(url);
-                response.EnsureSuccessStatusCode();
-                responseBody = await response.Content.ReadAsStringAsync();
+                using (var client = new HttpClient())
+                using (var request = new HttpRequestMessage())
+                {
+                    client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/text"));
+                    request.Method = HttpMethod.Get;
+                    request.RequestUri = new Uri(url);
+                    var response = await client.GetAsync(url);
+                    response.EnsureSuccessStatusCode();
+                    return await response.Content.ReadAsStringAsync();
+                }
             }
-            return responseBody;
+            catch (HttpRequestException ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Network error reading file from {url}: {ex.Message}");
+                throw;
+            }
+            catch (UriFormatException ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Invalid URL: {url} - {ex.Message}");
+                throw;
+            }
         }
 
         public static async Task<(List<M3UInfo> programList, string programGuide)> DownloadM3UFromWebAsync(string url)
@@ -220,6 +266,12 @@ namespace TV_Player
             string programGuideLink = string.Empty;
             try
             {
+                if (string.IsNullOrWhiteSpace(content))
+                {
+                    System.Diagnostics.Debug.WriteLine("M3U content is empty");
+                    return (playlistItems, programGuideLink);
+                }
+
                 var m3u = SplitStringBeforeSeparator(content, "#EXT");
 
                 foreach (var line in m3u)
@@ -238,9 +290,13 @@ namespace TV_Player
                     }
                 }
             }
+            catch (ArgumentException ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Invalid M3U format: {ex.Message}");
+            }
             catch (Exception ex)
             {
-                Console.WriteLine("Error reading M3U file: " + ex.Message);
+                System.Diagnostics.Debug.WriteLine($"Error parsing M3U file: {ex.Message}");
             }
 
             return (playlistItems, programGuideLink);

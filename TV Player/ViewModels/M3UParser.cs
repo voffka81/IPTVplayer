@@ -28,17 +28,32 @@ namespace TV_Player.MAUI
 
         public static async Task<List<ProgramGuide>> DownloadGuideFromWebAsync(string url)
         {
-            List<ProgramGuide> epgChannels = new List<ProgramGuide>(); ;
-            using (var client = new HttpClient())
-            using (var request = new HttpRequestMessage())
+            List<ProgramGuide> epgChannels = new List<ProgramGuide>();
+            try
             {
-                client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/text"));
-                request.Method = HttpMethod.Get;
-                request.RequestUri = new Uri(url);
-                var response = await client.GetAsync(url);
-                response.EnsureSuccessStatusCode();
-                string responseBody = await response.Content.ReadAsStringAsync();
-                epgChannels = ParseEpg(responseBody);
+                using (var client = new HttpClient())
+                using (var request = new HttpRequestMessage())
+                {
+                    client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/text"));
+                    request.Method = HttpMethod.Get;
+                    request.RequestUri = new Uri(url);
+                    var response = await client.GetAsync(url);
+                    response.EnsureSuccessStatusCode();
+                    string responseBody = await response.Content.ReadAsStringAsync();
+                    epgChannels = ParseEpg(responseBody);
+                }
+            }
+            catch (HttpRequestException ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Network error downloading EPG from {url}: {ex.Message}");
+            }
+            catch (UriFormatException ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Invalid EPG URL: {url} - {ex.Message}");
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Unexpected error downloading EPG: {ex.Message}");
             }
             return epgChannels;
         }
@@ -73,12 +88,18 @@ namespace TV_Player.MAUI
 
                             var id = reader.GetAttribute("channel");
                             var channel = epgChannels.FirstOrDefault(x => x.Id == id);
-                            program.StartTime = DateTime.ParseExact(reader.GetAttribute("start"), "yyyyMMddHHmmss zzz", null);
-                            program.EndTime = DateTime.ParseExact(reader.GetAttribute("stop"), "yyyyMMddHHmmss zzz", null);
+                            if (channel == null) continue;
+                            
+                            if (!DateTime.TryParseExact(reader.GetAttribute("start"), "yyyyMMddHHmmss zzz", System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.None, out var startTime))
+                                continue;
+                            if (!DateTime.TryParseExact(reader.GetAttribute("stop"), "yyyyMMddHHmmss zzz", System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.None, out var endTime))
+                                continue;
+                                
+                            program.StartTime = startTime;
+                            program.EndTime = endTime;
 
                             reader.Read();
                             program.Title = reader.ReadElementContentAsString();
-
 
                             channel.Programs.Add(program);
                         }
@@ -88,25 +109,43 @@ namespace TV_Player.MAUI
                         }
                     }
                 }
-                catch{}
+                catch (XmlException ex)
+                {
+                    System.Diagnostics.Debug.WriteLine($"XML parsing error: {ex.Message}");
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine($"Unexpected error parsing EPG: {ex.Message}");
+                }
             }
             return epgChannels;
         }
 
         private static async Task<string> ReadFile(string url)
         {
-            string responseBody;
-            using (var client = new HttpClient())
-            using (var request = new HttpRequestMessage())
+            try
             {
-                client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/text"));
-                request.Method = HttpMethod.Get;
-                request.RequestUri = new Uri(url);
-                var response = await client.GetAsync(url);
-                response.EnsureSuccessStatusCode();
-                responseBody = await response.Content.ReadAsStringAsync();
+                using (var client = new HttpClient())
+                using (var request = new HttpRequestMessage())
+                {
+                    client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/text"));
+                    request.Method = HttpMethod.Get;
+                    request.RequestUri = new Uri(url);
+                    var response = await client.GetAsync(url);
+                    response.EnsureSuccessStatusCode();
+                    return await response.Content.ReadAsStringAsync();
+                }
             }
-            return responseBody;
+            catch (HttpRequestException ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Network error downloading from {url}: {ex.Message}");
+                throw;
+            }
+            catch (UriFormatException ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Invalid URL: {url} - {ex.Message}");
+                throw;
+            }
         }
 
         public static async Task<(List<M3UInfo> programList, string programGuide)> DownloadM3UFromWebAsync(string url)
@@ -139,6 +178,12 @@ namespace TV_Player.MAUI
             string programGuideLink = string.Empty;
             try
             {
+                if (string.IsNullOrWhiteSpace(content))
+                {
+                    System.Diagnostics.Debug.WriteLine("M3U content is empty");
+                    return (playlistItems, programGuideLink);
+                }
+
                 var m3u = SplitStringBeforeSeparator(content, "#EXT");
 
                 foreach (var line in m3u)
@@ -152,16 +197,20 @@ namespace TV_Player.MAUI
                     }
                     if (line.StartsWith("#EXTM3U"))
                     {
-                        programGuideLink=ExtractXtvgUrl(line);
+                        programGuideLink = ExtractXtvgUrl(line);
                     }
                 }
             }
+            catch (ArgumentException ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Invalid M3U format: {ex.Message}");
+            }
             catch (Exception ex)
             {
-                Console.WriteLine("Error reading M3U file: " + ex.Message);
+                System.Diagnostics.Debug.WriteLine($"Error parsing M3U file: {ex.Message}");
             }
 
-            return (playlistItems,programGuideLink);
+            return (playlistItems, programGuideLink);
         }
 
         private static bool TryParseM3ULine(string m3uLine, out M3UInfo? info)

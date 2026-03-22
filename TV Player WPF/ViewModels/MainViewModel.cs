@@ -69,7 +69,14 @@ namespace TV_Player
 
         public void OnCloseAppButtonClick()
         {
-            Environment.Exit(0);
+            if (Application.Current?.MainWindow is Window window)
+            {
+                window.Close();  // Allows proper shutdown sequence
+            }
+            else
+            {
+                Environment.Exit(0);  // Fallback if window not available
+            }
         }
 
         private void OnButtonBackClick()

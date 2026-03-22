@@ -38,11 +38,17 @@ namespace TV_Player.MAUI
         {
             try
             {
-                URLSource = _currentProgram.Url;
+                if (string.IsNullOrWhiteSpace(url))
+                {
+                    System.Diagnostics.Debug.WriteLine("Invalid URL for playback");
+                    return;
+                }
+
+                URLSource = url;
             }
-            catch 
+            catch (Exception ex)
             {
-                // Handle exceptions
+                System.Diagnostics.Debug.WriteLine($"Error playing M3U8: {ex.Message}");
             }
         }
     }

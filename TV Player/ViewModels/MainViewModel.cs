@@ -1,10 +1,11 @@
 ﻿using System.Windows.Input;
+using System.Reactive.Disposables;
 
 namespace TV_Player.MAUI
 {
-    public class MainViewModel : ObservableViewModelBase
+    public class MainViewModel : ObservableViewModelBase, IDisposable
     {
-        private IDisposable _groupsSubscriber;
+        private CompositeDisposable _disposables = new CompositeDisposable();
         private List<GroupInfo> _programs;
         public List<GroupInfo> Programs
         {
@@ -18,24 +19,39 @@ namespace TV_Player.MAUI
         public MainViewModel()
         {
             ItemSelectedCommand = new Command(OnItemSelected);
-            _groupsSubscriber = TVPlayerViewModel.Instance.PlaylistData.GroupsInformation.Subscribe(x => Programs = x);
+            _disposables.Add(
+                TVPlayerViewModel.Instance.PlaylistData.GroupsInformation.Subscribe(x => Programs = x)
+            );
         }
 
         private void OnItemSelected()
         {
-            var navigation = (INavigation)Application.Current.MainPage.Navigation;
-
-            var programPageViewModel = new ProgramViewModel(SelectedItem);
-
-            // Create a new SecondPage and set its BindingContext to the ViewModel
-            var programPage = new ProgramPage
+            try
             {
-                BindingContext = programPageViewModel
-            };
-            // Navigate to the OtherPage
-            navigation.PushAsync(programPage);
+                if (Application.Current?.MainPage?.Navigation == null)
+                {
+                    System.Diagnostics.Debug.WriteLine("Navigation context is not available");
+                    return;
+                }
 
-            _groupsSubscriber.Dispose();
+                var programPageViewModel = new ProgramViewModel(SelectedItem);
+
+                var programPage = new ProgramPage
+                {
+                    BindingContext = programPageViewModel
+                };
+                
+                Application.Current.MainPage.Navigation.PushAsync(programPage);
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Navigation error: {ex.Message}");
+            }
+        }
+
+        public void Dispose()
+        {
+            _disposables?.Dispose();
         }
     }
 }

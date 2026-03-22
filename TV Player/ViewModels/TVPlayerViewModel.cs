@@ -7,21 +7,20 @@ namespace TV_Player.MAUI
 
         public Action ButtonBackAction { get; set; }
 
-        private static TVPlayerViewModel _instance;
-        public static TVPlayerViewModel Instance
-        {
-            get
-            {
-                if (_instance == null)
-                    _instance = new TVPlayerViewModel();
-                return _instance;
-            }
-        }
+        private static readonly Lazy<TVPlayerViewModel> _instance = 
+            new Lazy<TVPlayerViewModel>(
+                () => new TVPlayerViewModel(), 
+                LazyThreadSafetyMode.ExecutionAndPublication);
+        
+        public static TVPlayerViewModel Instance => _instance.Value;
 
         public TVPlayerViewModel()
         {
             PlaylistData = new ProgramsData();
-            PlaylistData.GetData("http://pl.da-tv.vip/a71e77fa/835b3216/tv.m3u");
+            
+            // Load settings - can be overridden with custom configuration
+            var settings = PlaylistSettings.Default;
+            PlaylistData.GetData(settings.M3UUrl);
         }
 
     }
