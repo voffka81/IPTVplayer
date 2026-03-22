@@ -4,35 +4,33 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         x:Class="TV_Player.AvaloniaApp.MainWindow"
         mc:Ignorable="d"
-        Width="1400"
-        Height="860"
-        MinWidth="980"
-        MinHeight="640"
-        Title="TV Player"
+        Width="800"
+        Height="450"
+        MinWidth="800"
+        MinHeight="450"
+        Title="TV"
         WindowState="{Binding CurrentWindowState}"
-        Background="#0B1220">
+        SystemDecorations="None">
   <Grid RowDefinitions="Auto,*">
-    <Border IsVisible="{Binding IsTopPanelVisible}"
-            Background="#AA111827"
-            BorderBrush="#33FFFFFF"
-            BorderThickness="0,0,0,1"
-            Padding="20,14">
-      <Grid ColumnDefinitions="Auto,Auto,*,Auto,Auto">
-        <Button Content="Settings" Command="{Binding SettingsCommand}" MinWidth="92" Margin="0,0,12,0" />
-        <Button Grid.Column="1" Content="Back" Command="{Binding BackCommand}" MinWidth="92" Margin="0,0,12,0" />
+    <Grid.Background>
+      <ImageBrush Source="/Assets/bkground.jpg" Stretch="UniformToFill" />
+    </Grid.Background>
+
+    <Grid IsVisible="{Binding IsTopPanelVisible}" Height="80">
+      <Grid ColumnDefinitions="80,80,*,80,80">
+        <Button Width="70" Height="70" Margin="10,0,0,0" Content="S" Command="{Binding SettingsCommand}" />
+        <Button Grid.Column="1" Width="70" Height="70" Margin="10,0,0,0" Content="B" Command="{Binding BackCommand}" />
         <TextBlock Grid.Column="2"
                    Text="{Binding TopPanelTitle}"
-                   FontSize="26"
-                   FontWeight="SemiBold"
+                   FontSize="30"
                    VerticalAlignment="Center"
-                   HorizontalAlignment="Center" />
-        <Button Grid.Column="3" Content="Fullscreen" Command="{Binding FullscreenCommand}" MinWidth="110" Margin="0,0,12,0" />
-        <Button Grid.Column="4" Content="Close" Command="{Binding CloseAppCommand}" MinWidth="92" />
+                   HorizontalAlignment="Center"
+                   Foreground="White" />
+        <Button Grid.Column="3" Width="70" Height="70" Margin="10,0,0,0" Content="F" Command="{Binding FullscreenCommand}" />
+        <Button Grid.Column="4" Width="70" Height="70" Margin="10,0,0,0" Content="X" Command="{Binding CloseAppCommand}" />
       </Grid>
-    </Border>
+    </Grid>
 
-    <Border Grid.Row="1" Padding="20">
-      <ContentControl Content="{Binding CurrentViewModel}" />
-    </Border>
+    <ContentControl Grid.Row="1" Content="{Binding CurrentViewModel}" />
   </Grid>
 </Window>

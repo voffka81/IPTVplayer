@@ -2,32 +2,38 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              x:Class="TV_Player.AvaloniaApp.Views.PlaylistsGroupView"
              x:Name="Root">
-  <ScrollViewer>
-    <ItemsControl ItemsSource="{Binding Programs}">
-      <ItemsControl.ItemsPanel>
+  <Grid VerticalAlignment="Center">
+    <ListBox ItemsSource="{Binding Programs}"
+             Background="Transparent"
+             BorderThickness="0"
+             ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+             ScrollViewer.VerticalScrollBarVisibility="Auto">
+      <ListBox.ItemsPanel>
         <ItemsPanelTemplate>
-          <WrapPanel Orientation="Horizontal" />
+          <UniformGrid Columns="4" />
         </ItemsPanelTemplate>
-      </ItemsControl.ItemsPanel>
-      <ItemsControl.ItemTemplate>
+      </ListBox.ItemsPanel>
+      <ListBox.ItemTemplate>
         <DataTemplate>
-          <Button Width="260"
-                  Height="120"
-                  Margin="10"
-                  Padding="18"
-                  CornerRadius="16"
-                  Background="#AA111827"
-                  BorderBrush="#EAB308"
+          <Button Width="170"
+                  Height="130"
+                  Margin="8"
+                  Background="#B0000000"
+                  BorderBrush="Yellow"
                   BorderThickness="2"
                   Command="{Binding DataContext.SelectPlaylistCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
                   CommandParameter="{Binding}">
-            <StackPanel Spacing="8">
-              <TextBlock Text="{Binding Name}" FontSize="24" FontWeight="Bold" TextWrapping="Wrap" />
-              <TextBlock Text="Open playlist" Foreground="#D1D5DB" />
-            </StackPanel>
+            <TextBlock Text="{Binding Name}"
+                       Foreground="White"
+                       FontSize="20"
+                       FontWeight="Bold"
+                       TextWrapping="Wrap"
+                       HorizontalAlignment="Center"
+                       VerticalAlignment="Center"
+                       TextAlignment="Center" />
           </Button>
         </DataTemplate>
-      </ItemsControl.ItemTemplate>
-    </ItemsControl>
-  </ScrollViewer>
+      </ListBox.ItemTemplate>
+    </ListBox>
+  </Grid>
 </UserControl>

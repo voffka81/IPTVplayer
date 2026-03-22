@@ -221,16 +221,14 @@ namespace TV_Player
         {
             try
             {
-                using (var client = new HttpClient())
-                using (var request = new HttpRequestMessage())
-                {
-                    client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/text"));
-                    request.Method = HttpMethod.Get;
-                    request.RequestUri = new Uri(url);
-                    var response = await client.GetAsync(url);
-                    response.EnsureSuccessStatusCode();
-                    return await response.Content.ReadAsStringAsync();
-                }
+                using var client = new HttpClient();
+                using var request = new HttpRequestMessage();
+                client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/text"));
+                request.Method = HttpMethod.Get;
+                request.RequestUri = new Uri(url);
+                var response = await client.GetAsync(url);
+                response.EnsureSuccessStatusCode();
+                return await response.Content.ReadAsStringAsync();
             }
             catch (HttpRequestException ex)
             {

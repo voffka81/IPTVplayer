@@ -1,34 +1,43 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              x:Class="TV_Player.AvaloniaApp.Views.ProgramsListView">
-  <ScrollViewer>
-    <ItemsControl ItemsSource="{Binding Programs}">
-      <ItemsControl.ItemsPanel>
+  <Grid>
+    <ListBox ItemsSource="{Binding Programs}"
+             Background="Transparent"
+             VerticalAlignment="Top"
+             Margin="0,50,0,0"
+             BorderThickness="0"
+             ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+             ScrollViewer.VerticalScrollBarVisibility="Auto">
+      <ListBox.ItemsPanel>
         <ItemsPanelTemplate>
-          <WrapPanel Orientation="Horizontal" />
+          <UniformGrid Columns="12" />
         </ItemsPanelTemplate>
-      </ItemsControl.ItemsPanel>
-      <ItemsControl.ItemTemplate>
+      </ListBox.ItemsPanel>
+      <ListBox.ItemTemplate>
         <DataTemplate>
-          <Button Width="160"
-                  Height="170"
-                  Margin="8"
-                  Padding="10"
-                  CornerRadius="14"
-                  Background="#AA111827"
-                  BorderBrush="#EAB308"
+          <Button Width="106"
+                  Height="145"
+                  Margin="3"
+                  Background="#B0000000"
+                  BorderBrush="Yellow"
                   BorderThickness="2"
                   Command="{Binding DataContext.SelectProgramCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
                   CommandParameter="{Binding}">
-            <StackPanel Spacing="10">
-              <Border Height="90" Background="#1F2937" CornerRadius="10">
-                <Image Source="{Binding Logo}" Stretch="Uniform" />
-              </Border>
-              <TextBlock Text="{Binding Name}" TextWrapping="Wrap" TextAlignment="Center" />
-            </StackPanel>
+            <Grid Margin="1" Background="#B0000000" RowDefinitions="*,Auto">
+              <Image Source="{Binding Logo}" MaxWidth="100" Margin="0,0,0,10" Stretch="Uniform" />
+              <TextBlock Grid.Row="1"
+                         Text="{Binding Name}"
+                         FontSize="15"
+                         Foreground="White"
+                         TextWrapping="Wrap"
+                         TextAlignment="Center"
+                         Margin="1,0,1,2"
+                         HorizontalAlignment="Center" />
+            </Grid>
           </Button>
         </DataTemplate>
-      </ItemsControl.ItemTemplate>
-    </ItemsControl>
-  </ScrollViewer>
+      </ListBox.ItemTemplate>
+    </ListBox>
+  </Grid>
 </UserControl>

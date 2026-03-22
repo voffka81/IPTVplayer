@@ -1,47 +1,51 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              x:Class="TV_Player.AvaloniaApp.Views.SettingsView">
-  <ScrollViewer>
-    <StackPanel Width="900" HorizontalAlignment="Center" Spacing="18">
-      <TextBlock Text="Settings" FontSize="30" FontWeight="Bold" HorizontalAlignment="Center" />
+  <Viewbox>
+    <StackPanel VerticalAlignment="Center" Width="900">
+      <TextBlock Margin="10"
+                 Foreground="White"
+                 HorizontalAlignment="Center"
+                 FontSize="25"
+                 FontWeight="Bold"
+                 Text="Settings" />
 
-      <Border Background="#AA111827" Padding="18" CornerRadius="16">
-        <StackPanel Spacing="12">
-          <TextBlock Text="Playlist URL" />
-          <TextBox Text="{Binding PlaylistURL}" Watermark="https://example.com/playlist.m3u" />
-          <TextBlock Text="Playlist name" />
-          <TextBox Text="{Binding PlaylistName}" Watermark="My IPTV" />
-          <Button Content="Add playlist" Command="{Binding AddPlaylistCommand}" HorizontalAlignment="Left" />
-        </StackPanel>
-      </Border>
+      <StackPanel Margin="10" Spacing="8">
+        <TextBlock Foreground="White" FontSize="22" FontWeight="Bold" Text="Playlist URL" />
+        <TextBox Text="{Binding PlaylistURL}" />
+        <TextBlock Foreground="White" FontSize="22" FontWeight="Bold" Text="Playlist Name" />
+        <TextBox Text="{Binding PlaylistName}" />
+        <Button Content="Add" Width="70" Height="70" HorizontalAlignment="Center" Command="{Binding AddPlaylistCommand}" />
+      </StackPanel>
 
-      <Border Background="#AA111827" Padding="18" CornerRadius="16">
-        <StackPanel Spacing="12">
-          <TextBlock Text="Playlists" FontSize="22" FontWeight="SemiBold" />
-          <ItemsControl ItemsSource="{Binding Playlists}">
-            <ItemsControl.ItemTemplate>
+      <ListBox Height="250"
+               ItemsSource="{Binding Playlists}"
+               Background="Transparent"
+               BorderThickness="0"
+               ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+        <ListBox.ItemTemplate>
               <DataTemplate>
-                <Grid ColumnDefinitions="220,*,Auto" Margin="0,4">
-                  <TextBlock Text="{Binding Key}" VerticalAlignment="Center" Margin="0,0,12,0" />
-                  <TextBlock Grid.Column="1" Text="{Binding Value}" VerticalAlignment="Center" TextWrapping="Wrap" Margin="0,0,12,0" />
+                <Grid HorizontalAlignment="Stretch" Height="80" ColumnDefinitions="200,*,100">
+                  <TextBlock Foreground="White" VerticalAlignment="Center" FontSize="25" FontWeight="Bold" Text="{Binding Key}" />
+                  <TextBlock Grid.Column="1" Foreground="White" VerticalAlignment="Center" FontSize="25" FontWeight="Bold" Text="{Binding Value}" />
                   <Button Grid.Column="2"
-                          Content="Remove"
-                          Command="{Binding DataContext.PlaylistDeleteCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
-                          CommandParameter="{Binding}" />
+                          Width="70"
+                          Height="70"
+                          Content="-"
+                          CommandParameter="{Binding}"
+                          Command="{Binding DataContext.PlaylistDeleteCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" />
                 </Grid>
               </DataTemplate>
-            </ItemsControl.ItemTemplate>
-          </ItemsControl>
-        </StackPanel>
-      </Border>
+        </ListBox.ItemTemplate>
+      </ListBox>
 
-      <CheckBox IsChecked="{Binding StartFullScreen}" Content="Start in fullscreen" />
-      <CheckBox IsChecked="{Binding StartLastScreen}" Content="Remember last screen" />
+      <CheckBox Margin="10" Foreground="White" FontSize="25" IsChecked="{Binding StartFullScreen}" Content="Fullscreen" />
+      <CheckBox Margin="10" Foreground="White" FontSize="25" IsChecked="{Binding StartLastScreen}" Content="Remember last" />
 
-      <StackPanel Orientation="Horizontal" Spacing="12" HorizontalAlignment="Center">
-        <Button Content="Back" Command="{Binding BackCommand}" MinWidth="120" />
-        <Button Content="Save" Command="{Binding SaveCommand}" MinWidth="120" />
+      <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+        <Button Width="70" Height="70" Margin="10,0,50,0" Content="B" Command="{Binding BackCommand}" />
+        <Button Width="70" Height="70" Content="OK" Command="{Binding SaveCommand}" />
       </StackPanel>
     </StackPanel>
-  </ScrollViewer>
+  </Viewbox>
 </UserControl>

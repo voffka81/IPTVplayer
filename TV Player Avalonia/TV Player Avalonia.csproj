@@ -25,4 +25,8 @@
   <ItemGroup>
     <ProjectReference Include="..\TV Player Core\TV Player Core.csproj" />
   </ItemGroup>
+
+  <ItemGroup>
+    <AvaloniaResource Include="Assets\**\*" />
+  </ItemGroup>
 </Project>
