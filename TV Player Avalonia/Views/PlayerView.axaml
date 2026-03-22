@@ -19,10 +19,22 @@
           <ColumnDefinition Width="80" />
           <ColumnDefinition Width="80" />
         </Grid.ColumnDefinitions>
-        <Button Width="70" Height="50" Margin="10,0,0,0" Content="B" Command="{Binding BackCommand}" />
+        <Button Width="70" Height="50" Margin="10,0,0,0" Classes="icon-yellow" Command="{Binding BackCommand}">
+          <Viewbox Width="22" Height="22">
+            <Path Fill="Gray" Data="M14.7 5.3L8 12L14.7 18.7L16.1 17.3L10.8 12L16.1 6.7Z" />
+          </Viewbox>
+        </Button>
         <TextBlock Grid.Column="1" FontSize="20" Foreground="White" Text="{Binding TopPanelTitle}" HorizontalAlignment="Center" VerticalAlignment="Center" />
-        <Button Grid.Column="2" Width="50" Height="70" Margin="10,0,0,0" Content="F" Command="{Binding FullscreenCommand}" />
-        <Button Grid.Column="3" Width="70" Height="70" Margin="10,0,0,0" Content="X" Command="{Binding CloseAppCommand}" />
+        <Button Grid.Column="2" Width="50" Height="70" Margin="10,0,0,0" Classes="icon-yellow" Command="{Binding FullscreenCommand}">
+          <Viewbox Width="22" Height="22">
+            <Path Fill="Gray" Data="M4 9V4H9V6H6V9H4M15 4H20V9H18V6H15V4M20 15V20H15V18H18V15H20M9 20H4V15H6V18H9V20Z" />
+          </Viewbox>
+        </Button>
+        <Button Grid.Column="3" Width="70" Height="70" Margin="10,0,0,0" Classes="icon-red" Command="{Binding CloseAppCommand}">
+          <Viewbox Width="22" Height="22">
+            <Path Stroke="White" StrokeThickness="2.5" Data="M5,5 L19,19 M19,5 L5,19" />
+          </Viewbox>
+        </Button>
       </Grid>
 
       <Border Grid.Row="1"
@@ -49,13 +61,21 @@
         <Grid.ColumnDefinitions>
           <ColumnDefinition Width="180" />
           <ColumnDefinition Width="*" />
-          <ColumnDefinition Width="100" />
+          <ColumnDefinition Width="70" />
         </Grid.ColumnDefinitions>
 
         <StackPanel Orientation="Horizontal">
-          <Button Width="50" Height="70" Margin="10,0,10,0" Content="-" Command="{Binding PreviousCommand}" />
+          <Button Width="50" Height="70" Margin="10,0,10,0" Classes="icon-yellow" Command="{Binding PreviousCommand}">
+            <Viewbox Width="18" Height="18">
+              <Path Fill="Gray" Data="M8 12L14 6V18Z" />
+            </Viewbox>
+          </Button>
           <TextBlock FontSize="15" Foreground="White" Text="Ch" HorizontalAlignment="Center" VerticalAlignment="Center" />
-          <Button Width="50" Height="70" Margin="10,0,10,0" Content="+" Command="{Binding NextCommand}" />
+          <Button Width="50" Height="70" Margin="10,0,10,0" Classes="icon-yellow" Command="{Binding NextCommand}">
+            <Viewbox Width="18" Height="18">
+              <Path Fill="Gray" Data="M16 12L10 18V6Z" />
+            </Viewbox>
+          </Button>
         </StackPanel>
 
         <Button Grid.Column="1"
@@ -72,11 +92,6 @@
             </StackPanel>
           </StackPanel>
         </Button>
-
-        <StackPanel Grid.Column="2" Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
-          <Button Width="70" Height="50" Margin="8,0,0,0" Content="G" Command="{Binding ShowProgramListCommand}" />
-          <Button Width="70" Height="50" Margin="8,0,0,0" Content="Open" Command="{Binding OpenStreamCommand}" />
-        </StackPanel>
       </Grid>
     </Grid>
 

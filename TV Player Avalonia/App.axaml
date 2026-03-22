@@ -6,6 +6,52 @@
              RequestedThemeVariant="Dark">
   <Application.Styles>
     <FluentTheme />
+    <Style Selector="Button.card">
+      <Setter Property="BorderThickness" Value="2" />
+      <Setter Property="BorderBrush" Value="Yellow" />
+      <Setter Property="Background" Value="#B0000000" />
+    </Style>
+    <Style Selector="Button.card:pointerover">
+      <Setter Property="Background" Value="#C0000000" />
+      <Setter Property="BorderBrush" Value="#FFF176" />
+    </Style>
+    <Style Selector="Button.card:pressed">
+      <Setter Property="Background" Value="#D0000000" />
+    </Style>
+    <Style Selector="Button.icon-yellow">
+      <Setter Property="Background" Value="Yellow" />
+      <Setter Property="BorderThickness" Value="0" />
+      <Setter Property="CornerRadius" Value="300" />
+      <Setter Property="Width" Value="50" />
+      <Setter Property="Height" Value="50" />
+    </Style>
+    <Style Selector="Button.icon-yellow:pointerover">
+      <Setter Property="Background" Value="#FFF176" />
+    </Style>
+    <Style Selector="Button.icon-red">
+      <Setter Property="Background" Value="Red" />
+      <Setter Property="BorderThickness" Value="0" />
+      <Setter Property="CornerRadius" Value="300" />
+      <Setter Property="Width" Value="50" />
+      <Setter Property="Height" Value="50" />
+    </Style>
+    <Style Selector="Button.icon-red:pointerover">
+      <Setter Property="Background" Value="#EF5350" />
+    </Style>
+    <Style Selector="Button.icon-green">
+      <Setter Property="Background" Value="Green" />
+      <Setter Property="BorderThickness" Value="0" />
+      <Setter Property="CornerRadius" Value="300" />
+      <Setter Property="Width" Value="50" />
+      <Setter Property="Height" Value="50" />
+    </Style>
+    <Style Selector="Button.icon-lightgreen">
+      <Setter Property="Background" Value="LightGreen" />
+      <Setter Property="BorderThickness" Value="0" />
+      <Setter Property="CornerRadius" Value="300" />
+      <Setter Property="Width" Value="50" />
+      <Setter Property="Height" Value="50" />
+    </Style>
   </Application.Styles>
 
   <Application.DataTemplates>

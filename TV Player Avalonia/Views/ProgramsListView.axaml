@@ -19,6 +19,7 @@
           <Button Width="106"
                   Height="145"
                   Margin="3"
+              Classes="card"
                   Background="#B0000000"
                   BorderBrush="Yellow"
                   BorderThickness="2"

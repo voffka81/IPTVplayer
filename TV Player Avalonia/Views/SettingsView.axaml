@@ -15,7 +15,11 @@
         <TextBox Text="{Binding PlaylistURL}" />
         <TextBlock Foreground="White" FontSize="22" FontWeight="Bold" Text="Playlist Name" />
         <TextBox Text="{Binding PlaylistName}" />
-        <Button Content="Add" Width="70" Height="70" HorizontalAlignment="Center" Command="{Binding AddPlaylistCommand}" />
+        <Button Width="70" Height="70" HorizontalAlignment="Center" Classes="icon-green" Command="{Binding AddPlaylistCommand}">
+          <Viewbox Width="24" Height="24">
+            <Path Fill="White" Data="M11 5H13V11H19V13H13V19H11V13H5V11H11V5Z" />
+          </Viewbox>
+        </Button>
       </StackPanel>
 
       <ListBox Height="250"
@@ -31,9 +35,13 @@
                   <Button Grid.Column="2"
                           Width="70"
                           Height="70"
-                          Content="-"
+                      Classes="icon-red"
                           CommandParameter="{Binding}"
-                          Command="{Binding DataContext.PlaylistDeleteCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" />
+                          Command="{Binding DataContext.PlaylistDeleteCommand, RelativeSource={RelativeSource AncestorType=UserControl}}">
+                    <Viewbox Width="24" Height="24">
+                      <Path Fill="White" Data="M5 11H19V13H5Z" />
+                    </Viewbox>
+                  </Button>
                 </Grid>
               </DataTemplate>
         </ListBox.ItemTemplate>
@@ -43,8 +51,16 @@
       <CheckBox Margin="10" Foreground="White" FontSize="25" IsChecked="{Binding StartLastScreen}" Content="Remember last" />
 
       <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-        <Button Width="70" Height="70" Margin="10,0,50,0" Content="B" Command="{Binding BackCommand}" />
-        <Button Width="70" Height="70" Content="OK" Command="{Binding SaveCommand}" />
+        <Button Width="70" Height="70" Margin="10,0,50,0" Classes="icon-yellow" Command="{Binding BackCommand}">
+          <Viewbox Width="24" Height="24">
+            <Path Fill="Gray" Data="M14.7 5.3L8 12L14.7 18.7L16.1 17.3L10.8 12L16.1 6.7Z" />
+          </Viewbox>
+        </Button>
+        <Button Width="70" Height="70" Classes="icon-lightgreen" Command="{Binding SaveCommand}">
+          <Viewbox Width="24" Height="24">
+            <Path Fill="Gray" Data="M9 16.2L4.8 12L3.4 13.4L9 19L21 7L19.6 5.6Z" />
+          </Viewbox>
+        </Button>
       </StackPanel>
     </StackPanel>
   </Viewbox>
