@@ -1,5 +1,6 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:asyncImageLoader="clr-namespace:AsyncImageLoader;assembly=AsyncImageLoader.Avalonia"
              x:Class="TV_Player.AvaloniaApp.Views.ProgramsListView">
   <Grid>
     <ListBox ItemsSource="{Binding Programs}"
@@ -11,26 +12,23 @@
              ScrollViewer.VerticalScrollBarVisibility="Auto">
       <ListBox.ItemsPanel>
         <ItemsPanelTemplate>
-          <UniformGrid Columns="12" />
+          <WrapPanel Orientation="Horizontal" />
         </ItemsPanelTemplate>
       </ListBox.ItemsPanel>
       <ListBox.ItemTemplate>
         <DataTemplate>
           <Button Width="106"
                   Height="145"
-                  Margin="3"
+                  Margin="5"
               Classes="card"
-                  Background="#B0000000"
-                  BorderBrush="Yellow"
-                  BorderThickness="2"
                   Command="{Binding DataContext.SelectProgramCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
                   CommandParameter="{Binding}">
-            <Grid Margin="1" Background="#B0000000" RowDefinitions="*,Auto">
-              <Image Source="{Binding Logo}" MaxWidth="100" Margin="0,0,0,10" Stretch="Uniform" />
+            <Grid Margin="1" Background="Transparent" RowDefinitions="*,Auto">
+              <Image asyncImageLoader:ImageLoader.Source="{Binding Logo}" MaxWidth="100" Margin="0,0,0,10" Stretch="Uniform" />
               <TextBlock Grid.Row="1"
                          Text="{Binding Name}"
                          FontSize="15"
-                         Foreground="White"
+                         Foreground="#111827"
                          TextWrapping="Wrap"
                          TextAlignment="Center"
                          Margin="1,0,1,2"

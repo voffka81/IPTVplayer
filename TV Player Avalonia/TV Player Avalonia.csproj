@@ -10,6 +10,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="AsyncImageLoader.Avalonia" Version="3.7.0" />
     <PackageReference Include="Avalonia" Version="11.2.5" />
     <PackageReference Include="Avalonia.Desktop" Version="11.2.5" />
     <PackageReference Include="Avalonia.Themes.Fluent" Version="11.2.5" />
@@ -18,7 +19,6 @@
     <PackageReference Include="LibVLCSharp.Avalonia" Version="3.9.6" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
     <PackageReference Include="System.Reactive" Version="6.0.2" />
-    <PackageReference Include="VideoLAN.LibVLC.Mac" Version="3.1.3.1" Condition="$([MSBuild]::IsOSPlatform('macos'))" />
     <PackageReference Include="VideoLAN.LibVLC.Windows" Version="3.0.23" Condition="$([MSBuild]::IsOSPlatform('windows'))" />
   </ItemGroup>
 
@@ -29,4 +29,33 @@
   <ItemGroup>
     <AvaloniaResource Include="Assets\**\*" />
   </ItemGroup>
+
+  <ItemGroup Condition="$([MSBuild]::IsOSPlatform('macos'))">
+    <None Include="natives/macos/**">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Link>natives/macos/%(RecursiveDir)%(Filename)%(Extension)</Link>
+    </None>
+  </ItemGroup>
+
+  <Target Name="EnsureBundledMacVlc" BeforeTargets="Build" Condition="$([MSBuild]::IsOSPlatform('macos')) and ( !Exists('$(MSBuildProjectDirectory)/natives/macos/lib/libvlccore.dylib') or !Exists('$(MSBuildProjectDirectory)/natives/macos/plugins') )">
+    <Message Text="Bundling VLC native macOS runtime files (one-time download)..." Importance="high" />
+    <Exec Command="sh &quot;$(MSBuildProjectDirectory)/scripts/fetch-vlc-macos.sh&quot; &quot;$(MSBuildProjectDirectory)&quot;" />
+  </Target>
+
+  <Target Name="CopyBundledMacVlcToOutput" AfterTargets="Build" Condition="$([MSBuild]::IsOSPlatform('macos')) and Exists('$(MSBuildProjectDirectory)/natives/macos/lib/libvlccore.dylib')">
+    <ItemGroup>
+      <BundledMacVlcFiles Include="$(MSBuildProjectDirectory)/natives/macos/**/*" />
+      <BundledMacVlcRootLibs Include="$(MSBuildProjectDirectory)/natives/macos/lib/libvlc.dylib;$(MSBuildProjectDirectory)/natives/macos/lib/libvlccore.dylib" />
+      <BundledMacVlcRootPlugins Include="$(MSBuildProjectDirectory)/natives/macos/plugins/**/*" />
+    </ItemGroup>
+    <Copy SourceFiles="@(BundledMacVlcFiles)"
+          DestinationFiles="@(BundledMacVlcFiles->'$(TargetDir)natives/macos/%(RecursiveDir)%(Filename)%(Extension)')"
+          SkipUnchangedFiles="true" />
+    <Copy SourceFiles="@(BundledMacVlcRootLibs)"
+          DestinationFiles="@(BundledMacVlcRootLibs->'$(TargetDir)%(Filename)%(Extension)')"
+          SkipUnchangedFiles="true" />
+    <Copy SourceFiles="@(BundledMacVlcRootPlugins)"
+          DestinationFiles="@(BundledMacVlcRootPlugins->'$(TargetDir)plugins/%(RecursiveDir)%(Filename)%(Extension)')"
+          SkipUnchangedFiles="true" />
+  </Target>
 </Project>

@@ -3,54 +3,139 @@
              xmlns:vm="clr-namespace:TV_Player.AvaloniaApp.ViewModels"
              xmlns:views="clr-namespace:TV_Player.AvaloniaApp.Views"
              x:Class="TV_Player.AvaloniaApp.App"
-             RequestedThemeVariant="Dark">
+             RequestedThemeVariant="Default">
   <Application.Styles>
     <FluentTheme />
+    <Style Selector="TextBlock">
+      <Setter Property="FontFamily" Value=".AppleSystemUIFont, -apple-system, Helvetica Neue, Helvetica, Arial" />
+      <Setter Property="Foreground" Value="#1F2937" />
+    </Style>
+    <Style Selector="Button">
+      <Setter Property="CornerRadius" Value="10" />
+      <Setter Property="Padding" Value="12,8" />
+      <Setter Property="Background" Value="#F3F4F6" />
+      <Setter Property="BorderBrush" Value="#D1D5DB" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="Foreground" Value="#111827" />
+      <Setter Property="FontFamily" Value=".AppleSystemUIFont, -apple-system, Helvetica Neue, Helvetica, Arial" />
+    </Style>
+    <Style Selector="Button:pointerover">
+      <Setter Property="Background" Value="#E5E7EB" />
+    </Style>
+    <Style Selector="TextBox">
+      <Setter Property="CornerRadius" Value="10" />
+      <Setter Property="Padding" Value="10,8" />
+      <Setter Property="Background" Value="White" />
+      <Setter Property="BorderBrush" Value="#D1D5DB" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="FontFamily" Value=".AppleSystemUIFont, -apple-system, Helvetica Neue, Helvetica, Arial" />
+    </Style>
+    <Style Selector="TextBox /template/ Border#PART_BorderElement">
+      <Setter Property="Background" Value="White" />
+      <Setter Property="CornerRadius" Value="10" />
+    </Style>
+    <Style Selector="TextBox">
+      <Setter Property="Foreground" Value="#111827" />
+      <Setter Property="CaretBrush" Value="#111827" />
+      <Setter Property="SelectionForegroundBrush" Value="#111827" />
+    </Style>
+    <Style Selector="TextBox:pointerover /template/ Border#PART_BorderElement">
+      <Setter Property="Background" Value="White" />
+      <Setter Property="BorderBrush" Value="#0A84FF" />
+    </Style>
+    <Style Selector="TextBox:focus /template/ Border#PART_BorderElement">
+      <Setter Property="Background" Value="White" />
+      <Setter Property="BorderBrush" Value="#0A84FF" />
+    </Style>
+    <Style Selector="ListBox">
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="BorderThickness" Value="0" />
+    </Style>
     <Style Selector="Button.card">
-      <Setter Property="BorderThickness" Value="2" />
-      <Setter Property="BorderBrush" Value="Yellow" />
-      <Setter Property="Background" Value="#B0000000" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="BorderBrush" Value="#E5E7EB" />
+      <Setter Property="Background" Value="#FFFFFF" />
+      <Setter Property="CornerRadius" Value="12" />
+    </Style>
+    <Style Selector="Button.card /template/ ContentPresenter">
+      <Setter Property="Background" Value="#FFFFFF" />
+      <Setter Property="BorderBrush" Value="#E5E7EB" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="CornerRadius" Value="12" />
     </Style>
     <Style Selector="Button.card:pointerover">
-      <Setter Property="Background" Value="#C0000000" />
-      <Setter Property="BorderBrush" Value="#FFF176" />
+      <Setter Property="Background" Value="#F9FAFB" />
+      <Setter Property="BorderBrush" Value="#CBD5E1" />
+    </Style>
+    <Style Selector="Button.card:pointerover /template/ ContentPresenter">
+      <Setter Property="Background" Value="#F9FAFB" />
+      <Setter Property="BorderBrush" Value="#CBD5E1" />
+      <Setter Property="BorderThickness" Value="1" />
     </Style>
     <Style Selector="Button.card:pressed">
-      <Setter Property="Background" Value="#D0000000" />
+      <Setter Property="Background" Value="#EEF2F7" />
     </Style>
-    <Style Selector="Button.icon-yellow">
-      <Setter Property="Background" Value="Yellow" />
-      <Setter Property="BorderThickness" Value="0" />
+    <Style Selector="Button.card:pressed /template/ ContentPresenter">
+      <Setter Property="Background" Value="#EEF2F7" />
+      <Setter Property="BorderBrush" Value="#CBD5E1" />
+      <Setter Property="BorderThickness" Value="1" />
+    </Style>
+    <Style Selector="Button.icon-neutral">
+      <Setter Property="Background" Value="#F3F4F6" />
+      <Setter Property="BorderBrush" Value="#D1D5DB" />
+      <Setter Property="BorderThickness" Value="1" />
       <Setter Property="CornerRadius" Value="300" />
-      <Setter Property="Width" Value="50" />
-      <Setter Property="Height" Value="50" />
+      <Setter Property="Width" Value="36" />
+      <Setter Property="Height" Value="36" />
     </Style>
-    <Style Selector="Button.icon-yellow:pointerover">
-      <Setter Property="Background" Value="#FFF176" />
+    <Style Selector="Button.icon-neutral /template/ ContentPresenter">
+      <Setter Property="Background" Value="#F3F4F6" />
+      <Setter Property="CornerRadius" Value="300" />
+    </Style>
+    <Style Selector="Button.icon-neutral:pointerover /template/ ContentPresenter">
+      <Setter Property="Background" Value="#E5E7EB" />
     </Style>
     <Style Selector="Button.icon-red">
-      <Setter Property="Background" Value="Red" />
+      <Setter Property="Background" Value="#FF5F57" />
       <Setter Property="BorderThickness" Value="0" />
       <Setter Property="CornerRadius" Value="300" />
-      <Setter Property="Width" Value="50" />
-      <Setter Property="Height" Value="50" />
+      <Setter Property="Width" Value="36" />
+      <Setter Property="Height" Value="36" />
     </Style>
-    <Style Selector="Button.icon-red:pointerover">
-      <Setter Property="Background" Value="#EF5350" />
+    <Style Selector="Button.icon-red /template/ ContentPresenter">
+      <Setter Property="Background" Value="#FF5F57" />
+      <Setter Property="CornerRadius" Value="300" />
+    </Style>
+    <Style Selector="Button.icon-red:pointerover /template/ ContentPresenter">
+      <Setter Property="Background" Value="#E34C43" />
     </Style>
     <Style Selector="Button.icon-green">
-      <Setter Property="Background" Value="Green" />
+      <Setter Property="Background" Value="#28C840" />
       <Setter Property="BorderThickness" Value="0" />
       <Setter Property="CornerRadius" Value="300" />
-      <Setter Property="Width" Value="50" />
-      <Setter Property="Height" Value="50" />
+      <Setter Property="Width" Value="36" />
+      <Setter Property="Height" Value="36" />
+    </Style>
+    <Style Selector="Button.icon-green /template/ ContentPresenter">
+      <Setter Property="Background" Value="#28C840" />
+      <Setter Property="CornerRadius" Value="300" />
+    </Style>
+    <Style Selector="Button.icon-green:pointerover /template/ ContentPresenter">
+      <Setter Property="Background" Value="#20A835" />
     </Style>
     <Style Selector="Button.icon-lightgreen">
-      <Setter Property="Background" Value="LightGreen" />
+      <Setter Property="Background" Value="#0A84FF" />
       <Setter Property="BorderThickness" Value="0" />
       <Setter Property="CornerRadius" Value="300" />
-      <Setter Property="Width" Value="50" />
-      <Setter Property="Height" Value="50" />
+      <Setter Property="Width" Value="36" />
+      <Setter Property="Height" Value="36" />
+    </Style>
+    <Style Selector="Button.icon-lightgreen /template/ ContentPresenter">
+      <Setter Property="Background" Value="#0A84FF" />
+      <Setter Property="CornerRadius" Value="300" />
+    </Style>
+    <Style Selector="Button.icon-lightgreen:pointerover /template/ ContentPresenter">
+      <Setter Property="Background" Value="#0973D9" />
     </Style>
   </Application.Styles>
 

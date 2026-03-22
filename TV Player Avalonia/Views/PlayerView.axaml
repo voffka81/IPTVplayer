@@ -5,51 +5,55 @@
   <Grid>
     <vlc:VideoView x:Name="VideoView" />
 
-    <Grid Background="#01000000">
+    <Grid Background="#00000000">
       <Grid.RowDefinitions>
         <RowDefinition Height="80" />
         <RowDefinition Height="*" />
         <RowDefinition Height="80" />
       </Grid.RowDefinitions>
 
-      <Grid Background="#70000000">
+      <Border Background="#E5E7EBCC" BorderBrush="#D1D5DB" BorderThickness="0,0,0,1">
+      <Grid>
         <Grid.ColumnDefinitions>
           <ColumnDefinition Width="80" />
           <ColumnDefinition Width="*" />
           <ColumnDefinition Width="80" />
           <ColumnDefinition Width="80" />
         </Grid.ColumnDefinitions>
-        <Button Width="70" Height="50" Margin="10,0,0,0" Classes="icon-yellow" Command="{Binding BackCommand}">
-          <Viewbox Width="22" Height="22">
-            <Path Fill="Gray" Data="M14.7 5.3L8 12L14.7 18.7L16.1 17.3L10.8 12L16.1 6.7Z" />
+        <Button Width="36" Height="36" Margin="16,0,0,0" Classes="icon-neutral" Command="{Binding BackCommand}">
+          <Viewbox Width="14" Height="14">
+            <Path Fill="#6B7280" Data="M14.7 5.3L8 12L14.7 18.7L16.1 17.3L10.8 12L16.1 6.7Z" />
           </Viewbox>
         </Button>
-        <TextBlock Grid.Column="1" FontSize="20" Foreground="White" Text="{Binding TopPanelTitle}" HorizontalAlignment="Center" VerticalAlignment="Center" />
-        <Button Grid.Column="2" Width="50" Height="70" Margin="10,0,0,0" Classes="icon-yellow" Command="{Binding FullscreenCommand}">
-          <Viewbox Width="22" Height="22">
-            <Path Fill="Gray" Data="M4 9V4H9V6H6V9H4M15 4H20V9H18V6H15V4M20 15V20H15V18H18V15H20M9 20H4V15H6V18H9V20Z" />
+        <TextBlock Grid.Column="1" FontSize="20" FontWeight="SemiBold" Foreground="#111827" Text="{Binding TopPanelTitle}" HorizontalAlignment="Center" VerticalAlignment="Center" />
+        <Button Grid.Column="2" Width="36" Height="36" Margin="16,0,0,0" Classes="icon-neutral" Command="{Binding FullscreenCommand}">
+          <Viewbox Width="14" Height="14">
+            <Path Fill="#6B7280" Data="M4 9V4H9V6H6V9H4M15 4H20V9H18V6H15V4M20 15V20H15V18H18V15H20M9 20H4V15H6V18H9V20Z" />
           </Viewbox>
         </Button>
-        <Button Grid.Column="3" Width="70" Height="70" Margin="10,0,0,0" Classes="icon-red" Command="{Binding CloseAppCommand}">
-          <Viewbox Width="22" Height="22">
+        <Button Grid.Column="3" Width="36" Height="36" Margin="16,0,0,0" Classes="icon-red" Command="{Binding CloseAppCommand}">
+          <Viewbox Width="14" Height="14">
             <Path Stroke="White" StrokeThickness="2.5" Data="M5,5 L19,19 M19,5 L5,19" />
           </Viewbox>
         </Button>
       </Grid>
+      </Border>
 
       <Border Grid.Row="1"
               Width="400"
               HorizontalAlignment="Left"
-              Background="#B0000000"
+              Background="#F8FAFCCC"
+              BorderBrush="#D1D5DB"
+              BorderThickness="0,0,1,0"
               IsVisible="{Binding ProgramGuideVisible}">
         <ItemsControl ItemsSource="{Binding Programs}">
           <ItemsControl.ItemTemplate>
             <DataTemplate>
               <StackPanel Orientation="Vertical" Margin="6,2">
-                <TextBlock Text="{Binding Title}" TextWrapping="Wrap" FontSize="15" Foreground="White" TextAlignment="Left" Margin="1,0,1,2" />
+                <TextBlock Text="{Binding Title}" TextWrapping="Wrap" FontSize="15" Foreground="#111827" TextAlignment="Left" Margin="1,0,1,2" />
                 <StackPanel Orientation="Horizontal">
-                  <TextBlock Text="{Binding StartTime, StringFormat='{}{0:HH:mm}'}" FontSize="12" Foreground="White" Margin="1,0,1,2" />
-                  <TextBlock Text="{Binding EndTime, StringFormat='{}{0:HH:mm}'}" FontSize="12" Foreground="White" Margin="10,0,1,2" />
+                  <TextBlock Text="{Binding StartTime, StringFormat='{}{0:HH:mm}'}" FontSize="12" Foreground="#6B7280" Margin="1,0,1,2" />
+                  <TextBlock Text="{Binding EndTime, StringFormat='{}{0:HH:mm}'}" FontSize="12" Foreground="#6B7280" Margin="10,0,1,2" />
                 </StackPanel>
               </StackPanel>
             </DataTemplate>
@@ -57,7 +61,7 @@
         </ItemsControl>
       </Border>
 
-      <Grid Grid.Row="2" Background="#B0000000">
+      <Grid Grid.Row="2" Background="#E5E7EBCC">
         <Grid.ColumnDefinitions>
           <ColumnDefinition Width="180" />
           <ColumnDefinition Width="*" />
@@ -65,43 +69,45 @@
         </Grid.ColumnDefinitions>
 
         <StackPanel Orientation="Horizontal">
-          <Button Width="50" Height="70" Margin="10,0,10,0" Classes="icon-yellow" Command="{Binding PreviousCommand}">
-            <Viewbox Width="18" Height="18">
-              <Path Fill="Gray" Data="M8 12L14 6V18Z" />
+          <Button Width="36" Height="36" Margin="10,0,10,0" Classes="icon-neutral" Command="{Binding PreviousCommand}">
+            <Viewbox Width="12" Height="12">
+              <Path Fill="#6B7280" Data="M8 12L14 6V18Z" />
             </Viewbox>
           </Button>
-          <TextBlock FontSize="15" Foreground="White" Text="Ch" HorizontalAlignment="Center" VerticalAlignment="Center" />
-          <Button Width="50" Height="70" Margin="10,0,10,0" Classes="icon-yellow" Command="{Binding NextCommand}">
-            <Viewbox Width="18" Height="18">
-              <Path Fill="Gray" Data="M16 12L10 18V6Z" />
+          <TextBlock FontSize="15" Foreground="#111827" Text="Ch" HorizontalAlignment="Center" VerticalAlignment="Center" />
+          <Button Width="36" Height="36" Margin="10,0,10,0" Classes="icon-neutral" Command="{Binding NextCommand}">
+            <Viewbox Width="12" Height="12">
+              <Path Fill="#6B7280" Data="M16 12L10 18V6Z" />
             </Viewbox>
           </Button>
         </StackPanel>
 
         <Button Grid.Column="1"
-                Background="#0F000000"
+                Background="#FFFFFF99"
                 BorderThickness="0"
                 IsVisible="{Binding IsProgramInfoVisible}"
                 Command="{Binding ShowProgramListCommand}">
           <StackPanel>
-            <TextBlock FontSize="20" Foreground="White" Text="{Binding ProgramGuideText}" HorizontalAlignment="Center" VerticalAlignment="Center" />
+            <TextBlock FontSize="20" Foreground="#111827" Text="{Binding ProgramGuideText}" HorizontalAlignment="Center" VerticalAlignment="Center" />
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-              <TextBlock FontSize="15" Foreground="White" Text="{Binding StartProgram}" />
-              <ProgressBar Height="10" Foreground="Yellow" Value="{Binding DurationValue}" Maximum="100" Width="400" VerticalAlignment="Center" />
-              <TextBlock FontSize="15" Foreground="White" Text="{Binding EndProgram}" />
+              <TextBlock FontSize="15" Foreground="#374151" Text="{Binding StartProgram}" />
+              <ProgressBar Height="10" Foreground="#0A84FF" Value="{Binding DurationValue}" Maximum="100" Width="400" VerticalAlignment="Center" />
+              <TextBlock FontSize="15" Foreground="#374151" Text="{Binding EndProgram}" />
             </StackPanel>
           </StackPanel>
         </Button>
       </Grid>
     </Grid>
 
-    <Border Background="#66000000"
+    <Border Background="#FFFFFFCC"
+            BorderBrush="#D1D5DB"
+            BorderThickness="1"
             Padding="10"
             HorizontalAlignment="Right"
             VerticalAlignment="Top"
             Margin="10"
             IsVisible="{Binding HasPlaybackStatus}">
-      <TextBlock Text="{Binding PlaybackStatus}" Foreground="White" TextWrapping="Wrap" MaxWidth="420" />
+      <TextBlock Text="{Binding PlaybackStatus}" Foreground="#111827" TextWrapping="Wrap" MaxWidth="420" />
     </Border>
   </Grid>
 </UserControl>

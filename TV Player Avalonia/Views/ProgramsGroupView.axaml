@@ -18,14 +18,11 @@
                   Height="70"
                   Margin="8,6"
               Classes="card"
-                  Background="#B0000000"
-                  BorderBrush="Yellow"
-                  BorderThickness="2"
                   Command="{Binding DataContext.SelectGroupCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
                   CommandParameter="{Binding}">
             <Grid RowDefinitions="*,Auto" VerticalAlignment="Center" HorizontalAlignment="Stretch">
               <TextBlock Text="{Binding Name}"
-                         Foreground="White"
+                         Foreground="#111827"
                          FontSize="15"
                          TextWrapping="Wrap"
                          HorizontalAlignment="Center"
@@ -34,7 +31,7 @@
                          Margin="4,0" />
               <TextBlock Text="{Binding Count}"
                          Grid.Row="1"
-                         Foreground="White"
+                         Foreground="#6B7280"
                          FontSize="10"
                          HorizontalAlignment="Center"
                          Margin="0,0,0,2" />
