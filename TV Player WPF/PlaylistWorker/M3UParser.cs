@@ -30,11 +30,27 @@ namespace TV_Player
     }
     public static class M3UParser
     {
+        private static string GetWritableAppDataFolder()
+        {
+            var localAppData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+            if (!string.IsNullOrWhiteSpace(localAppData))
+            {
+                return localAppData;
+            }
+
+            var appData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
+            if (!string.IsNullOrWhiteSpace(appData))
+            {
+                return appData;
+            }
+
+            return AppContext.BaseDirectory;
+        }
 
         public static async Task DownloadGuideFromWebAsync(string name, string url)
         {
             var fileName = name + "_guide.xml";
-            string programDataPath = Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData);
+            string programDataPath = GetWritableAppDataFolder();
             string filePath = Path.Combine(programDataPath, "TVPlayer", fileName);
 
 
@@ -133,7 +149,7 @@ namespace TV_Player
             ProgramGuide channel = null;
 
             var fileName = groupName + "_guide.xml";
-            string programDataPath = Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData);
+            string programDataPath = GetWritableAppDataFolder();
             string filePath = Path.Combine(programDataPath, "TVPlayer", fileName);
 
             if (!File.Exists(filePath))
@@ -268,10 +284,11 @@ namespace TV_Player
             {
                 if (string.IsNullOrWhiteSpace(content))
                 {
-                    System.Diagnostics.Debug.WriteLine("M3U content is empty");
+                    System.Diagnostics.Debug.WriteLine("[M3UParser] M3U content is empty");
                     return (playlistItems, programGuideLink);
                 }
 
+                System.Diagnostics.Debug.WriteLine($"[M3UParser] Starting parse of M3U content ({content.Length} bytes)");
                 var m3u = SplitStringBeforeSeparator(content, "#EXT");
 
                 foreach (var line in m3u)
@@ -281,7 +298,10 @@ namespace TV_Player
                         if (TryParseM3ULine(line, out var m3uInfo))
                         {
                             if (!string.IsNullOrEmpty(m3uInfo?.Url))
+                            {
                                 playlistItems.Add(m3uInfo);
+                                System.Diagnostics.Debug.WriteLine($"[M3UParser] Parsed: {m3uInfo.Name} -> group='{m3uInfo.GroupTitle}'");
+                            }
                         }
                     }
                     if (line.StartsWith("#EXTM3U"))
@@ -289,6 +309,9 @@ namespace TV_Player
                         programGuideLink = ExtractXtvgUrl(line);
                     }
                 }
+                
+                var groupSummary = playlistItems.GroupBy(p => p.GroupTitle).Select(g => $"{g.Key}({g.Count()})").ToList();
+                System.Diagnostics.Debug.WriteLine($"[M3UParser] Parse complete: {playlistItems.Count} programs in {groupSummary.Count} groups: {string.Join(", ", groupSummary)}");
             }
             catch (ArgumentException ex)
             {

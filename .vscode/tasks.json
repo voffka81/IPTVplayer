@@ -1,0 +1,61 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "build-avalonia",
+      "command": "dotnet",
+      "type": "shell",
+      "args": [
+        "build",
+        "${workspaceFolder}/TV Player Avalonia/TV Player Avalonia.csproj"
+      ],
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "presentation": {
+        "reveal": "always"
+      },
+      "problemMatcher": "$msCompile"
+    },
+    {
+      "label": "run-avalonia",
+      "command": "dotnet",
+      "type": "shell",
+      "args": [
+        "run",
+        "--project",
+        "${workspaceFolder}/TV Player Avalonia/TV Player Avalonia.csproj"
+      ],
+      "presentation": {
+        "reveal": "always"
+      },
+      "isBackground": true,
+      "problemMatcher": {
+        "pattern": {
+          "regexp": "^.*$",
+          "file": 1,
+          "location": 2,
+          "message": 3
+        },
+        "background": {
+          "activeOnStart": true,
+          "beginsPattern": "^(.*?)$",
+          "endsPattern": "(Application started|terminated with exit code)"
+        }
+      }
+    },
+    {
+      "label": "clean-avalonia",
+      "command": "dotnet",
+      "type": "shell",
+      "args": [
+        "clean",
+        "${workspaceFolder}/TV Player Avalonia/TV Player Avalonia.csproj"
+      ],
+      "presentation": {
+        "reveal": "always"
+      }
+    }
+  ]
+}

@@ -1,0 +1,43 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="TV_Player.AvaloniaApp.Views.ProgramsGroupView">
+  <Grid RowDefinitions="Auto,*">
+    <!-- Debug Info Header -->
+    <Border Grid.Row="0" Background="#1a1a2e" Padding="16" Margin="0,0,0,4">
+      <TextBlock Text="{Binding Programs.Count, StringFormat='Groups Loaded: {0}'}" 
+                 Foreground="#EAB308" 
+                 FontSize="14" 
+                 FontWeight="Bold" />
+    </Border>
+
+    <!-- Groups List -->
+    <ScrollViewer Grid.Row="1">
+      <ItemsControl ItemsSource="{Binding Programs}">
+        <ItemsControl.ItemsPanel>
+          <ItemsPanelTemplate>
+            <WrapPanel Orientation="Horizontal" />
+          </ItemsPanelTemplate>
+        </ItemsControl.ItemsPanel>
+        <ItemsControl.ItemTemplate>
+          <DataTemplate>
+            <Button Width="260"
+                    Height="140"
+                    Margin="10"
+                    Padding="18"
+                    CornerRadius="16"
+                    Background="#AA111827"
+                    BorderBrush="#EAB308"
+                    BorderThickness="2"
+                    Command="{Binding DataContext.SelectGroupCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                    CommandParameter="{Binding}">
+              <StackPanel Spacing="8">
+                <TextBlock Text="{Binding Name}" FontSize="24" FontWeight="Bold" TextWrapping="Wrap" />
+                <TextBlock Text="{Binding Count, StringFormat='Channels: {0}'}" Foreground="#D1D5DB" />
+              </StackPanel>
+            </Button>
+          </DataTemplate>
+        </ItemsControl.ItemTemplate>
+      </ItemsControl>
+    </ScrollViewer>
+  </Grid>
+</UserControl>

@@ -5,8 +5,25 @@ namespace TV_Player.ViewModels
 {
     public static class SettingsModel
     {
-        private static readonly string AppDataFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), "TVPlayer");
+        private static readonly string AppDataFolder = Path.Combine(GetWritableAppDataFolder(), "TVPlayer");
         private static readonly string SettingsFilePath = Path.Combine(AppDataFolder, "settings.json");
+
+        private static string GetWritableAppDataFolder()
+        {
+            var localAppData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+            if (!string.IsNullOrWhiteSpace(localAppData))
+            {
+                return localAppData;
+            }
+
+            var appData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
+            if (!string.IsNullOrWhiteSpace(appData))
+            {
+                return appData;
+            }
+
+            return AppContext.BaseDirectory;
+        }
 
         public static Dictionary<string,string> Playlists { get; set; }
         public static bool StartFullScreen { get; set; } 

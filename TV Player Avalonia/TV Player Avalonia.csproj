@@ -1,0 +1,33 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <RootNamespace>TV_Player</RootNamespace>
+    <AssemblyName>TV Player Avalonia</AssemblyName>
+    <AvaloniaUseCompiledBindingsByDefault>false</AvaloniaUseCompiledBindingsByDefault>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Avalonia" Version="11.2.5" />
+    <PackageReference Include="Avalonia.Desktop" Version="11.2.5" />
+    <PackageReference Include="Avalonia.Themes.Fluent" Version="11.2.5" />
+    <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.0" />
+    <PackageReference Include="LibVLCSharp" Version="3.9.6" />
+    <PackageReference Include="LibVLCSharp.Avalonia" Version="3.9.6" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
+    <PackageReference Include="System.Reactive" Version="6.0.2" />
+    <PackageReference Include="VideoLAN.LibVLC.Mac" Version="3.1.3.1" Condition="$([MSBuild]::IsOSPlatform('macos'))" />
+    <PackageReference Include="VideoLAN.LibVLC.Windows" Version="3.0.23" Condition="$([MSBuild]::IsOSPlatform('windows'))" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="..\TV Player WPF\PlaylistWorker\GroupInfo.cs" Link="Shared\GroupInfo.cs" />
+    <Compile Include="..\TV Player WPF\PlaylistWorker\M3UInfo.cs" Link="Shared\M3UInfo.cs" />
+    <Compile Include="..\TV Player WPF\PlaylistWorker\M3UParser.cs" Link="Shared\M3UParser.cs" />
+    <Compile Include="..\TV Player WPF\ViewModels\ObservableViewModelBase.cs" Link="Shared\ObservableViewModelBase.cs" />
+    <Compile Include="..\TV Player WPF\ViewModels\ProgramsData.cs" Link="Shared\ProgramsData.cs" />
+    <Compile Include="..\TV Player WPF\ViewModels\SettingsModel.cs" Link="Shared\SettingsModel.cs" />
+  </ItemGroup>
+</Project>

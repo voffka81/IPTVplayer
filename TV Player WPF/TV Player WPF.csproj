@@ -7,6 +7,7 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <UseWPF>true</UseWPF>
+    <EnableWindowsTargeting Condition="$([MSBuild]::IsOSPlatform('windows')) == false">true</EnableWindowsTargeting>
     <ApplicationIcon>icon.ico</ApplicationIcon>
     <AssemblyName>TV Player</AssemblyName>
   </PropertyGroup>

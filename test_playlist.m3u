@@ -1,0 +1,11 @@
+#EXTM3U x-tvg-url="http://example.com/epg.xml"
+#EXTINF:-1 tvg-id="ch1" tvg-name="Channel 1" group-title="Movies" tvg-logo="http://example.com/logo1.png",Channel 1
+http://example.com/stream1.m3u8
+#EXTINF:-1 tvg-id="ch2" tvg-name="Channel 2" group-title="Movies" tvg-logo="http://example.com/logo2.png",Channel 2
+http://example.com/stream2.m3u8
+#EXTINF:-1 tvg-id="ch3" tvg-name="Channel 3" group-title="Sports" tvg-logo="http://example.com/logo3.png",Channel 3
+http://example.com/stream3.m3u8
+#EXTINF:-1 tvg-id="ch4" tvg-name="Channel 4" group-title="Sports" tvg-logo="http://example.com/logo4.png",Channel 4
+http://example.com/stream4.m3u8
+#EXTINF:-1 tvg-id="ch5" tvg-name="Channel 5" group-title="News" tvg-logo="http://example.com/logo5.png",Channel 5
+http://example.com/stream5.m3u8

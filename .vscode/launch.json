@@ -1,0 +1,36 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Avalonia Debug",
+      "type": "coreclr",
+      "request": "launch",
+      "program": "${workspaceFolder}/TV Player Avalonia/bin/Debug/net8.0/TV Player Avalonia.dll",
+      "args": [],
+      "cwd": "${workspaceFolder}/TV Player Avalonia",
+      "stopAtEntry": false,
+      "serverReadyAction": {
+        "pattern": "\\bstarted on port ([0-9]+)\\b",
+        "uriFormat": "http://localhost:{1}",
+        "action": "openExternally"
+      },
+      "env": {
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      },
+      "console": "integratedTerminal",
+      "internalConsoleOptions": "neverOpen"
+    },
+    {
+      "name": "Avalonia Run (dotnet run)",
+      "type": "coreclr",
+      "request": "launch",
+      "preLaunchTask": "build-avalonia",
+      "program": "${workspaceFolder}/TV Player Avalonia/bin/Debug/net8.0/TV Player Avalonia.dll",
+      "args": [],
+      "cwd": "${workspaceFolder}/TV Player Avalonia",
+      "stopAtEntry": false,
+      "console": "integratedTerminal",
+      "internalConsoleOptions": "neverOpen"
+    }
+  ]
+}

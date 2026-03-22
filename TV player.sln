@@ -5,9 +5,9 @@ VisualStudioVersion = 17.8.34330.188
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TV Player WPF", "TV Player WPF\TV Player WPF.csproj", "{556AB42C-8961-4051-B0DC-A6B907121B9E}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TV Player MAUI", "TV Player\TV Player MAUI.csproj", "{4AEADD32-BAF5-4FB8-AB5B-63050CF46D29}"
-EndProject
 Project("{54435603-DBB4-11D2-8724-00A0C9A8B90C}") = "TVPlayerSetup", "TVPlayerSetup\TVPlayerSetup.vdproj", "{273EE5D6-5DF3-4B9D-9EF0-B348CBC22DA9}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TV Player Avalonia", "TV Player Avalonia\TV Player Avalonia.csproj", "{CDF6DAD3-4880-4E03-8EE3-7B6568442BFC}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -27,6 +27,10 @@ Global
 		{4AEADD32-BAF5-4FB8-AB5B-63050CF46D29}.Release|Any CPU.Deploy.0 = Release|Any CPU
 		{273EE5D6-5DF3-4B9D-9EF0-B348CBC22DA9}.Debug|Any CPU.ActiveCfg = Debug
 		{273EE5D6-5DF3-4B9D-9EF0-B348CBC22DA9}.Release|Any CPU.ActiveCfg = Release
+		{CDF6DAD3-4880-4E03-8EE3-7B6568442BFC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CDF6DAD3-4880-4E03-8EE3-7B6568442BFC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CDF6DAD3-4880-4E03-8EE3-7B6568442BFC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CDF6DAD3-4880-4E03-8EE3-7B6568442BFC}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

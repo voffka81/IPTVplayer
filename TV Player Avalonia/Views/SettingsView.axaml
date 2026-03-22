@@ -1,0 +1,47 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="TV_Player.AvaloniaApp.Views.SettingsView">
+  <ScrollViewer>
+    <StackPanel Width="900" HorizontalAlignment="Center" Spacing="18">
+      <TextBlock Text="Settings" FontSize="30" FontWeight="Bold" HorizontalAlignment="Center" />
+
+      <Border Background="#AA111827" Padding="18" CornerRadius="16">
+        <StackPanel Spacing="12">
+          <TextBlock Text="Playlist URL" />
+          <TextBox Text="{Binding PlaylistURL}" Watermark="https://example.com/playlist.m3u" />
+          <TextBlock Text="Playlist name" />
+          <TextBox Text="{Binding PlaylistName}" Watermark="My IPTV" />
+          <Button Content="Add playlist" Command="{Binding AddPlaylistCommand}" HorizontalAlignment="Left" />
+        </StackPanel>
+      </Border>
+
+      <Border Background="#AA111827" Padding="18" CornerRadius="16">
+        <StackPanel Spacing="12">
+          <TextBlock Text="Playlists" FontSize="22" FontWeight="SemiBold" />
+          <ItemsControl ItemsSource="{Binding Playlists}">
+            <ItemsControl.ItemTemplate>
+              <DataTemplate>
+                <Grid ColumnDefinitions="220,*,Auto" Margin="0,4">
+                  <TextBlock Text="{Binding Key}" VerticalAlignment="Center" Margin="0,0,12,0" />
+                  <TextBlock Grid.Column="1" Text="{Binding Value}" VerticalAlignment="Center" TextWrapping="Wrap" Margin="0,0,12,0" />
+                  <Button Grid.Column="2"
+                          Content="Remove"
+                          Command="{Binding DataContext.PlaylistDeleteCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                          CommandParameter="{Binding}" />
+                </Grid>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+        </StackPanel>
+      </Border>
+
+      <CheckBox IsChecked="{Binding StartFullScreen}" Content="Start in fullscreen" />
+      <CheckBox IsChecked="{Binding StartLastScreen}" Content="Remember last screen" />
+
+      <StackPanel Orientation="Horizontal" Spacing="12" HorizontalAlignment="Center">
+        <Button Content="Back" Command="{Binding BackCommand}" MinWidth="120" />
+        <Button Content="Save" Command="{Binding SaveCommand}" MinWidth="120" />
+      </StackPanel>
+    </StackPanel>
+  </ScrollViewer>
+</UserControl>
