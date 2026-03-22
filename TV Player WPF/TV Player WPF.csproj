@@ -31,6 +31,19 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\TV Player Core\TV Player Core.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Remove="PlaylistWorker\GroupInfo.cs" />
+    <Compile Remove="PlaylistWorker\M3UInfo.cs" />
+    <Compile Remove="PlaylistWorker\M3UParser.cs" />
+    <Compile Remove="ViewModels\ObservableViewModelBase.cs" />
+    <Compile Remove="ViewModels\ProgramsData.cs" />
+    <Compile Remove="ViewModels\SettingsModel.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Resource Include="Assets\bkground.jpg">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </Resource>

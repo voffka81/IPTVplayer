@@ -9,6 +9,8 @@ Project("{54435603-DBB4-11D2-8724-00A0C9A8B90C}") = "TVPlayerSetup", "TVPlayerSe
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TV Player Avalonia", "TV Player Avalonia\TV Player Avalonia.csproj", "{CDF6DAD3-4880-4E03-8EE3-7B6568442BFC}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TV Player Core", "TV Player Core\TV Player Core.csproj", "{AA32E630-977F-4494-84A6-5A7245C9F892}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -31,6 +33,10 @@ Global
 		{CDF6DAD3-4880-4E03-8EE3-7B6568442BFC}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{CDF6DAD3-4880-4E03-8EE3-7B6568442BFC}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{CDF6DAD3-4880-4E03-8EE3-7B6568442BFC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AA32E630-977F-4494-84A6-5A7245C9F892}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AA32E630-977F-4494-84A6-5A7245C9F892}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AA32E630-977F-4494-84A6-5A7245C9F892}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AA32E630-977F-4494-84A6-5A7245C9F892}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

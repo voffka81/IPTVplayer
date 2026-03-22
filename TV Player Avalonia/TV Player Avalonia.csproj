@@ -23,11 +23,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Include="..\TV Player WPF\PlaylistWorker\GroupInfo.cs" Link="Shared\GroupInfo.cs" />
-    <Compile Include="..\TV Player WPF\PlaylistWorker\M3UInfo.cs" Link="Shared\M3UInfo.cs" />
-    <Compile Include="..\TV Player WPF\PlaylistWorker\M3UParser.cs" Link="Shared\M3UParser.cs" />
-    <Compile Include="..\TV Player WPF\ViewModels\ObservableViewModelBase.cs" Link="Shared\ObservableViewModelBase.cs" />
-    <Compile Include="..\TV Player WPF\ViewModels\ProgramsData.cs" Link="Shared\ProgramsData.cs" />
-    <Compile Include="..\TV Player WPF\ViewModels\SettingsModel.cs" Link="Shared\SettingsModel.cs" />
+    <ProjectReference Include="..\TV Player Core\TV Player Core.csproj" />
   </ItemGroup>
 </Project>
