@@ -4,7 +4,6 @@ using Avalonia.Threading;
 using LibVLCSharp.Shared;
 using System.Diagnostics;
 using System.ComponentModel;
-using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Web;
@@ -40,40 +39,9 @@ public partial class PlayerView : UserControl
         Log("Attach to visual tree -> initializing VLC");
         try
         {
-            string? macPluginDirectory = null;
-            if (OperatingSystem.IsMacOS())
-            {
-                if (!TryGetMacLibVlcPaths(out var libVlcDirectory, out macPluginDirectory))
-                {
-                    const string message = "VLC native dependencies not found. Build once with internet to auto-bundle natives/macos (lib + plugins).";
-                    Log(message);
-                    _viewModel?.SetPlaybackStatus(message);
-                    return;
-                }
-
-                if (!string.IsNullOrWhiteSpace(macPluginDirectory) && Directory.Exists(macPluginDirectory))
-                {
-                    Environment.SetEnvironmentVariable("VLC_PLUGIN_PATH", macPluginDirectory);
-                    Log($"VLC_PLUGIN_PATH set to: {macPluginDirectory}");
-                }
-
-                var dyldLibraryPath = PrependPath(Environment.GetEnvironmentVariable("DYLD_LIBRARY_PATH"), libVlcDirectory);
-                var dyldFallbackPath = PrependPath(Environment.GetEnvironmentVariable("DYLD_FALLBACK_LIBRARY_PATH"), libVlcDirectory);
-                Environment.SetEnvironmentVariable("DYLD_LIBRARY_PATH", dyldLibraryPath);
-                Environment.SetEnvironmentVariable("DYLD_FALLBACK_LIBRARY_PATH", dyldFallbackPath);
-                Log($"DYLD_LIBRARY_PATH set to: {dyldLibraryPath}");
-                Log($"DYLD_FALLBACK_LIBRARY_PATH set to: {dyldFallbackPath}");
-
-                Log($"Core.Initialize(path) start: {libVlcDirectory}");
-                Core.Initialize(libVlcDirectory);
-                Log("Core.Initialize(path) completed");
-            }
-            else
-            {
-                Log("Core.Initialize() start");
-                Core.Initialize();
-                Log("Core.Initialize() completed");
-            }
+            Log("Core.Initialize() start");
+            Core.Initialize();
+            Log("Core.Initialize() completed");
 
             _libVlc = new LibVLC(enableDebugLogs: true);
             Log("LibVLC instance created");
@@ -101,77 +69,6 @@ public partial class PlayerView : UserControl
             Log($"VLC initialization failed: {ex}");
             _viewModel?.SetPlaybackStatus($"VLC init failed: {ex.Message}");
         }
-    }
-
-    private static bool TryGetMacLibVlcPaths(out string libDirectory, out string pluginDirectory)
-    {
-        var outputBase = AppContext.BaseDirectory;
-        var candidates = new[]
-        {
-            outputBase,
-            Path.Combine(outputBase, "natives", "macos", "lib"),
-            Path.Combine(outputBase, "lib"),
-            Path.Combine(outputBase, "libvlc", "osx-x64", "lib"),
-            "/Applications/VLC.app/Contents/MacOS/lib",
-            "/opt/homebrew/lib",
-            "/usr/local/lib"
-        };
-
-        foreach (var candidateDir in candidates)
-        {
-            var libvlc = Path.Combine(candidateDir, "libvlc.dylib");
-            var libvlccore = Path.Combine(candidateDir, "libvlccore.dylib");
-            if (File.Exists(libvlc) && File.Exists(libvlccore))
-            {
-                var pluginCandidates = new[]
-                {
-                    Path.Combine(candidateDir, "plugins"),
-                    Path.Combine(Path.GetDirectoryName(candidateDir) ?? string.Empty, "plugins")
-                };
-
-                pluginDirectory = string.Empty;
-                foreach (var candidatePluginDir in pluginCandidates)
-                {
-                    if (Directory.Exists(candidatePluginDir))
-                    {
-                        pluginDirectory = candidatePluginDir;
-                        break;
-                    }
-                }
-
-                libDirectory = candidateDir;
-                Log($"Found macOS VLC libs in: {candidateDir}");
-                if (!string.IsNullOrWhiteSpace(pluginDirectory))
-                {
-                    Log($"Found macOS VLC plugins in: {pluginDirectory}");
-                }
-                else
-                {
-                    Log("macOS VLC plugins directory not found next to libraries");
-                }
-                return true;
-            }
-        }
-
-        libDirectory = string.Empty;
-        pluginDirectory = string.Empty;
-        Log("macOS VLC libs not found. Checked directories: " + string.Join("; ", candidates));
-        return false;
-    }
-
-    private static string PrependPath(string? existingPaths, string pathToPrepend)
-    {
-        if (string.IsNullOrWhiteSpace(pathToPrepend))
-            return existingPaths ?? string.Empty;
-
-        if (string.IsNullOrWhiteSpace(existingPaths))
-            return pathToPrepend;
-
-        var parts = existingPaths.Split(':', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
-        if (parts.Contains(pathToPrepend))
-            return existingPaths;
-
-        return pathToPrepend + ":" + existingPaths;
     }
 
     private void OnDetachedFromVisualTree(object? sender, Avalonia.VisualTreeAttachmentEventArgs e)
