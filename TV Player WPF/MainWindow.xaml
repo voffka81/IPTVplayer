@@ -4,7 +4,7 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:TV_Player"
-        mc:Ignorable="d" WindowStyle="None" WindowState="{Binding CurrentWindowState}"
+        mc:Ignorable="d" WindowStyle="{Binding CurrentWindowStyle}" WindowState="{Binding CurrentWindowState}"
         Title="TV" Height="450" Width="800"
         KeyDown="UserControl_KeyDown">
     <Window.Resources>

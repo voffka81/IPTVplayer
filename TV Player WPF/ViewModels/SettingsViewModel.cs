@@ -67,16 +67,10 @@ namespace TV_Player.ViewModels
             var name = PlaylistName?.Trim();
             if (string.IsNullOrEmpty(name) || string.IsNullOrEmpty(url))
                 return;
-            if (IsValidUrl(url))
-                Playlists.Add(new KeyValuePair<string, string>(name, url));
+            Playlists.Add(new KeyValuePair<string, string>(name, url));
         }
 
-        private bool IsValidUrl(string url)
-        {
-            Uri uriResult;
-            return Uri.TryCreate(url, UriKind.Absolute, out uriResult)
-                   && (uriResult.Scheme == Uri.UriSchemeHttp || uriResult.Scheme == Uri.UriSchemeHttps);
-        }
+
 
         private void OnPlaylistDeleteCommand(KeyValuePair<string, string> pair)
         {

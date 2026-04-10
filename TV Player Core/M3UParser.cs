@@ -221,6 +221,7 @@ namespace TV_Player
         {
             try
             {
+
                 using var client = new HttpClient();
                 using var request = new HttpRequestMessage();
                 client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/text"));
@@ -238,6 +239,11 @@ namespace TV_Player
             catch (UriFormatException ex)
             {
                 System.Diagnostics.Debug.WriteLine($"Invalid URL: {url} - {ex.Message}");
+                throw;
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error reading file from {url}: {ex.Message}");
                 throw;
             }
         }

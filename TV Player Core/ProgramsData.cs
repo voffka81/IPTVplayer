@@ -1,5 +1,10 @@
-﻿using System.Reactive;
+﻿using System;
+using System.IO;
+using System.Linq;
+using System.Reactive;
 using System.Reactive.Subjects;
+using System.Threading.Tasks;
+using System.Collections.Generic;
 
 namespace TV_Player
 {
@@ -25,7 +30,33 @@ namespace TV_Player
             //string m3uLink = "http://pl.da-tv.vip/a71e77fa/835b3216/tv.m3u";
             try
             {
-                var result = await M3UParser.DownloadM3UFromWebAsync(m3uLink);
+                // if link is a well-formed absolute URI load from web, otherwise treat as a local file path
+                // for relative paths try resolving against the application's base directory
+                var result = (programList: new List<M3UInfo>(), programGuide: string.Empty);
+                if (Uri.IsWellFormedUriString(m3uLink, UriKind.Absolute))
+                {
+                    System.Diagnostics.Debug.WriteLine("[ProgramsData] Detected URL, downloading from web");
+                    result = await M3UParser.DownloadM3UFromWebAsync(m3uLink);
+                }
+                else
+                {
+                    // try as provided path first
+                    var candidate = m3uLink;
+                    if (!Path.IsPathRooted(candidate))
+                    {
+                        candidate = Path.Combine(AppContext.BaseDirectory ?? string.Empty, candidate);
+                    }
+
+                    if (File.Exists(candidate))
+                    {
+                        System.Diagnostics.Debug.WriteLine($"[ProgramsData] Detected local file, loading from disk: {candidate}");
+                        result = await M3UParser.DownloadM3UFromWebAsync(candidate);
+                    }
+                    else
+                    {
+                        throw new FileNotFoundException($"M3U file not found: {m3uLink}");
+                    }
+                }
                 System.Diagnostics.Debug.WriteLine($"[ProgramsData] Downloaded {result.programList.Count} programs");
 
                 programsSubject.OnNext(result.programList);
