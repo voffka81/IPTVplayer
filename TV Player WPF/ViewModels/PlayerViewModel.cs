@@ -163,8 +163,30 @@ namespace TV_Player
             try
             {
                 if (_currentProgram == null) return;
+
+                // make sure guide and programs list exist
+                if (_currentGuide?.Programs == null || _currentGuide.Programs.Count == 0)
+                {
+                    IsProgramInfoVisible = false;
+                    Programs = new List<ProgramInfo>();
+                    return;
+                }
+
                 _currentProgramInfo = _currentGuide.Programs.FirstOrDefault(d => d.StartTime <= DateTime.Now && d.EndTime >= DateTime.Now);
-                Programs = _currentGuide.Programs.Skip(_currentGuide.Programs.FindIndex(x=>x.Title==_currentProgramInfo.Title)).Take(7).ToList();
+
+                if (_currentProgramInfo == null)
+                {
+                    // no current program found: hide info and show the first N programs as a fallback
+                    IsProgramInfoVisible = false;
+                    Programs = _currentGuide.Programs.Take(7).ToList();
+                }
+                else
+                {
+                    // find the index of the current program safely
+                    int idx = _currentGuide.Programs.FindIndex(x => string.Equals(x.Title, _currentProgramInfo.Title, StringComparison.Ordinal));
+                    if (idx < 0) idx = 0;
+                    Programs = _currentGuide.Programs.Skip(idx).Take(7).ToList();
+                }
 
                 if (_currentProgramInfo == null)
                 {

@@ -1,15 +1,11 @@
-﻿using System;
-using System.IO;
-using System.Linq;
-using System.Reactive;
+﻿using System.Reactive;
 using System.Reactive.Subjects;
-using System.Threading.Tasks;
-using System.Collections.Generic;
 
 namespace TV_Player
 {
-    public class ProgramsData
+    public class ProgramsData : IDisposable
     {
+        private readonly CancellationTokenSource _cts = new CancellationTokenSource();
         private readonly ReplaySubject<List<M3UInfo>> programsSubject = new ReplaySubject<List<M3UInfo>>();
         private readonly ReplaySubject<List<GroupInfo>> groupsSubject = new ReplaySubject<List<GroupInfo>>();
         private readonly ReplaySubject<Unit> programGuideSubject = new ReplaySubject<Unit>();
@@ -21,11 +17,12 @@ namespace TV_Player
         public ProgramsData(string name,string playlistURL)
         {
             _programName = name;
-            Task.Run(() => GetPrograms(name,playlistURL));
+            Task.Run(() => GetPrograms(name,playlistURL), _cts.Token);
         }
 
         private async Task GetPrograms(string name,string m3uLink)
         {
+            if (_cts.IsCancellationRequested) return;
             System.Diagnostics.Debug.WriteLine($"[ProgramsData] Starting download of: {m3uLink}");
             //string m3uLink = "http://pl.da-tv.vip/a71e77fa/835b3216/tv.m3u";
             try
@@ -72,7 +69,7 @@ namespace TV_Player
                 }
                 groupsSubject.OnNext(groupping);
                 
-                await Task.Run(() => GetProgramGuide(name, result.programGuide));
+                await Task.Run(() => GetProgramGuide(name, result.programGuide), _cts.Token);
             }
             catch (Exception ex)
             {
@@ -88,9 +85,43 @@ namespace TV_Player
 
         private async Task GetProgramGuide(string name, string guideLink)
         {
+            if (_cts.IsCancellationRequested) return;
             //guideLink = "http://epg.da-tv.vip/107-light.xml";
             await M3UParser.DownloadGuideFromWebAsync(name,guideLink);
             programGuideSubject.OnNext(Unit.Default);
+        }
+        public void Dispose()
+        {
+            try
+            {
+                _cts.Cancel();
+            }
+            catch { }
+            try
+            {
+                _cts.Dispose();
+            }
+            catch { }
+            try
+            {
+                programGuideSubject.OnCompleted();
+                programGuideSubject.Dispose();
+            }
+            catch { }
+
+            try
+            {
+                programsSubject.OnCompleted();
+                programsSubject.Dispose();
+            }
+            catch { }
+
+            try
+            {
+                groupsSubject.OnCompleted();
+                groupsSubject.Dispose();
+            }
+            catch { }
         }
         
     }

@@ -155,5 +155,18 @@ public class TVPlayerViewModel : IDisposable
     {
         if (_mainWindowViewModel.CurrentViewModel is IDisposable disposable)
             disposable.Dispose();
+
+        if (PlayListsData != null)
+        {
+            foreach (var kv in PlayListsData)
+            {
+                try { kv.Value.Dispose(); } catch { }
+            }
+            PlayListsData.Clear();
+        }
+        if (CurrentProgramsData != null)
+        {
+            try { CurrentProgramsData.Dispose(); } catch { }
+        }
     }
 }

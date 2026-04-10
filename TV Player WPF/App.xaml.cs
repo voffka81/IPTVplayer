@@ -38,6 +38,8 @@ namespace TV_Player
         protected override void OnExit(ExitEventArgs e)
         {
             _tvPlayer.Dispose();
+            // dispose shared LibVLC instance
+            try { LibVLCManager.Dispose(); } catch { }
             base.OnExit(e);
         }
     }

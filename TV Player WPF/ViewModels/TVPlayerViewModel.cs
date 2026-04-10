@@ -188,6 +188,19 @@ namespace TV_Player.ViewModels
         {
             if (_mainViewModel.Control is IDisposable disposable)
                 disposable.Dispose();
+
+            if (PlayListsData != null)
+            {
+                foreach (var kv in PlayListsData)
+                {
+                    try { kv.Value.Dispose(); } catch { }
+                }
+                PlayListsData.Clear();
+            }
+            if (CurrentProgrmsData != null)
+            {
+                try { CurrentProgrmsData.Dispose(); } catch { }
+            }
         }
     }
 }
