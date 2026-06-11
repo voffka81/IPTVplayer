@@ -58,6 +58,6 @@ TV Player WPF/
 
 
 **Last Updated**: March 22, 2026
-**Project Status**: Stable (MAUI with macOS support)
+**Project Status**: Stable 
 **Main Implementation**: WPF for Windows
-**Cross-Platform**: MAUI for Android, Windows, macOS
+
