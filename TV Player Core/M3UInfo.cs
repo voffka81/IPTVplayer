@@ -10,5 +10,7 @@
         public string Logo { get; set; }
         public string Name{ get; set; }
         public string Url { get; set; }
+        public string? ProviderId { get; set; }
+        public string? ChannelId { get; set; }
     }
 }
