@@ -155,6 +155,48 @@
     <Style Selector="Button.tv-control:pressed">
       <Setter Property="Background" Value="#AA665500" />
     </Style>
+    <!-- Touch-friendly form surfaces and actions used by settings and navigation. -->
+    <Style Selector="Button.handheld-primary">
+      <Setter Property="Background" Value="#1766A1" />
+      <Setter Property="Foreground" Value="White" />
+      <Setter Property="BorderBrush" Value="#55B9FF" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="CornerRadius" Value="13" />
+      <Setter Property="MinHeight" Value="48" />
+      <Setter Property="MinWidth" Value="48" />
+    </Style>
+    <Style Selector="Button.handheld-primary:pointerover">
+      <Setter Property="Background" Value="#2183C8" />
+    </Style>
+    <Style Selector="Button.handheld-danger">
+      <Setter Property="Background" Value="#4B202B" />
+      <Setter Property="Foreground" Value="White" />
+      <Setter Property="BorderBrush" Value="#8C4556" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="CornerRadius" Value="13" />
+      <Setter Property="MinHeight" Value="48" />
+      <Setter Property="MinWidth" Value="48" />
+    </Style>
+    <Style Selector="Button.handheld-danger:pointerover">
+      <Setter Property="Background" Value="#7A2A3C" />
+    </Style>
+    <Style Selector="TextBox">
+      <Setter Property="MinHeight" Value="46" />
+      <Setter Property="Background" Value="#0D1725" />
+      <Setter Property="Foreground" Value="#F5F8FF" />
+      <Setter Property="CaretBrush" Value="#F5F8FF" />
+      <Setter Property="BorderBrush" Value="#344B67" />
+    </Style>
+    <Style Selector="ComboBox">
+      <Setter Property="MinHeight" Value="48" />
+      <Setter Property="Background" Value="#0D1725" />
+      <Setter Property="Foreground" Value="#F5F8FF" />
+      <Setter Property="BorderBrush" Value="#344B67" />
+    </Style>
+    <Style Selector="CheckBox">
+      <Setter Property="MinHeight" Value="44" />
+      <Setter Property="Foreground" Value="#F5F8FF" />
+    </Style>
     <!-- Touch-first handheld controls: large targets, clear focus and selection. -->
     <Style Selector="Button.handheld-nav">
       <Setter Property="Width" Value="52" />
