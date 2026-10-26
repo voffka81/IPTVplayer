@@ -26,6 +26,9 @@ internal sealed class KlubnichkaProvider : IChannelProvider, IDisposable
     private static readonly Regex GeneratedFilePattern = new(
         @"\bvar\s+generatedFile\s*=\s*(['""'])(?<value>.*?)\1\s*;",
         RegexOptions.Compiled | RegexOptions.Singleline | RegexOptions.CultureInvariant);
+    private static readonly Regex PlayerFilePattern = new(
+        @"\bfile\s*:\s*(['""'])(?<value>.*?)\1",
+        RegexOptions.Compiled | RegexOptions.Singleline | RegexOptions.CultureInvariant);
 
     private readonly ProviderSourceConfiguration _source;
     private readonly HttpClient _httpClient = new(new HttpClientHandler
@@ -110,6 +113,15 @@ internal sealed class KlubnichkaProvider : IChannelProvider, IDisposable
                 }
             }
 
+            var playerFile = FindPlayerFile(document);
+            var normalizedPlayerFile = playerFile?.Replace("\\:", ":", StringComparison.Ordinal)
+                .Replace("\\/", "/", StringComparison.Ordinal);
+            if (IsHttpUrl(normalizedPlayerFile))
+            {
+                Log($"Extracted Playerjs file: {FormatUriForLog(new Uri(normalizedPlayerFile!))}");
+                return new StreamInfo(normalizedPlayerFile!);
+            }
+
             var directVideoUrl = FindVideoUrl(document, currentUri);
             if (directVideoUrl != null)
             {
@@ -188,6 +200,18 @@ internal sealed class KlubnichkaProvider : IChannelProvider, IDisposable
         foreach (var script in document.Scripts)
         {
             var match = GeneratedFilePattern.Match(script.TextContent);
+            if (match.Success)
+                return match.Groups["value"].Value;
+        }
+
+        return null;
+    }
+
+    private static string? FindPlayerFile(AngleSharp.Dom.IDocument document)
+    {
+        foreach (var script in document.Scripts)
+        {
+            var match = PlayerFilePattern.Match(script.TextContent);
             if (match.Success)
                 return match.Groups["value"].Value;
         }

@@ -14,7 +14,7 @@ Plugin assemblies run in the player process with the current user's permissions.
 
 Debug builds of the Avalonia app automatically build the example HTML plugin and copy its output and dependencies beside the app under `bin/Debug/net10.0/Plugins/HtmlPageStreamsPlugin`. The app scans this folder on startup as well as the normal per-user plugin folder. Edit the example plugin, rebuild and relaunch the app; no manual DLL copying is needed. Release builds do not include the development plugin.
 
-The same development assembly includes a `Klubnichka.live` provider. It reads `a.channel-card` entries from the catalog, follows each channel page's player iframe chain, and extracts the literal `generatedFile` value from the player HTML. If the value lists multiple HTTP(S) URLs separated by ` or `, the player tries them in order. It does not generate or guess authorization values; the page supplies the signed URLs at channel selection time.
+The same development assembly includes a `Klubnichka.live` provider. It reads `a.channel-card` entries from the catalog, follows each channel page's player iframe chain, and extracts either the literal `generatedFile` value or a quoted `file` value from a Playerjs configuration. If `generatedFile` lists multiple HTTP(S) URLs separated by ` or `, the player tries them in order. It does not generate or guess authorization values; the page supplies signed URLs when needed.
 
 ## HTML page streams example
 
