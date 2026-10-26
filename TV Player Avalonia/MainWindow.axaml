@@ -4,6 +4,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         x:Class="TV_Player.AvaloniaApp.MainWindow"
         mc:Ignorable="d"
+        Icon="/Assets/icon.ico"
         Width="1100"
         Height="680"
         MinWidth="640"
