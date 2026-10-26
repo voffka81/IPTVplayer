@@ -1,4 +1,6 @@
-﻿using System.Reactive;
+﻿using TV_Player.Plugins;
+using TV_Player.Providers;
+using System.Reactive;
 using System.Reactive.Subjects;
 
 namespace TV_Player
@@ -14,9 +16,12 @@ namespace TV_Player
         public IObservable<Unit> ProgramGuideInfo => programGuideSubject;
 
         private readonly string _programName;
+        public IChannelProvider Provider { get; }
+
         public ProgramsData(string name,string playlistURL)
         {
             _programName = name;
+            Provider = new M3UChannelProvider("m3u:" + name, name, playlistURL);
             Task.Run(() => GetPrograms(name,playlistURL), _cts.Token);
         }
 
@@ -33,7 +38,7 @@ namespace TV_Player
                 if (Uri.IsWellFormedUriString(m3uLink, UriKind.Absolute))
                 {
                     System.Diagnostics.Debug.WriteLine("[ProgramsData] Detected URL, downloading from web");
-                    result = await M3UParser.DownloadM3UFromWebAsync(m3uLink);
+                    result = await LoadFromProviderAsync();
                 }
                 else
                 {
@@ -47,7 +52,7 @@ namespace TV_Player
                     if (File.Exists(candidate))
                     {
                         System.Diagnostics.Debug.WriteLine($"[ProgramsData] Detected local file, loading from disk: {candidate}");
-                        result = await M3UParser.DownloadM3UFromWebAsync(candidate);
+                        result = await LoadFromProviderAsync();
                     }
                     else
                     {
@@ -76,6 +81,23 @@ namespace TV_Player
                 System.Diagnostics.Debug.WriteLine($"[ProgramsData] ERROR downloading programs: {ex.Message}");
                 throw;
             }
+        }
+
+        private async Task<(List<M3UInfo> programList, string programGuide)> LoadFromProviderAsync()
+        {
+            var channels = await Provider.GetChannelsAsync(_cts.Token);
+            var items = channels.Select(c => new M3UInfo
+            {
+                Name = c.Name,
+                GroupTitle = c.GroupTitle,
+                Logo = c.Logo ?? string.Empty,
+                TvgID = c.EpgId ?? string.Empty,
+                ProviderId = Provider.Id,
+                ChannelId = c.Id,
+                // M3U URLs are resolved on demand; do not cache signed URLs in channel metadata.
+                Url = string.Empty
+            }).ToList();
+            return (items, string.Empty);
         }
 
         public Task<ProgramGuide> GetGuideByProgram(string channelID)
