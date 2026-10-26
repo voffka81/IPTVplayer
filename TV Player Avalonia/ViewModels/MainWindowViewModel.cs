@@ -1,6 +1,7 @@
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
+using Avalonia.Threading;
 using CommunityToolkit.Mvvm.Input;
 using System.Windows.Input;
 
@@ -15,7 +16,10 @@ public class MainWindowViewModel : TV_Player.ObservableViewModelBase
         set
         {
             if (SetProperty(ref _currentViewModel, value))
+            {
                 OnPropertyChanged(nameof(IsSettingsButtonVisible));
+                OnPropertyChanged(nameof(IsBackButtonVisible));
+            }
         }
     }
 
@@ -34,6 +38,11 @@ public class MainWindowViewModel : TV_Player.ObservableViewModelBase
     }
 
     public bool IsSettingsButtonVisible => CurrentViewModel is not SettingsViewModel;
+    public bool IsBackButtonVisible => CurrentViewModel is not PlaylistsGroupViewModel;
+
+    private readonly DispatcherTimer _clockTimer = new() { Interval = TimeSpan.FromSeconds(10) };
+    private string _clockText = DateTime.Now.ToString("HH:mm");
+    public string ClockText { get => _clockText; private set => SetProperty(ref _clockText, value); }
 
     private string _topPanelTitle = string.Empty;
     public string TopPanelTitle
@@ -62,6 +71,8 @@ public class MainWindowViewModel : TV_Player.ObservableViewModelBase
         FullscreenCommand = new RelayCommand(OnFullScreenButtonClick);
         SettingsCommand = new RelayCommand(OnSettingsButtonClick);
         CloseAppCommand = new RelayCommand(OnCloseAppButtonClick);
+        _clockTimer.Tick += (_, _) => ClockText = DateTime.Now.ToString("HH:mm");
+        _clockTimer.Start();
     }
 
     public void OnFullScreenButtonClick()
