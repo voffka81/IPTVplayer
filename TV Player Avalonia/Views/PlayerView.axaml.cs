@@ -1,4 +1,5 @@
 using Avalonia.Controls;
+using Avalonia;
 using Avalonia.Input;
 using Avalonia.VisualTree;
 using Avalonia.Threading;
@@ -31,11 +32,53 @@ public partial class PlayerView : UserControl
         InitializeComponent();
         PlayerClock.Text = DateTime.Now.ToString("HH:mm");
         _clockTimer.Tick += (_, _) => PlayerClock.Text = DateTime.Now.ToString("HH:mm");
+        SizeChanged += OnPlayerSizeChanged;
+        UpdateResponsiveControls(Bounds.Size);
         _overlayTimer.Tick += OnOverlayTimerTick;
         Log("PlayerView ctor");
         DataContextChanged += OnDataContextChanged;
         AttachedToVisualTree += OnAttachedToVisualTree;
         DetachedFromVisualTree += OnDetachedFromVisualTree;
+    }
+
+    private void OnPlayerSizeChanged(object? sender, SizeChangedEventArgs e)
+    {
+        UpdateResponsiveControls(e.NewSize);
+    }
+
+    private void UpdateResponsiveControls(Size size)
+    {
+        // Avalonia layout units already account for OS DPI scaling.
+        // Scale the overlay with the available video viewport rather than fixed 48px buttons.
+        if (size.Width <= 0 || size.Height <= 0)
+            return;
+
+        var scale = Math.Clamp(Math.Min(size.Width / 800.0, size.Height / 450.0), 0.85, 1.8);
+        var barHeight = Math.Clamp(80 * scale, 68, 140);
+        TopControlsRow.Height = new GridLength(barHeight);
+        BottomControlsRow.Height = new GridLength(barHeight);
+
+        var buttonSize = Math.Clamp(54 * scale, 48, 94);
+        foreach (var button in new[] { PlayerNav1, PlayerNav2, PlayerNav3, PlayerNav4, PlayerNav5 })
+        {
+            button.Width = buttonSize;
+            button.Height = buttonSize;
+            button.Margin = new Thickness(0);
+            button.HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Center;
+            button.VerticalAlignment = Avalonia.Layout.VerticalAlignment.Center;
+        }
+
+        var topColumnWidth = Math.Max(buttonSize + 16, 68);
+        foreach (var column in PlayerTopBar.ColumnDefinitions)
+        {
+            if (column.Width.IsAbsolute)
+                column.Width = new GridLength(topColumnWidth);
+        }
+
+        ChannelControlsColumn.Width = new GridLength(Math.Max(buttonSize * 2 + 45 * scale, 155));
+        BottomTrailingColumn.Width = new GridLength(Math.Max(24, 40 * scale));
+        GuidePanel.Width = Math.Min(size.Width * 0.45, 360 * scale);
+        GuideProgress.Width = Math.Clamp(size.Width * 0.25, 100, 360);
     }
 
     private void OnAttachedToVisualTree(object? sender, Avalonia.VisualTreeAttachmentEventArgs e)
