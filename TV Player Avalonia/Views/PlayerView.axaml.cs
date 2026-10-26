@@ -79,7 +79,7 @@ public partial class PlayerView : UserControl
         }
 
         PlayerBottomBar.ColumnDefinitions[0].Width = new GridLength(Math.Max(buttonSize * 2 + 45 * scale, 155));
-        PlayerBottomBar.ColumnDefinitions[2].Width = new GridLength(Math.Max(24, 40 * scale));
+        PlayerBottomBar.ColumnDefinitions[2].Width = PlayerBottomBar.ColumnDefinitions[0].Width;
         GuidePanel.Width = Math.Min(size.Width * 0.45, 360 * scale);
         GuideProgress.Width = Math.Clamp(size.Width * 0.25, 100, 360);
     }
@@ -476,7 +476,8 @@ public partial class PlayerView : UserControl
 
         Dispatcher.UIThread.Post(() =>
         {
-            // Buffering is transient: keep the video unobstructed.
+            if (_viewModel != null && !_hasPlaybackStarted)
+                _viewModel.IsBuffering = e.Cache < 100;
         });
     }
 

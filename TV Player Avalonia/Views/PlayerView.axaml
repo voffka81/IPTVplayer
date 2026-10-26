@@ -69,41 +69,48 @@
         </ItemsControl>
       </Border>
 
-      <Grid x:Name="PlayerBottomBar" Grid.Row="2" Background="#D90A121E">
+      <Grid x:Name="PlayerBottomBar" Grid.Row="2" Background="#E609101B">
         <Grid.ColumnDefinitions>
           <ColumnDefinition Width="180" />
           <ColumnDefinition Width="*" />
-          <ColumnDefinition Width="70" />
+          <ColumnDefinition Width="180" />
         </Grid.ColumnDefinitions>
 
-        <StackPanel Orientation="Horizontal">
-          <Button x:Name="PlayerNav4" Width="48" Height="48" Margin="10,0,10,0" Classes="handheld-nav" Command="{Binding PreviousCommand}">
+        <StackPanel Grid.Column="0" Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
+          <Button x:Name="PlayerNav4" Width="54" Height="54" Classes="toolbar-flat" Command="{Binding PreviousCommand}">
             <Viewbox Width="20" Height="20">
-              <Path Fill="#F5F8FF" Data="M8 12L14 6V18Z" />
+              <Path Fill="#F5F8FF" Data="M14 18L8 12L14 6Z" />
             </Viewbox>
           </Button>
-          <TextBlock FontSize="15" Foreground="White" Text="Ch" HorizontalAlignment="Center" VerticalAlignment="Center" />
-          <Button x:Name="PlayerNav5" Width="48" Height="48" Margin="10,0,10,0" Classes="handheld-nav" Command="{Binding NextCommand}">
+          <Button x:Name="PlayerNav5" Width="54" Height="54" Classes="toolbar-flat" Command="{Binding NextCommand}">
             <Viewbox Width="20" Height="20">
-              <Path Fill="#F5F8FF" Data="M16 12L10 18V6Z" />
+              <Path Fill="#F5F8FF" Data="M10 18L16 12L10 6Z" />
             </Viewbox>
           </Button>
         </StackPanel>
 
         <Button Grid.Column="1"
-                Background="#5520354D"
-                BorderThickness="0"
+                Classes="toolbar-flat"
                 IsVisible="{Binding ShowProgramInfo}"
                 Command="{Binding ShowProgramListCommand}">
-          <StackPanel>
-            <TextBlock FontSize="20" Foreground="White" Text="{Binding ProgramGuideText}" HorizontalAlignment="Center" VerticalAlignment="Center" />
-            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-              <TextBlock FontSize="15" Foreground="#F5F5F5" Text="{Binding StartProgram}" />
-              <ProgressBar x:Name="GuideProgress" Height="10" Foreground="#8DD2FF" Value="{Binding DurationValue}" Maximum="100" Width="240" VerticalAlignment="Center" />
-              <TextBlock FontSize="15" Foreground="#F5F5F5" Text="{Binding EndProgram}" />
+          <StackPanel Spacing="3" HorizontalAlignment="Center">
+            <TextBlock FontSize="18" Foreground="White" Text="{Binding ProgramGuideText}" HorizontalAlignment="Center" VerticalAlignment="Center" />
+            <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center">
+              <TextBlock FontSize="13" Foreground="#F5F5F5" Text="{Binding StartProgram}" VerticalAlignment="Center" />
+              <ProgressBar x:Name="GuideProgress" Height="8" Foreground="#8DD2FF" Value="{Binding DurationValue}" Maximum="100" Width="240" VerticalAlignment="Center" />
+              <TextBlock FontSize="13" Foreground="#F5F5F5" Text="{Binding EndProgram}" VerticalAlignment="Center" />
             </StackPanel>
           </StackPanel>
         </Button>
+
+        <StackPanel Grid.Column="1"
+                    Spacing="6"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center"
+                    IsVisible="{Binding IsBuffering}">
+          <TextBlock Text="Буферизация…" FontSize="15" Foreground="#F5F8FF" HorizontalAlignment="Center" />
+          <ProgressBar Width="180" Height="8" IsIndeterminate="True" Foreground="#8DD2FF" />
+        </StackPanel>
       </Grid>
     </Grid>
 
