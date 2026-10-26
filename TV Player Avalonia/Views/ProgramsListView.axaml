@@ -20,7 +20,7 @@
           <Button Width="106"
                   Height="145"
                   Margin="5"
-              Classes="card"
+              Classes="legacy-card"
                   Command="{Binding DataContext.SelectProgramCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
                   CommandParameter="{Binding}">
             <Grid Margin="1" Background="Transparent" RowDefinitions="*,Auto">
@@ -28,7 +28,7 @@
               <TextBlock Grid.Row="1"
                          Text="{Binding Name}"
                          FontSize="15"
-                         Foreground="#111827"
+                         Foreground="White"
                          TextWrapping="Wrap"
                          TextAlignment="Center"
                          Margin="1,0,1,2"
