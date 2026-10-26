@@ -1,3 +1,4 @@
+using Avalonia.Threading;
 using CommunityToolkit.Mvvm.Input;
 using System.Diagnostics;
 using System.Reactive.Linq;
@@ -15,6 +16,8 @@ public class PlayerViewModel : TV_Player.ObservableViewModelBase, IDisposable
     private ProgramGuide? _currentGuide;
     private ProgramInfo? _currentProgramInfo;
     private int _currentProgramIndex;
+    private CancellationTokenSource? _resolveCts;
+    private bool _disposed;
 
     public ICommand BackCommand { get; }
     public ICommand FullscreenCommand { get; }
@@ -135,10 +138,12 @@ public class PlayerViewModel : TV_Player.ObservableViewModelBase, IDisposable
     {
         TVPlayerViewModel.Instance.TopPanelVisible(false, _currentProgram.Name);
         TopPanelTitle = _currentProgram.Name;
-        StreamUrl = _currentProgram.Url;
-        SetPlaybackStatus(string.IsNullOrWhiteSpace(StreamUrl)
-            ? "No stream URL available for this channel."
-            : "Buffering stream...");
+        _resolveCts?.Cancel();
+        _resolveCts?.Dispose();
+        _resolveCts = new CancellationTokenSource();
+        StreamUrl = string.Empty;
+        SetPlaybackStatus("Resolving stream...");
+        _ = ResolveCurrentStreamAsync(_currentProgram, _resolveCts.Token);
         ProgramGuideVisible = false;
 
         _programGuideDisposable?.Dispose();
@@ -159,6 +164,38 @@ public class PlayerViewModel : TV_Player.ObservableViewModelBase, IDisposable
                     Debug.WriteLine($"Failed to load program guide: {ex.Message}");
                 }
             });
+    }
+
+    private async Task ResolveCurrentStreamAsync(M3UInfo channel, CancellationToken token)
+    {
+        try
+        {
+            var provider = TVPlayerViewModel.Instance.CurrentProgramsData?.Provider;
+            var url = channel.Url;
+            if (provider != null && channel.ProviderId == provider.Id && channel.ChannelId != null)
+            {
+                var stream = await provider.ResolveStreamAsync(channel.ChannelId, token);
+                url = stream.PrimaryUrl;
+            }
+            await Dispatcher.UIThread.InvokeAsync(() =>
+            {
+                if (token.IsCancellationRequested || _disposed) return;
+                SetPlaybackStatus(string.IsNullOrWhiteSpace(url)
+                    ? "No stream URL available for this channel."
+                    : "Buffering stream...");
+                StreamUrl = url;
+            });
+        }
+        catch (OperationCanceledException) when (token.IsCancellationRequested) { }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"Stream resolution failed: {ex}");
+            await Dispatcher.UIThread.InvokeAsync(() =>
+            {
+                if (!token.IsCancellationRequested && !_disposed)
+                    SetPlaybackStatus($"Cannot resolve stream: {ex.Message}");
+            });
+        }
     }
 
     private void PreviousProgram()
@@ -249,6 +286,9 @@ public class PlayerViewModel : TV_Player.ObservableViewModelBase, IDisposable
 
     public void Dispose()
     {
+        _disposed = true;
+        _resolveCts?.Cancel();
+        _resolveCts?.Dispose();
         _programSubscription.Dispose();
         _programGuideDisposable?.Dispose();
         _timer?.Dispose();
