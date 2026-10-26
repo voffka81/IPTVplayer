@@ -22,8 +22,8 @@ public class SettingsViewModel : TV_Player.ObservableViewModelBase
         set => SetProperty(ref _playlistUrl, value);
     }
 
-    private ObservableCollection<KeyValuePair<string, string>> _playlists = new();
-    public ObservableCollection<KeyValuePair<string, string>> Playlists
+    private ObservableCollection<PlaylistEntry> _playlists = new();
+    public ObservableCollection<PlaylistEntry> Playlists
     {
         get => _playlists;
         set => SetProperty(ref _playlists, value);
@@ -106,8 +106,17 @@ public class SettingsViewModel : TV_Player.ObservableViewModelBase
         set => SetProperty(ref _pluginSourceError, value);
     }
 
+    private string _playlistError = string.Empty;
+    public string PlaylistError
+    {
+        get => _playlistError;
+        set => SetProperty(ref _playlistError, value);
+    }
+
     public ICommand SaveCommand { get; }
     public ICommand PlaylistDeleteCommand { get; }
+    public ICommand PlaylistMoveUpCommand { get; }
+    public ICommand PlaylistMoveDownCommand { get; }
     public ICommand BackCommand { get; }
     public ICommand AddPlaylistCommand { get; }
     public ICommand AddPluginSourceCommand { get; }
@@ -121,7 +130,9 @@ public class SettingsViewModel : TV_Player.ObservableViewModelBase
         SaveCommand = new RelayCommand(OnSaveSettings);
         BackCommand = new RelayCommand(OnBackCommand);
         AddPlaylistCommand = new RelayCommand(OnAddPlaylistCommand);
-        PlaylistDeleteCommand = new RelayCommand<KeyValuePair<string, string>>(OnPlaylistDeleteCommand);
+        PlaylistDeleteCommand = new RelayCommand<PlaylistEntry>(OnPlaylistDeleteCommand);
+        PlaylistMoveUpCommand = new RelayCommand<PlaylistEntry>(entry => MovePlaylist(entry, -1));
+        PlaylistMoveDownCommand = new RelayCommand<PlaylistEntry>(entry => MovePlaylist(entry, 1));
         AddPluginSourceCommand = new RelayCommand(OnAddPluginSourceCommand);
         PluginSourceDeleteCommand = new RelayCommand<ProviderSourceConfiguration>(OnPluginSourceDeleteCommand);
         ShowSourcesSectionCommand = new RelayCommand(() => SelectedSettingsSection = "sources");
@@ -131,9 +142,15 @@ public class SettingsViewModel : TV_Player.ObservableViewModelBase
         SelectedPlaybackEngine = SettingsModel.PlaybackEngine == "mpv" ? "mpv" : "vlc";
         StartFullScreen = SettingsModel.StartFullScreen;
         StartLastScreen = SettingsModel.StartFromLastScreen;
-        Playlists = SettingsModel.Playlists == null
-            ? new ObservableCollection<KeyValuePair<string, string>>()
-            : new ObservableCollection<KeyValuePair<string, string>>(SettingsModel.Playlists);
+        var savedPlaylists = SettingsModel.Playlists ?? new Dictionary<string, string>();
+        var playlistOrder = SettingsModel.PlaylistOrder ?? new List<string>();
+        var orderedNames = playlistOrder
+            .Where(savedPlaylists.ContainsKey)
+            .Distinct(StringComparer.Ordinal)
+            .Concat(savedPlaylists.Keys.Where(name => !playlistOrder.Contains(name, StringComparer.Ordinal)))
+            .ToList();
+        Playlists = new ObservableCollection<PlaylistEntry>(orderedNames.Select(name =>
+            new PlaylistEntry(name, savedPlaylists[name])));
 
         TVPlayerViewModel.Instance.LoadProviderPlugins();
         PluginDirectory = TVPlayerViewModel.Instance.PluginDirectory;
@@ -180,18 +197,30 @@ public class SettingsViewModel : TV_Player.ObservableViewModelBase
             (uriResult.Scheme != Uri.UriSchemeHttp && uriResult.Scheme != Uri.UriSchemeHttps))
             return;
 
-        if (Playlists.Any(pair => pair.Key.Equals(name, StringComparison.OrdinalIgnoreCase)) ||
+        if (Playlists.Any(pair => pair.Name.Equals(name, StringComparison.OrdinalIgnoreCase)) ||
             PluginSources.Any(source => source.Name.Equals(name, StringComparison.OrdinalIgnoreCase)))
             return;
 
-        Playlists.Add(new KeyValuePair<string, string>(name, url));
+        Playlists.Add(new PlaylistEntry(name, url));
         PlaylistName = string.Empty;
         PlaylistURL = string.Empty;
     }
 
-    private void OnPlaylistDeleteCommand(KeyValuePair<string, string> pair)
+    private void OnPlaylistDeleteCommand(PlaylistEntry? pair)
     {
-        Playlists.Remove(pair);
+        if (pair != null)
+            Playlists.Remove(pair);
+    }
+
+    private void MovePlaylist(PlaylistEntry? entry, int offset)
+    {
+        if (entry == null)
+            return;
+
+        var index = Playlists.IndexOf(entry);
+        var targetIndex = index + offset;
+        if (index >= 0 && targetIndex >= 0 && targetIndex < Playlists.Count)
+            Playlists.Move(index, targetIndex);
     }
 
     private void OnAddPluginSourceCommand()
@@ -211,7 +240,7 @@ public class SettingsViewModel : TV_Player.ObservableViewModelBase
             return;
         }
 
-        if (Playlists.Any(pair => pair.Key.Equals(name, StringComparison.OrdinalIgnoreCase)) ||
+        if (Playlists.Any(pair => pair.Name.Equals(name, StringComparison.OrdinalIgnoreCase)) ||
             PluginSources.Any(source => source.Name.Equals(name, StringComparison.OrdinalIgnoreCase)))
         {
             PluginSourceError = "A playlist or provider source with this name already exists.";
@@ -253,13 +282,60 @@ public class SettingsViewModel : TV_Player.ObservableViewModelBase
 
     private void OnSaveSettings()
     {
+        var names = Playlists.Select(entry => entry.Name.Trim()).ToList();
+        if (names.Any(string.IsNullOrWhiteSpace))
+        {
+            PlaylistError = "Every playlist needs a name.";
+            return;
+        }
+        if (names.Distinct(StringComparer.OrdinalIgnoreCase).Count() != names.Count ||
+            names.Any(name => PluginSources.Any(source => source.Name.Equals(name, StringComparison.OrdinalIgnoreCase))))
+        {
+            PlaylistError = "Playlist names must be unique.";
+            return;
+        }
+        if (Playlists.Any(entry => !Uri.TryCreate(entry.Url.Trim(), UriKind.Absolute, out var uri) ||
+                                   (uri.Scheme != Uri.UriSchemeHttp && uri.Scheme != Uri.UriSchemeHttps)))
+        {
+            PlaylistError = "Every playlist needs a valid HTTP or HTTPS URL.";
+            return;
+        }
+
+        PlaylistError = string.Empty;
         SettingsModel.PlaybackEngine = SelectedPlaybackEngine == "mpv" ? "mpv" : "vlc";
         SettingsModel.StartFullScreen = StartFullScreen;
         SettingsModel.StartFromLastScreen = StartLastScreen;
-        SettingsModel.Playlists = Playlists.ToDictionary(pair => pair.Key, pair => pair.Value);
+        foreach (var entry in Playlists)
+            entry.Name = entry.Name.Trim();
+        SettingsModel.Playlists = Playlists.ToDictionary(entry => entry.Name, entry => entry.Url.Trim());
+        SettingsModel.PlaylistOrder = Playlists.Select(entry => entry.Name).ToList();
         SettingsModel.ProviderSources = PluginSources.ToList();
         SettingsModel.SaveSetttings();
         TVPlayerViewModel.Instance.InitializeTVWithData();
+    }
+}
+
+public sealed class PlaylistEntry : TV_Player.ObservableViewModelBase
+{
+    private string _name;
+    private string _url;
+
+    public string Name
+    {
+        get => _name;
+        set => SetProperty(ref _name, value);
+    }
+
+    public string Url
+    {
+        get => _url;
+        set => SetProperty(ref _url, value);
+    }
+
+    public PlaylistEntry(string name, string url)
+    {
+        _name = name;
+        _url = url;
     }
 }
 

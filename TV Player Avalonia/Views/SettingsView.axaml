@@ -60,13 +60,16 @@
               <TextBlock Text="Manage your M3U playlists." Foreground="#91A6BF" FontSize="13" />
             </StackPanel>
             <Border Grid.Row="1" Margin="0,14,0,0" Background="#141F2E" BorderBrush="#273B53" BorderThickness="1" CornerRadius="13" Padding="14">
-              <Grid ColumnDefinitions="*,*,Auto">
-                <TextBox Margin="0,0,5,0" Text="{Binding PlaylistURL}" Watermark="Playlist URL" />
-                <TextBox Grid.Column="1" Margin="5,0" Text="{Binding PlaylistName}" Watermark="Playlist name" />
-                <Button Grid.Column="2" Classes="handheld-primary" Command="{Binding AddPlaylistCommand}" Padding="14,0">
-                  <TextBlock Text="Add playlist" />
-                </Button>
-              </Grid>
+              <StackPanel Spacing="6">
+                <Grid ColumnDefinitions="*,*,Auto">
+                  <TextBox Margin="0,0,5,0" Text="{Binding PlaylistURL}" Watermark="Playlist URL" />
+                  <TextBox Grid.Column="1" Margin="5,0" Text="{Binding PlaylistName}" Watermark="Playlist name" />
+                  <Button Grid.Column="2" Classes="handheld-primary" Command="{Binding AddPlaylistCommand}" Padding="14,0">
+                    <TextBlock Text="Add playlist" />
+                  </Button>
+                </Grid>
+                <TextBlock Text="{Binding PlaylistError}" Foreground="#FF9B91" FontSize="12" TextWrapping="Wrap" />
+              </StackPanel>
             </Border>
             <Border Grid.Row="2" Margin="0,14,0,0" Background="#141F2E" BorderBrush="#273B53" BorderThickness="1" CornerRadius="13" Padding="8">
               <ListBox ItemsSource="{Binding Playlists}" Background="Transparent" BorderThickness="0">
@@ -78,10 +81,16 @@
                 </ListBox.ItemContainerTheme>
                 <ListBox.ItemTemplate>
                   <DataTemplate>
-                    <Grid ColumnDefinitions="180,*,Auto" MinHeight="56">
-                      <TextBlock Text="{Binding Key}" Foreground="#F5F8FF" VerticalAlignment="Center" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" />
-                      <TextBlock Grid.Column="1" Text="{Binding Value}" Foreground="#A9BDD5" VerticalAlignment="Center" FontSize="13" TextTrimming="CharacterEllipsis" />
-                      <Button Grid.Column="2" Classes="handheld-danger" Width="44" Height="44" CommandParameter="{Binding}" Command="{Binding DataContext.PlaylistDeleteCommand, RelativeSource={RelativeSource AncestorType=UserControl}}">
+                    <Grid ColumnDefinitions="*,2*,Auto,Auto,Auto" MinHeight="56">
+                      <TextBox Text="{Binding Name, Mode=TwoWay}" Watermark="Playlist name" Margin="2" VerticalAlignment="Center" />
+                      <TextBox Grid.Column="1" Text="{Binding Url, Mode=TwoWay}" Watermark="Playlist URL" Margin="2" VerticalAlignment="Center" />
+                      <Button Grid.Column="2" Classes="toolbar-flat" Width="40" Height="40" CommandParameter="{Binding}" Command="{Binding DataContext.PlaylistMoveUpCommand, RelativeSource={RelativeSource AncestorType=UserControl}}">
+                        <TextBlock Text="↑" FontSize="18" />
+                      </Button>
+                      <Button Grid.Column="3" Classes="toolbar-flat" Width="40" Height="40" CommandParameter="{Binding}" Command="{Binding DataContext.PlaylistMoveDownCommand, RelativeSource={RelativeSource AncestorType=UserControl}}">
+                        <TextBlock Text="↓" FontSize="18" />
+                      </Button>
+                      <Button Grid.Column="4" Classes="handheld-danger" Width="44" Height="44" CommandParameter="{Binding}" Command="{Binding DataContext.PlaylistDeleteCommand, RelativeSource={RelativeSource AncestorType=UserControl}}">
                         <TextBlock Text="−" FontSize="20" />
                       </Button>
                     </Grid>
