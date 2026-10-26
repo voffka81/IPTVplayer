@@ -23,7 +23,7 @@ public sealed class M3UChannelProvider : IChannelProvider
     public async Task<IReadOnlyList<ChannelInfo>> GetChannelsAsync(CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
-        var (programs, _) = await M3UParser.DownloadM3UFromWebAsync(_playlistLocation);
+        var (programs, _) = await LoadPlaylistAsync(cancellationToken);
         cancellationToken.ThrowIfCancellationRequested();
 
         var catalog = new List<ChannelInfo>(programs.Count);
@@ -41,6 +41,25 @@ public sealed class M3UChannelProvider : IChannelProvider
             }
         }
         return catalog;
+    }
+
+    public async Task<(List<M3UInfo> programList, string programGuide)> LoadPlaylistAsync(CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        var result = await M3UParser.DownloadM3UFromWebAsync(_playlistLocation);
+        cancellationToken.ThrowIfCancellationRequested();
+        lock (_sync)
+        {
+            _channels.Clear();
+            for (var i = 0; i < result.programList.Count; i++)
+            {
+                var channel = result.programList[i];
+                channel.ProviderId = Id;
+                channel.ChannelId = i.ToString(System.Globalization.CultureInfo.InvariantCulture);
+                _channels[channel.ChannelId] = channel;
+            }
+        }
+        return result;
     }
 
     public Task<StreamInfo> ResolveStreamAsync(string channelId, CancellationToken cancellationToken = default)
