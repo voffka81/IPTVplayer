@@ -1,4 +1,6 @@
 using Avalonia.Controls;
+using Avalonia.Input;
+using Avalonia.VisualTree;
 using Avalonia.Threading;
 using LibVLCSharp.Shared;
 using System.Diagnostics;
@@ -12,6 +14,8 @@ namespace TV_Player.AvaloniaApp.Views;
 
 public partial class PlayerView : UserControl
 {
+    private readonly DispatcherTimer _overlayTimer = new() { Interval = TimeSpan.FromSeconds(5) };
+    private bool _overlayVisible = true;
     private LibVLC? _libVlc;
     private MediaPlayer? _mediaPlayer;
     private Media? _currentMedia;
@@ -24,6 +28,7 @@ public partial class PlayerView : UserControl
     public PlayerView()
     {
         InitializeComponent();
+        _overlayTimer.Tick += OnOverlayTimerTick;
         Log("PlayerView ctor");
         DataContextChanged += OnDataContextChanged;
         AttachedToVisualTree += OnAttachedToVisualTree;
@@ -35,6 +40,7 @@ public partial class PlayerView : UserControl
         if (_initialized)
             return;
 
+        ShowOverlay();
         Log("Attach to visual tree -> initializing VLC");
         try
         {
@@ -74,6 +80,7 @@ public partial class PlayerView : UserControl
 
     private void OnDetachedFromVisualTree(object? sender, Avalonia.VisualTreeAttachmentEventArgs e)
     {
+        _overlayTimer.Stop();
         Log("Detach from visual tree -> disposing player resources");
         if (_viewModel != null)
         {
@@ -113,6 +120,50 @@ public partial class PlayerView : UserControl
         _activeStreamUrl = null;
         _fallbackAttempted = false;
         _initialized = false;
+    }
+
+    private void OnOverlayTimerTick(object? sender, System.EventArgs e)
+    {
+        HideOverlay();
+    }
+
+    private void ShowOverlay()
+    {
+        _overlayVisible = true;
+        OverlayPanel.IsVisible = true;
+        _overlayTimer.Stop();
+        _overlayTimer.Start();
+    }
+
+    private void HideOverlay()
+    {
+        _overlayTimer.Stop();
+        _overlayVisible = false;
+        OverlayPanel.IsVisible = false;
+        if (_viewModel != null)
+            _viewModel.ProgramGuideVisible = false;
+    }
+
+    private void OnOverlayPointerPressed(object? sender, PointerPressedEventArgs e)
+    {
+        // Buttons and other interactive elements retain their own commands.
+        // A click on the video/background toggles the control overlay.
+        if (e.Source is Avalonia.Visual source)
+        {
+            for (Avalonia.Visual? current = source; current != null && current != OverlayPanel; current = current.GetVisualParent())
+            {
+                if (current is Button || current is ScrollViewer)
+                {
+                    ShowOverlay();
+                    return;
+                }
+            }
+        }
+
+        if (_overlayVisible)
+            HideOverlay();
+        else
+            ShowOverlay();
     }
 
     private void OnDataContextChanged(object? sender, System.EventArgs e)
