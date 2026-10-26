@@ -52,7 +52,7 @@ namespace TV_Player
                     if (File.Exists(candidate))
                     {
                         System.Diagnostics.Debug.WriteLine($"[ProgramsData] Detected local file, loading from disk: {candidate}");
-                        result = await LoadFromProviderAsync();
+                        result = await ((M3UChannelProvider)Provider).LoadPlaylistAsync(_cts.Token);
                     }
                     else
                     {
