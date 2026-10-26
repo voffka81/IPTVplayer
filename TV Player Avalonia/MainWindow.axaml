@@ -46,6 +46,6 @@
     </Border>
 
     <!-- Edge-to-edge content: no decorative frame or exposed wallpaper. -->
-    <ContentControl Grid.Row="1" Content="{Binding CurrentViewModel}" Margin="14,12" />
+    <ContentControl Grid.Row="1" Content="{Binding CurrentViewModel}" Margin="{Binding ContentMargin}" />
   </Grid>
 </Window>

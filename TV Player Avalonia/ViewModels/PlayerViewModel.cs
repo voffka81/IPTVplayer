@@ -83,14 +83,14 @@ public class PlayerViewModel : TV_Player.ObservableViewModelBase, IDisposable
         set => SetProperty(ref _streamUrl, value);
     }
 
-    private string _playbackStatus = "Buffering stream...";
+    private string _playbackStatus = string.Empty;
     public string PlaybackStatus
     {
         get => _playbackStatus;
         set => SetProperty(ref _playbackStatus, value);
     }
 
-    private bool _hasPlaybackStatus = true;
+    private bool _hasPlaybackStatus;
     public bool HasPlaybackStatus
     {
         get => _hasPlaybackStatus;
@@ -142,7 +142,7 @@ public class PlayerViewModel : TV_Player.ObservableViewModelBase, IDisposable
         _resolveCts?.Dispose();
         _resolveCts = new CancellationTokenSource();
         StreamUrl = string.Empty;
-        SetPlaybackStatus("Resolving stream...");
+        SetPlaybackStatus(string.Empty);
         _ = ResolveCurrentStreamAsync(_currentProgram, _resolveCts.Token);
         ProgramGuideVisible = false;
 
@@ -182,7 +182,7 @@ public class PlayerViewModel : TV_Player.ObservableViewModelBase, IDisposable
                 if (token.IsCancellationRequested || _disposed) return;
                 SetPlaybackStatus(string.IsNullOrWhiteSpace(url)
                     ? "No stream URL available for this channel."
-                    : "Buffering stream...");
+                    : string.Empty);
                 StreamUrl = url;
             });
         }

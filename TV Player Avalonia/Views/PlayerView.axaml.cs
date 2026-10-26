@@ -217,7 +217,7 @@ public partial class PlayerView : UserControl
             _currentMedia?.Dispose();
             _currentMedia = null;
 
-            _viewModel.SetPlaybackStatus("Buffering stream...");
+            _viewModel.SetPlaybackStatus(string.Empty);
             StartBufferingWatchdog();
 
             var started = StartPlayback(streamUrl, fallback: false);
@@ -359,7 +359,7 @@ public partial class PlayerView : UserControl
                 if (_viewModel == null)
                     return;
 
-                _viewModel.SetPlaybackStatus("Still buffering, retrying with fallback settings...");
+                _viewModel.SetPlaybackStatus(string.Empty);
                 var started = StartPlayback(_activeStreamUrl!, fallback: true);
                 Log($"Fallback playback start result: {started}");
                 if (!started)
@@ -382,7 +382,7 @@ public partial class PlayerView : UserControl
 
         Dispatcher.UIThread.Post(() =>
         {
-            _viewModel.SetPlaybackStatus($"Buffering stream... {e.Cache:0}%");
+            // Buffering is transient: keep the video unobstructed.
         });
     }
 
@@ -434,10 +434,7 @@ public partial class PlayerView : UserControl
         {
             _bufferingWatchdogCts?.Cancel();
             Log("MediaPlayer event: Stopped");
-            if (string.IsNullOrWhiteSpace(_viewModel.PlaybackStatus))
-            {
-                _viewModel.SetPlaybackStatus("Playback stopped.");
-            }
+            // Stop is expected while switching channels; avoid a persistent toast.
         });
     }
 
