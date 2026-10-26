@@ -41,13 +41,13 @@
       <_DevelopmentPluginOutput>$(MSBuildThisFileDirectory)..\Examples\HtmlPageStreamsPlugin\bin\$(Configuration)\net10.0</_DevelopmentPluginOutput>
       <_DevelopmentPluginDestination>$(OutDir)Plugins\HtmlPageStreamsPlugin</_DevelopmentPluginDestination>
     </PropertyGroup>
-    <RemoveDir Directories="$(_DevelopmentPluginDestination)" />
     <MakeDir Directories="$(_DevelopmentPluginDestination)" />
     <ItemGroup>
       <_DevelopmentPluginFiles Include="$(_DevelopmentPluginOutput)\**\*" />
     </ItemGroup>
     <Copy SourceFiles="@(_DevelopmentPluginFiles)"
-          DestinationFiles="@(_DevelopmentPluginFiles->'$(_DevelopmentPluginDestination)\%(RecursiveDir)%(Filename)%(Extension)')" />
+          DestinationFiles="@(_DevelopmentPluginFiles->'$(_DevelopmentPluginDestination)\%(RecursiveDir)%(Filename)%(Extension)')"
+          SkipUnchangedFiles="true" />
   </Target>
 
 </Project>

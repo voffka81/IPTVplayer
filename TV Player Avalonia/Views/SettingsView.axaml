@@ -54,7 +54,7 @@
       <Border Grid.Column="1" Background="#101A28" BorderBrush="#24364B" BorderThickness="1" CornerRadius="16" Padding="20">
         <Grid>
           <!-- Sources -->
-          <Grid IsVisible="{Binding IsSourcesSection}" RowDefinitions="Auto,Auto,*">
+          <Grid IsVisible="{Binding IsSourcesSection}" RowDefinitions="Auto,Auto,*,Auto">
             <StackPanel Spacing="4">
               <TextBlock Text="Sources" Foreground="#F5F8FF" FontSize="22" FontWeight="SemiBold" />
               <TextBlock Text="Manage your M3U playlists." Foreground="#91A6BF" FontSize="13" />
@@ -89,6 +89,29 @@
                 </ListBox.ItemTemplate>
               </ListBox>
             </Border>
+            <Border Grid.Row="3" Margin="0,12,0,0" Background="#141F2E" BorderBrush="#273B53" BorderThickness="1" CornerRadius="13" Padding="10">
+              <StackPanel Spacing="6">
+                <TextBlock Text="Provider sources" Foreground="#F5F8FF" FontSize="14" FontWeight="SemiBold" Margin="4,0,4,2" />
+                <ScrollViewer MaxHeight="130" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                  <ItemsControl ItemsSource="{Binding PluginSources}">
+                    <ItemsControl.ItemTemplate>
+                      <DataTemplate>
+                        <Grid ColumnDefinitions="*,Auto" MinHeight="48" Margin="4,1">
+                          <StackPanel VerticalAlignment="Center" Spacing="2">
+                            <TextBlock Text="{Binding Name}" Foreground="#F5F8FF" FontWeight="SemiBold" />
+                            <TextBlock Text="{Binding PluginId}" Foreground="#91A6BF" FontSize="11" />
+                          </StackPanel>
+                          <Button Grid.Column="1" Classes="handheld-danger" Width="40" Height="40" CommandParameter="{Binding}" Command="{Binding DataContext.PluginSourceDeleteCommand, RelativeSource={RelativeSource AncestorType=UserControl}}">
+                            <TextBlock Text="−" FontSize="20" />
+                          </Button>
+                        </Grid>
+                      </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                  </ItemsControl>
+                </ScrollViewer>
+                <TextBlock IsVisible="{Binding IsNoProviderSources}" Text="No provider sources added yet." Foreground="#7188A3" FontSize="12" Margin="4,0" />
+              </StackPanel>
+            </Border>
           </Grid>
 
           <!-- Plugins -->
@@ -104,6 +127,8 @@
                   <TextBlock Text="{Binding PluginDirectory}" Foreground="#8DD2FF" FontSize="13" TextWrapping="Wrap" />
                   <TextBlock Text="Development build output (loaded automatically)" Foreground="#A9BDD5" FontSize="13" />
                   <TextBlock Text="{Binding DevelopmentPluginDirectory}" Foreground="#8DD2FF" FontSize="13" TextWrapping="Wrap" />
+                  <TextBlock Text="Plugin request log" Foreground="#A9BDD5" FontSize="13" />
+                  <TextBlock Text="{Binding PluginLogPath}" Foreground="#8DD2FF" FontSize="13" TextWrapping="Wrap" />
                   <TextBlock Text="{Binding PluginAvailabilityMessage}" Foreground="#A9BDD5" FontSize="13" TextWrapping="Wrap" />
                   <TextBlock Text="{Binding PluginLoadErrors}" Foreground="#FF9B91" FontSize="12" TextWrapping="Wrap" />
                 </StackPanel>
@@ -111,6 +136,7 @@
               <Border Background="#141F2E" BorderBrush="#273B53" BorderThickness="1" CornerRadius="13" Padding="16">
                 <StackPanel Spacing="10">
                   <TextBlock Text="Add provider source" Foreground="#F5F8FF" FontSize="16" FontWeight="SemiBold" />
+                  <TextBlock Text="Added sources appear in the Sources tab. Save changes to load them." Foreground="#7188A3" FontSize="12" TextWrapping="Wrap" />
                   <ComboBox ItemsSource="{Binding AvailableProviderPlugins}" SelectedItem="{Binding SelectedProviderPlugin, Mode=TwoWay}" HorizontalAlignment="Stretch">
                     <ComboBox.ItemTemplate><DataTemplate><TextBlock Text="{Binding Name}" /></DataTemplate></ComboBox.ItemTemplate>
                   </ComboBox>
@@ -130,26 +156,6 @@
                   <Button Classes="handheld-primary" Command="{Binding AddPluginSourceCommand}" HorizontalAlignment="Left" Padding="16,0">
                     <TextBlock Text="Add source" />
                   </Button>
-                </StackPanel>
-              </Border>
-              <Border Background="#141F2E" BorderBrush="#273B53" BorderThickness="1" CornerRadius="13" Padding="14">
-                <StackPanel Spacing="8">
-                  <TextBlock Text="Configured provider sources" Foreground="#F5F8FF" FontSize="16" FontWeight="SemiBold" Margin="4,0,4,4" />
-                  <ItemsControl ItemsSource="{Binding PluginSources}">
-                    <ItemsControl.ItemTemplate>
-                      <DataTemplate>
-                        <Grid ColumnDefinitions="*,Auto" MinHeight="54" Margin="4,2">
-                          <StackPanel VerticalAlignment="Center" Spacing="3">
-                            <TextBlock Text="{Binding Name}" Foreground="#F5F8FF" FontWeight="SemiBold" />
-                            <TextBlock Text="{Binding PluginId}" Foreground="#91A6BF" FontSize="12" />
-                          </StackPanel>
-                          <Button Grid.Column="1" Classes="handheld-danger" Width="44" Height="44" CommandParameter="{Binding}" Command="{Binding DataContext.PluginSourceDeleteCommand, RelativeSource={RelativeSource AncestorType=UserControl}}">
-                            <TextBlock Text="−" FontSize="20" />
-                          </Button>
-                        </Grid>
-                      </DataTemplate>
-                    </ItemsControl.ItemTemplate>
-                  </ItemsControl>
                 </StackPanel>
               </Border>
             </StackPanel>

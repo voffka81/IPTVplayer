@@ -16,6 +16,7 @@ public class TVPlayerViewModel : IDisposable
     public Dictionary<string, ProgramsData> PlayListsData { get; } = new();
     public ChannelProviderRegistry ProviderRegistry { get; } = new();
     public string PluginDirectory => Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "TVPlayer", "Plugins");
+    public string PluginLogPath => Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "TVPlayer", "Logs", "player.log");
     public string DevelopmentPluginDirectory => Path.Combine(AppContext.BaseDirectory, "Plugins");
     private bool _pluginsLoaded;
     public string? CurrentPlaylistName { get; private set; }

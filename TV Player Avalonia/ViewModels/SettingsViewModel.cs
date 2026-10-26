@@ -74,7 +74,9 @@ public class SettingsViewModel : TV_Player.ObservableViewModelBase
     public ObservableCollection<IChannelProviderPlugin> AvailableProviderPlugins { get; }
     public ObservableCollection<PluginSettingEditor> PluginSettingEditors { get; } = new();
     public ObservableCollection<ProviderSourceConfiguration> PluginSources { get; }
+    public bool IsNoProviderSources => PluginSources.Count == 0;
     public string PluginDirectory { get; }
+    public string PluginLogPath { get; }
     public string DevelopmentPluginDirectory { get; }
     public string PluginLoadErrors { get; }
     public string PluginAvailabilityMessage { get; }
@@ -135,6 +137,7 @@ public class SettingsViewModel : TV_Player.ObservableViewModelBase
 
         TVPlayerViewModel.Instance.LoadProviderPlugins();
         PluginDirectory = TVPlayerViewModel.Instance.PluginDirectory;
+        PluginLogPath = TVPlayerViewModel.Instance.PluginLogPath;
         DevelopmentPluginDirectory = TVPlayerViewModel.Instance.DevelopmentPluginDirectory;
         AvailableProviderPlugins = new ObservableCollection<IChannelProviderPlugin>(
             TVPlayerViewModel.Instance.ProviderRegistry.Plugins.OrderBy(plugin => plugin.Name));
@@ -144,6 +147,7 @@ public class SettingsViewModel : TV_Player.ObservableViewModelBase
             : "Select a plugin, then fill in its source settings.";
         PluginSources = new ObservableCollection<ProviderSourceConfiguration>(
             SettingsModel.ProviderSources ?? new List<ProviderSourceConfiguration>());
+        PluginSources.CollectionChanged += (_, _) => RaisePropertyChanged(nameof(IsNoProviderSources));
         SelectedProviderPlugin = AvailableProviderPlugins.FirstOrDefault();
     }
 
