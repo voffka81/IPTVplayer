@@ -32,6 +32,8 @@ namespace TV_Player.ViewModels
         public static GroupInfo Group { get; set; }
         public static M3UInfo Program { get; set; }
         public static string[] HiddenGroups { get; set; }
+        // Used by the Avalonia frontend. VLC remains the default for existing installations.
+        public static string PlaybackEngine { get; set; } = "vlc";
 
         public static void SaveSetttings()
         {
@@ -45,6 +47,7 @@ namespace TV_Player.ViewModels
                 Group,
                 Program,
                 HiddenGroups,
+                PlaybackEngine,
             };
 
             // Serialize the object to JSON
@@ -66,7 +69,8 @@ namespace TV_Player.ViewModels
                 Program = default(M3UInfo),
                 StartFromLastScreen = default(bool),
                 StartFullScreen = default(bool),
-                HiddenGroups = default(string[])
+                HiddenGroups = default(string[]),
+                PlaybackEngine = default(string)
             };
             if (File.Exists(SettingsFilePath))
             {
@@ -82,6 +86,7 @@ namespace TV_Player.ViewModels
             StartFromLastScreen = loadedData.StartFromLastScreen;
             StartFullScreen = loadedData.StartFullScreen;
             HiddenGroups = loadedData.HiddenGroups;
+            PlaybackEngine = loadedData.PlaybackEngine == "mpv" ? "mpv" : "vlc";
         }
     }
 }
