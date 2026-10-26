@@ -52,8 +52,8 @@ public partial class PlayerView : UserControl
 
         var scale = Math.Clamp(Math.Min(size.Width / 800.0, size.Height / 450.0), 0.85, 1.8);
         var barHeight = Math.Clamp(80 * scale, 68, 140);
-        TopControlsRow.Height = new GridLength(barHeight);
-        BottomControlsRow.Height = new GridLength(barHeight);
+        OverlayPanel.RowDefinitions[0].Height = new GridLength(barHeight);
+        OverlayPanel.RowDefinitions[2].Height = new GridLength(barHeight);
 
         var buttonSize = Math.Clamp(54 * scale, 48, 94);
         foreach (var button in new[] { PlayerNav1, PlayerNav2, PlayerNav3, PlayerNav4, PlayerNav5 })
@@ -72,8 +72,8 @@ public partial class PlayerView : UserControl
                 column.Width = new GridLength(topColumnWidth);
         }
 
-        ChannelControlsColumn.Width = new GridLength(Math.Max(buttonSize * 2 + 45 * scale, 155));
-        BottomTrailingColumn.Width = new GridLength(Math.Max(24, 40 * scale));
+        PlayerBottomBar.ColumnDefinitions[0].Width = new GridLength(Math.Max(buttonSize * 2 + 45 * scale, 155));
+        PlayerBottomBar.ColumnDefinitions[2].Width = new GridLength(Math.Max(24, 40 * scale));
         GuidePanel.Width = Math.Min(size.Width * 0.45, 360 * scale);
         GuideProgress.Width = Math.Clamp(size.Width * 0.25, 100, 360);
     }
