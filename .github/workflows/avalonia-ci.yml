@@ -1,0 +1,24 @@
+name: Avalonia build and tests
+
+on:
+  pull_request:
+  push:
+    branches: [master]
+  workflow_dispatch:
+
+jobs:
+  build-and-test:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+      - name: Build Avalonia application
+        run: dotnet build "TV Player Avalonia/TV Player Avalonia.csproj" --configuration Release
+      - name: Run unit tests
+        run: dotnet test "TV Player Tests/TV Player Tests.csproj" --configuration Release

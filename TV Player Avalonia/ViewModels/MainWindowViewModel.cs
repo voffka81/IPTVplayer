@@ -17,8 +17,8 @@ public class MainWindowViewModel : TV_Player.ObservableViewModelBase
         {
             if (SetProperty(ref _currentViewModel, value))
             {
-                OnPropertyChanged(nameof(IsSettingsButtonVisible));
-                OnPropertyChanged(nameof(IsBackButtonVisible));
+                RaisePropertyChanged(nameof(IsSettingsButtonVisible));
+                RaisePropertyChanged(nameof(IsBackButtonVisible));
             }
         }
     }
