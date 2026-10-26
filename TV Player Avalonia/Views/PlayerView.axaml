@@ -3,7 +3,8 @@
              xmlns:vlc="clr-namespace:LibVLCSharp.Avalonia;assembly=LibVLCSharp.Avalonia"
              x:Class="TV_Player.AvaloniaApp.Views.PlayerView">
   <Grid>
-    <vlc:VideoView x:Name="VideoView" />
+    <vlc:VideoView x:Name="VideoView">
+      <Grid>
 
     <Grid Background="#00000000">
       <Grid.RowDefinitions>
@@ -109,5 +110,7 @@
             IsVisible="{Binding HasPlaybackStatus}">
       <TextBlock Text="{Binding PlaybackStatus}" Foreground="#111827" TextWrapping="Wrap" MaxWidth="420" />
     </Border>
+      </Grid>
+    </vlc:VideoView>
   </Grid>
 </UserControl>
