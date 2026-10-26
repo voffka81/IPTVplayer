@@ -27,18 +27,11 @@ public sealed class M3UChannelProvider : IChannelProvider
         cancellationToken.ThrowIfCancellationRequested();
 
         var catalog = new List<ChannelInfo>(programs.Count);
-        lock (_sync)
+        for (var index = 0; index < programs.Count; index++)
         {
-            _channels.Clear();
-            for (var index = 0; index < programs.Count; index++)
-            {
-                var program = programs[index];
-                // Index-based IDs preserve duplicate channel names and URLs.
-                var channelId = index.ToString(System.Globalization.CultureInfo.InvariantCulture);
-                _channels[channelId] = program;
-                catalog.Add(new ChannelInfo(channelId, program.Name, program.GroupTitle,
-                    program.Logo, program.TvgID));
-            }
+            var program = programs[index];
+            catalog.Add(new ChannelInfo(program.ChannelId!, program.Name, program.GroupTitle,
+                program.Logo, program.TvgID));
         }
         return catalog;
     }
@@ -47,8 +40,11 @@ public sealed class M3UChannelProvider : IChannelProvider
     {
         cancellationToken.ThrowIfCancellationRequested();
         var location = _playlistLocation;
-        if (!Uri.IsWellFormedUriString(location, UriKind.Absolute) && !Path.IsPathRooted(location))
-            location = Path.Combine(AppContext.BaseDirectory, location);
+        if (!Uri.TryCreate(location, UriKind.Absolute, out var uri) || (uri.Scheme != Uri.UriSchemeHttp && uri.Scheme != Uri.UriSchemeHttps))
+        {
+            if (!Path.IsPathRooted(location))
+                location = Path.Combine(AppContext.BaseDirectory, location);
+        }
         var result = await M3UParser.DownloadM3UFromWebAsync(location);
         cancellationToken.ThrowIfCancellationRequested();
         lock (_sync)
