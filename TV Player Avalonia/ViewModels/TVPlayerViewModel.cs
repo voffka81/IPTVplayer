@@ -117,8 +117,8 @@ public class TVPlayerViewModel : IDisposable
 
     public void ShowSettingsScreen()
     {
-        TopPanelVisible(false, string.Empty);
-        _mainWindowViewModel.ContentMargin = new Avalonia.Thickness(14, 12);
+        TopPanelVisible(true, "Settings");
+        SetBackButtonAction(SelectScreen);
         SetPageContext(new SettingsViewModel());
     }
 

@@ -4,13 +4,7 @@
   <ScrollViewer HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
     <StackPanel MaxWidth="860" HorizontalAlignment="Center" Margin="16" Spacing="20">
 
-      <TextBlock Foreground="#F5F8FF"
-                 HorizontalAlignment="Center"
-                 FontSize="28"
-                 FontWeight="SemiBold"
-                 Text="Settings" />
-
-      <!-- Add Playlist Section -->
+<!-- Add Playlist Section -->
       <Border Background="#141F2E" BorderBrush="#273B53" BorderThickness="1" CornerRadius="16" Padding="22">
         <StackPanel Spacing="10">
           <TextBlock Foreground="#E8F2FF" FontSize="16" FontWeight="SemiBold" Text="Add Playlist" />
@@ -70,14 +64,9 @@
         </StackPanel>
       </Border>
 
-      <!-- Actions -->
+      <!-- Save stays in the form; navigation uses the shared top bar. -->
       <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="10">
-        <Button Width="52" Height="52" Classes="handheld-nav" Command="{Binding BackCommand}">
-          <Viewbox Width="14" Height="14">
-            <Path Fill="#374151" Data="M14.7 5.3L8 12L14.7 18.7L16.1 17.3L10.8 12L16.1 6.7Z" />
-          </Viewbox>
-        </Button>
-        <Button Width="52" Height="52" Classes="handheld-primary" Command="{Binding SaveCommand}">
+<Button Width="52" Height="52" Classes="handheld-primary" Command="{Binding SaveCommand}">
           <Viewbox Width="14" Height="14">
             <Path Fill="White" Data="M9 16.2L4.8 12L3.4 13.4L9 19L21 7L19.6 5.6Z" />
           </Viewbox>
