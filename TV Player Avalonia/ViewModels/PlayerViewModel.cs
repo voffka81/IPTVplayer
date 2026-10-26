@@ -1,3 +1,4 @@
+using Avalonia.Threading;
 using CommunityToolkit.Mvvm.Input;
 using System.Diagnostics;
 using System.Reactive.Linq;
@@ -16,6 +17,7 @@ public class PlayerViewModel : TV_Player.ObservableViewModelBase, IDisposable
     private ProgramInfo? _currentProgramInfo;
     private int _currentProgramIndex;
     private CancellationTokenSource? _resolveCts;
+    private bool _disposed;
 
     public ICommand BackCommand { get; }
     public ICommand FullscreenCommand { get; }
@@ -140,8 +142,8 @@ public class PlayerViewModel : TV_Player.ObservableViewModelBase, IDisposable
         _resolveCts?.Dispose();
         _resolveCts = new CancellationTokenSource();
         StreamUrl = string.Empty;
-        _ = ResolveCurrentStreamAsync(_currentProgram, _resolveCts.Token);
         SetPlaybackStatus("Resolving stream...");
+        _ = ResolveCurrentStreamAsync(_currentProgram, _resolveCts.Token);
         ProgramGuideVisible = false;
 
         _programGuideDisposable?.Dispose();
@@ -175,22 +177,24 @@ public class PlayerViewModel : TV_Player.ObservableViewModelBase, IDisposable
                 var stream = await provider.ResolveStreamAsync(channel.ChannelId, token);
                 url = stream.PrimaryUrl;
             }
-            if (!token.IsCancellationRequested)
+            await Dispatcher.UIThread.InvokeAsync(() =>
             {
-                StreamUrl = url;
+                if (token.IsCancellationRequested || _disposed) return;
                 SetPlaybackStatus(string.IsNullOrWhiteSpace(url)
                     ? "No stream URL available for this channel."
                     : "Buffering stream...");
-            }
+                StreamUrl = url;
+            });
         }
         catch (OperationCanceledException) when (token.IsCancellationRequested) { }
         catch (Exception ex)
         {
-            if (!token.IsCancellationRequested)
+            Debug.WriteLine($"Stream resolution failed: {ex}");
+            await Dispatcher.UIThread.InvokeAsync(() =>
             {
-                Debug.WriteLine($"Stream resolution failed: {ex}");
-                SetPlaybackStatus($"Cannot resolve stream: {ex.Message}");
-            }
+                if (!token.IsCancellationRequested && !_disposed)
+                    SetPlaybackStatus($"Cannot resolve stream: {ex.Message}");
+            });
         }
     }
 
@@ -282,6 +286,7 @@ public class PlayerViewModel : TV_Player.ObservableViewModelBase, IDisposable
 
     public void Dispose()
     {
+        _disposed = true;
         _resolveCts?.Cancel();
         _resolveCts?.Dispose();
         _programSubscription.Dispose();
