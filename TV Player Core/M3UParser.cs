@@ -355,45 +355,79 @@ namespace TV_Player
         private static bool TryParseM3ULine(string m3uLine, out M3UInfo? info)
         {
             info = null;
-            string pattern = @"#EXTINF:(-?\d+)\s*?(?:timeshift=""(?<Timeshift>.*?)""\s+)?(?:catchup-days=""(?<CatchupDays>.*?)""\s+)?(?:catchup-type=""(?<CatchupType>.*?)""\s+)?(?:CUID=""(?<CUID>.*?)""\s+)?(?:number=""(?<Number>.*?)""\s+)?(?:tvg-id=""(?<TvgID>.*?)""\s+)?(?:tvg-name=""(?<TvgName>.*?)""\s+)?(?:group-title=""(?<GroupTitle>.*?)""\s+)?(?:tvg-logo=""(?<Logo>.*?)""\s*)?(?:group-title=""(?<GroupTitle>.*?)"")?(?:,(?<Name>.*?)\s*\r?\n(?<URL>.*))";
-            //string pattern = @"#EXTINF:(-?\d+)\s+?(?:timeshift=""(?<Timeshift>.*?)""\s+)?(?:catchup-days=""(?<CatchupDays>.*?)""\s+)?(?:catchup-type=""(?<CatchupType>.*?)""\s+)?(?:CUID=""(?<CUID>.*?)""\s+)?(?:number=""(?<Number>.*?)""\s+)?(?:tvg-id=""(?<TvgID>.*?)""\s+)?(?:tvg-name=""(?<TvgName>.*?)""\s+)?(?:group-title=""(?<GroupTitle>.*?)""\s+)?(?:tvg-logo=""(?<Logo>.*?)"")?,(?<Name>.*?)\s*\r?\n(?<URL>.*)";
-            Regex regex = new Regex(pattern, RegexOptions.IgnoreCase);
+            var lines = m3uLine.Replace("\r", string.Empty, StringComparison.Ordinal).Split('\n');
+            if (lines.Length < 2 || !lines[0].StartsWith("#EXTINF:", StringComparison.OrdinalIgnoreCase))
+                return false;
 
-            Match match = regex.Match(m3uLine);
-            if (match.Success)
+            var header = lines[0];
+            var commaIndex = FindUnquotedComma(header);
+            var attributeStart = header.IndexOf(':') + 1;
+            if (commaIndex < attributeStart || attributeStart <= 0)
+                return false;
+
+            var attributes = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+            const string attributePattern = @"(?<key>[\w-]+)\s*=\s*(?:""(?<double>[^""]*)""|'(?<single>[^']*)'|(?<bare>[^\s]+))";
+            foreach (Match match in Regex.Matches(header[attributeStart..commaIndex], attributePattern))
             {
-                info = new M3UInfo
-                {
-                    CUID = match.Groups["CUID"].Value,
-                    Number = match.Groups["Number"].Value,
-                    TvgID = match.Groups["TvgID"].Value,
-                    TvgName = match.Groups["TvgName"].Value,
-                    GroupTitle = string.IsNullOrEmpty(match.Groups["GroupTitle"].Value) ? "undefined" : match.Groups["GroupTitle"].Value,
-                    Logo = match.Groups["Logo"].Value,
-                    Name = match.Groups["Name"].Value,
-                    Url = match.Groups["URL"].Value
-                };
-                return true;
+                var value = match.Groups["double"].Success ? match.Groups["double"].Value
+                    : match.Groups["single"].Success ? match.Groups["single"].Value
+                    : match.Groups["bare"].Value;
+                attributes[match.Groups["key"].Value] = value;
             }
 
-            return false;
+            var streamUrl = lines.Skip(1)
+                .Select(line => line.Trim())
+                .FirstOrDefault(line => line.Length > 0 && !line.StartsWith('#'));
+            if (string.IsNullOrWhiteSpace(streamUrl))
+                return false;
+
+            var groupTitle = GetAttribute("group-title");
+            info = new M3UInfo
+            {
+                CUID = GetAttribute("CUID"),
+                Number = GetAttribute("number"),
+                TvgID = GetAttribute("tvg-id"),
+                TvgName = GetAttribute("tvg-name"),
+                GroupTitle = string.IsNullOrEmpty(groupTitle) ? "undefined" : groupTitle,
+                Logo = GetAttribute("tvg-logo"),
+                Name = header[(commaIndex + 1)..].Trim(),
+                Url = streamUrl
+            };
+            return true;
+
+            string GetAttribute(string key) => attributes.TryGetValue(key, out var value) ? value : string.Empty;
+        }
+
+        private static int FindUnquotedComma(string value)
+        {
+            var inSingleQuote = false;
+            var inDoubleQuote = false;
+            for (var index = 0; index < value.Length; index++)
+            {
+                var character = value[index];
+                if (character == '\'' && !inDoubleQuote)
+                    inSingleQuote = !inSingleQuote;
+                else if (character == '"' && !inSingleQuote)
+                    inDoubleQuote = !inDoubleQuote;
+                else if (character == ',' && !inSingleQuote && !inDoubleQuote)
+                    return index;
+            }
+
+            return -1;
         }
 
         private static string ExtractXtvgUrl(string m3uEntry)
         {
-            // Define a regular expression pattern to match x-tvg-url attribute
-            string pattern = @"(x-tvg-url=""(.*?)"")?(url-tvg=""(.*?)"")";
-
-            // Use Regex.Match to find the first match
-            Match match = Regex.Match(m3uEntry, pattern);
-
-            // Check if a match is found and get the value from the capturing group
-            if (match.Success && match.Groups.Count > 1)
+            const string pattern = @"(?:x-tvg-url|url-tvg)\s*=\s*(?:""(?<double>[^""]*)""|'(?<single>[^']*)'|(?<bare>[^\s]+))";
+            foreach (Match match in Regex.Matches(m3uEntry, pattern, RegexOptions.IgnoreCase))
             {
-                return match.Groups[4].Value;
+                var value = match.Groups["double"].Success ? match.Groups["double"].Value
+                    : match.Groups["single"].Success ? match.Groups["single"].Value
+                    : match.Groups["bare"].Value;
+                if (!string.IsNullOrWhiteSpace(value))
+                    return value;
             }
 
-            // Return null or an empty string if no match is found
             return string.Empty;
         }
     }
