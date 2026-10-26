@@ -3,6 +3,7 @@ using Avalonia;
 using Avalonia.Input;
 using Avalonia.VisualTree;
 using Avalonia.Threading;
+using Avalonia.Controls.Primitives;
 using LibVLCSharp.Shared;
 using System.Diagnostics;
 using System.ComponentModel;
@@ -29,6 +30,8 @@ public partial class PlayerView : UserControl
     private IReadOnlyList<string> _fallbackStreamUrls = Array.Empty<string>();
     private int _fallbackStreamIndex;
     private bool _fallbackAttempted;
+    private static int _lastVolume = 100;
+    private static int _volumeBeforeMute = 100;
 
     public PlayerView()
     {
@@ -78,10 +81,17 @@ public partial class PlayerView : UserControl
                 column.Width = new GridLength(topColumnWidth);
         }
 
-        PlayerBottomBar.ColumnDefinitions[0].Width = new GridLength(Math.Max(buttonSize + 32 * scale, 112 * scale));
-        PlayerBottomBar.ColumnDefinitions[2].Width = PlayerBottomBar.ColumnDefinitions[0].Width;
+        var leftColumnWidth = Math.Max(buttonSize + 32 * scale, 112 * scale);
+        var volumeSliderWidth = Math.Clamp(size.Width * 0.12, 52, 110);
+        var rightColumnWidth = buttonSize + volumeSliderWidth + 54;
+        PlayerBottomBar.ColumnDefinitions[0].Width = new GridLength(leftColumnWidth);
+        PlayerBottomBar.ColumnDefinitions[2].Width = new GridLength(rightColumnWidth);
+        VolumeMuteButton.Width = buttonSize;
+        VolumeMuteButton.Height = buttonSize;
+        VolumeSlider.Width = volumeSliderWidth;
+        var centerColumnWidth = Math.Max(0, size.Width - leftColumnWidth - rightColumnWidth);
+        GuideProgress.Width = Math.Clamp(centerColumnWidth * 0.42, 40, 360);
         GuidePanel.Width = Math.Min(size.Width * 0.45, 360 * scale);
-        GuideProgress.Width = Math.Clamp(size.Width * 0.25, 100, 360);
     }
 
     private void OnAttachedToVisualTree(object? sender, Avalonia.VisualTreeAttachmentEventArgs e)
@@ -104,8 +114,11 @@ public partial class PlayerView : UserControl
             _mediaPlayer = new MediaPlayer(_libVlc)
             {
                 // Software decode is more reliable for mixed IPTV codecs on macOS.
-                EnableHardwareDecoding = !OperatingSystem.IsMacOS()
+                EnableHardwareDecoding = !OperatingSystem.IsMacOS(),
+                Volume = _lastVolume
             };
+            VolumeSlider.Value = _lastVolume;
+            UpdateVolumeControls(_lastVolume);
             Log($"MediaPlayer created. HW decoding enabled: {_mediaPlayer.EnableHardwareDecoding}");
 
             _mediaPlayer.Buffering += OnMediaPlayerBuffering;
@@ -256,6 +269,37 @@ public partial class PlayerView : UserControl
         var nextOffset = Math.Clamp(scrollViewer.Offset.X - wheelDelta * 110, 0, maxOffset);
         scrollViewer.Offset = new Vector(nextOffset, scrollViewer.Offset.Y);
         e.Handled = true;
+    }
+
+    private void OnVolumeSliderValueChanged(object? sender, RangeBaseValueChangedEventArgs e)
+    {
+        var volume = Math.Clamp((int)Math.Round(e.NewValue), 0, 100);
+        _lastVolume = volume;
+        if (volume > 0)
+            _volumeBeforeMute = volume;
+
+        if (_mediaPlayer != null)
+            _mediaPlayer.Volume = volume;
+        UpdateVolumeControls(volume);
+    }
+
+    private void OnVolumeMuteButtonClick(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+    {
+        if (_lastVolume > 0)
+        {
+            _volumeBeforeMute = _lastVolume;
+            VolumeSlider.Value = 0;
+        }
+        else
+        {
+            VolumeSlider.Value = Math.Clamp(_volumeBeforeMute, 1, 100);
+        }
+    }
+
+    private void UpdateVolumeControls(int volume)
+    {
+        VolumeLabel.Text = $"{volume}%";
+        VolumeIcon.Text = volume == 0 ? "🔇" : "🔊";
     }
 
     private void OnDataContextChanged(object? sender, System.EventArgs e)
