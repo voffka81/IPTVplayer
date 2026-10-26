@@ -60,6 +60,8 @@ namespace TV_Player
                         TvgID = channel.EpgId ?? string.Empty,
                         Url = string.Empty
                     }).ToList();
+                    if (Provider is IProgramGuideSource guideSource)
+                        guideLink = guideSource.ProgramGuideUrl ?? string.Empty;
                 }
                 _cts.Token.ThrowIfCancellationRequested();
                 System.Diagnostics.Debug.WriteLine($"[ProgramsData] Downloaded {programs.Count} programs");
@@ -78,7 +80,16 @@ namespace TV_Player
                 groupsSubject.OnNext(groupping);
                 
                 if (!string.IsNullOrWhiteSpace(guideLink))
-                    await GetProgramGuide(name, guideLink);
+                {
+                    try
+                    {
+                        await GetProgramGuide(name, guideLink);
+                    }
+                    catch (Exception ex) when (ex is not OperationCanceledException)
+                    {
+                        System.Diagnostics.Debug.WriteLine($"[ProgramsData] EPG download failed for '{name}': {ex.Message}");
+                    }
+                }
             }
             catch (Exception ex)
             {

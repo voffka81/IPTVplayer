@@ -144,7 +144,8 @@ namespace TV_Player
             XmlReaderSettings settings = new XmlReaderSettings();
             settings.IgnoreWhitespace = true;
             settings.IgnoreComments = true;
-            settings.DtdProcessing = DtdProcessing.Parse;
+            settings.DtdProcessing = DtdProcessing.Prohibit;
+            settings.XmlResolver = null;
             settings.Async = true;
             ProgramGuide channel = null;
 
@@ -186,9 +187,9 @@ namespace TV_Player
                             var id = reader.GetAttribute("channel");
                             if (id != channelId) continue;
                             
-                            if (!DateTime.TryParseExact(reader.GetAttribute("start"), "yyyyMMddHHmmss zzz", System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.None, out var startTime))
+                            if (!TryParseXmlTvTimestamp(reader.GetAttribute("start"), out var startTime))
                                 continue;
-                            if (!DateTime.TryParseExact(reader.GetAttribute("stop"), "yyyyMMddHHmmss zzz", System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.None, out var endTime))
+                            if (!TryParseXmlTvTimestamp(reader.GetAttribute("stop"), out var endTime))
                                 continue;
                                 
                             program.StartTime = startTime;
@@ -215,6 +216,28 @@ namespace TV_Player
                 }
             }
             return channel;
+        }
+
+        private static bool TryParseXmlTvTimestamp(string? value, out DateTime localTime)
+        {
+            localTime = default;
+            if (string.IsNullOrWhiteSpace(value))
+                return false;
+
+            var timestamp = Regex.Replace(value.Trim(), @"([+-]\d{2})(\d{2})$", "$1:$2");
+            var formatsWithOffset = new[] { "yyyyMMddHHmmss zzz", "yyyyMMddHHmm zzz" };
+            if (DateTimeOffset.TryParseExact(timestamp, formatsWithOffset,
+                    System.Globalization.CultureInfo.InvariantCulture,
+                    System.Globalization.DateTimeStyles.None, out var dateWithOffset))
+            {
+                localTime = dateWithOffset.LocalDateTime;
+                return true;
+            }
+
+            var localFormats = new[] { "yyyyMMddHHmmss", "yyyyMMddHHmm" };
+            return DateTime.TryParseExact(timestamp, localFormats,
+                System.Globalization.CultureInfo.InvariantCulture,
+                System.Globalization.DateTimeStyles.AssumeLocal, out localTime);
         }
 
         private static async Task<string> ReadFile(string url)

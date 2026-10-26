@@ -12,16 +12,19 @@ public sealed class KlubnichkaPlugin : IChannelProviderPlugin
 
     public IReadOnlyList<PluginSettingDefinition> Settings =>
     [
-        new("catalogUrl", "Channel catalog URL", IsRequired: true, DefaultValue: "https://klubnichka.live/")
+        new("catalogUrl", "Channel catalog URL", IsRequired: true, DefaultValue: "https://klubnichka.live/"),
+        new("epgUrl", "XMLTV guide URL", DefaultValue: "https://epgshare01.online/epgshare01/epg_ripper_PL1.xml.gz",
+            Description: "Public Polish XMLTV guide. Matching is enabled only for channels with a known guide ID.")
     ];
 
     public IChannelProvider CreateProvider(ProviderSourceConfiguration configuration) =>
         new KlubnichkaProvider(configuration);
 }
 
-internal sealed class KlubnichkaProvider : IChannelProvider, IDisposable
+internal sealed class KlubnichkaProvider : IChannelProvider, IProgramGuideSource, IDisposable
 {
     private const int MaxPlayerFrameDepth = 5;
+    private const string DefaultProgramGuideUrl = "https://epgshare01.online/epgshare01/epg_ripper_PL1.xml.gz";
     private const string BrowserUserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/155.0.0.0 Safari/537.36";
     private static readonly Regex GeneratedFilePattern = new(
         @"\bvar\s+generatedFile\s*=\s*(['""'])(?<value>.*?)\1\s*;",
@@ -29,6 +32,26 @@ internal sealed class KlubnichkaProvider : IChannelProvider, IDisposable
     private static readonly Regex PlayerFilePattern = new(
         @"\bfile\s*:\s*(['""'])(?<value>.*?)\1",
         RegexOptions.Compiled | RegexOptions.Singleline | RegexOptions.CultureInvariant);
+    private static readonly IReadOnlyDictionary<string, string> EpgIds = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+    {
+        ["adult-channel"] = "Adult.Channel.pl",
+        ["barely-legal-tv"] = "Barely.Legal.pl",
+        ["beate-uhse-tv"] = "Beate-Uhse.TV.pl",
+        ["blue-hustler"] = "Blue.Hustler.pl",
+        ["brazzers-tv-europe"] = "Brazzers.TV.Europe.pl",
+        ["dorcel-tv"] = "Dorcel.TV.HD.pl",
+        ["dorcel-xxx"] = "Dorcel.XXX.HD.pl",
+        ["erox-hd"] = "Erox.HD.pl",
+        ["eroxxx-hd"] = "Eroxxx.HD.pl",
+        ["hustler-hd"] = "Hustler.HD.pl",
+        ["hustler-tv"] = "Hustler.TV.pl",
+        ["playboy-tv"] = "Playboy.TV.pl",
+        ["private-tv"] = "Private.TV.HD.pl",
+        ["reality-kings-tv"] = "Reality.Kings.TV.pl",
+        ["redlight-hd"] = "Redlight.HD.pl",
+        ["vivid-red-hd"] = "Vivid.RED.HD.pl",
+        ["vivid-touch"] = "Vivid.Touch.pl"
+    };
 
     private readonly ProviderSourceConfiguration _source;
     private readonly HttpClient _httpClient = new(new HttpClientHandler
@@ -45,6 +68,9 @@ internal sealed class KlubnichkaProvider : IChannelProvider, IDisposable
     public string Id => _source.Id;
     public string Name => _source.Name;
     public Version Version => new(1, 0);
+    public string? ProgramGuideUrl => _source.Settings.TryGetValue("epgUrl", out var url) && !string.IsNullOrWhiteSpace(url)
+        ? url
+        : DefaultProgramGuideUrl;
 
     public async Task<IReadOnlyList<ChannelInfo>> GetChannelsAsync(CancellationToken cancellationToken = default)
     {
@@ -69,10 +95,12 @@ internal sealed class KlubnichkaProvider : IChannelProvider, IDisposable
                 continue;
 
             var id = channelUri.AbsoluteUri;
+            var channelSlug = channelUri.AbsolutePath.Trim('/');
+            var epgId = EpgIds.TryGetValue(channelSlug, out var mappedEpgId) ? mappedEpgId : null;
             var logoPath = card.QuerySelector("img")?.GetAttribute("src");
             var logo = Uri.TryCreate(catalogUri, logoPath, out var logoUri) ? logoUri.AbsoluteUri : null;
             _channelPages[id] = channelUri;
-            channels.Add(new ChannelInfo(id, name, "Live TV", logo));
+            channels.Add(new ChannelInfo(id, name, "Live TV", logo, epgId));
         }
 
         Log($"Catalog parsed: {channels.Count} channel(s)");

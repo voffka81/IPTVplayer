@@ -37,6 +37,12 @@ public interface IChannelProvider : IPlayerPlugin
     Task<StreamInfo> ResolveStreamAsync(string channelId, CancellationToken cancellationToken = default);
 }
 
+/// <summary>Optional XMLTV guide source for a channel provider.</summary>
+public interface IProgramGuideSource
+{
+    string? ProgramGuideUrl { get; }
+}
+
 public sealed record ChannelInfo(
     string Id,
     string Name,
