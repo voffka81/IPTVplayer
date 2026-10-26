@@ -155,6 +155,44 @@
     <Style Selector="Button.tv-control:pressed">
       <Setter Property="Background" Value="#AA665500" />
     </Style>
+    <!-- Touch-first handheld controls: large targets, clear focus and selection. -->
+    <Style Selector="Button.handheld-nav">
+      <Setter Property="Width" Value="52" />
+      <Setter Property="Height" Value="52" />
+      <Setter Property="Padding" Value="12" />
+      <Setter Property="Background" Value="#192537" />
+      <Setter Property="Foreground" Value="#F3F7FF" />
+      <Setter Property="BorderBrush" Value="#31445F" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="CornerRadius" Value="13" />
+    </Style>
+    <Style Selector="Button.handheld-nav:pointerover">
+      <Setter Property="Background" Value="#29425D" />
+      <Setter Property="BorderBrush" Value="#55B9FF" />
+    </Style>
+    <Style Selector="Button.handheld-nav:focus-visible">
+      <Setter Property="BorderBrush" Value="#55B9FF" />
+      <Setter Property="BorderThickness" Value="3" />
+    </Style>
+    <Style Selector="Button.handheld-tile">
+      <Setter Property="Padding" Value="12" />
+      <Setter Property="Background" Value="#162130" />
+      <Setter Property="Foreground" Value="#F3F7FF" />
+      <Setter Property="BorderBrush" Value="#304054" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="CornerRadius" Value="12" />
+    </Style>
+    <Style Selector="Button.handheld-tile:pointerover">
+      <Setter Property="Background" Value="#20364D" />
+      <Setter Property="BorderBrush" Value="#55B9FF" />
+    </Style>
+    <Style Selector="Button.handheld-tile:pressed">
+      <Setter Property="Background" Value="#1D527B" />
+    </Style>
+    <Style Selector="Button.handheld-tile:focus-visible">
+      <Setter Property="BorderBrush" Value="#55B9FF" />
+      <Setter Property="BorderThickness" Value="3" />
+    </Style>
     <!-- WPF-inspired legacy TV theme, scoped to the card controls. -->
     <Style Selector="Button.legacy-card">
       <Setter Property="Background" Value="#B0000000" />
