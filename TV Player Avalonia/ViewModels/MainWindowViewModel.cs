@@ -15,6 +15,13 @@ public class MainWindowViewModel : TV_Player.ObservableViewModelBase
         set => SetProperty(ref _currentViewModel, value);
     }
 
+    private Thickness _contentMargin = new(14, 12);
+    public Thickness ContentMargin
+    {
+        get => _contentMargin;
+        set => SetProperty(ref _contentMargin, value);
+    }
+
     private bool _isTopPanelVisible;
     public bool IsTopPanelVisible
     {
