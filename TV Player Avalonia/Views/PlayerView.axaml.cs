@@ -1,5 +1,4 @@
 using Avalonia.Controls;
-using Avalonia.Markup.Xaml;
 using Avalonia.Threading;
 using LibVLCSharp.Shared;
 using System.Diagnostics;
@@ -24,7 +23,7 @@ public partial class PlayerView : UserControl
 
     public PlayerView()
     {
-        AvaloniaXamlLoader.Load(this);
+        InitializeComponent();
         Log("PlayerView ctor");
         DataContextChanged += OnDataContextChanged;
         AttachedToVisualTree += OnAttachedToVisualTree;
@@ -59,7 +58,9 @@ public partial class PlayerView : UserControl
             _mediaPlayer.EndReached += OnMediaPlayerEndReached;
             _mediaPlayer.Stopped += OnMediaPlayerStopped;
 
-            VideoView.MediaPlayer = _mediaPlayer;
+            var videoView = this.FindControl<LibVLCSharp.Avalonia.VideoView>("VideoView")
+                ?? throw new InvalidOperationException("VideoView control was not found in PlayerView.");
+            videoView.MediaPlayer = _mediaPlayer;
             _initialized = true;
             Log("VideoView.MediaPlayer assigned");
             PlayCurrentStream();
