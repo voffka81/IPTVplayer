@@ -12,7 +12,11 @@ public class MainWindowViewModel : TV_Player.ObservableViewModelBase
     public object? CurrentViewModel
     {
         get => _currentViewModel;
-        set => SetProperty(ref _currentViewModel, value);
+        set
+        {
+            if (SetProperty(ref _currentViewModel, value))
+                OnPropertyChanged(nameof(IsSettingsButtonVisible));
+        }
     }
 
     private Thickness _contentMargin = new(14, 12);
@@ -28,6 +32,8 @@ public class MainWindowViewModel : TV_Player.ObservableViewModelBase
         get => _isTopPanelVisible;
         set => SetProperty(ref _isTopPanelVisible, value);
     }
+
+    public bool IsSettingsButtonVisible => CurrentViewModel is not SettingsViewModel;
 
     private string _topPanelTitle = string.Empty;
     public string TopPanelTitle
