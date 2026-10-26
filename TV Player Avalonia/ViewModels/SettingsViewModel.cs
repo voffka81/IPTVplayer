@@ -28,6 +28,15 @@ public class SettingsViewModel : TV_Player.ObservableViewModelBase
         set => SetProperty(ref _playlists, value);
     }
 
+    public string[] PlaybackEngines { get; } = ["vlc", "mpv"];
+
+    private string _selectedPlaybackEngine = "vlc";
+    public string SelectedPlaybackEngine
+    {
+        get => _selectedPlaybackEngine;
+        set => SetProperty(ref _selectedPlaybackEngine, value);
+    }
+
     private bool _startFullScreen;
     public bool StartFullScreen
     {
@@ -54,6 +63,7 @@ public class SettingsViewModel : TV_Player.ObservableViewModelBase
         AddPlaylistCommand = new RelayCommand(OnAddPlaylistCommand);
         PlaylistDeleteCommand = new RelayCommand<KeyValuePair<string, string>>(OnPlaylistDeleteCommand);
 
+        SelectedPlaybackEngine = SettingsModel.PlaybackEngine == "mpv" ? "mpv" : "vlc";
         StartFullScreen = SettingsModel.StartFullScreen;
         StartLastScreen = SettingsModel.StartFromLastScreen;
         Playlists = SettingsModel.Playlists == null
@@ -92,6 +102,7 @@ public class SettingsViewModel : TV_Player.ObservableViewModelBase
 
     private void OnSaveSettings()
     {
+        SettingsModel.PlaybackEngine = SelectedPlaybackEngine == "mpv" ? "mpv" : "vlc";
         SettingsModel.StartFullScreen = StartFullScreen;
         SettingsModel.StartFromLastScreen = StartLastScreen;
         SettingsModel.Playlists = Playlists.ToDictionary(pair => pair.Key, pair => pair.Value);
