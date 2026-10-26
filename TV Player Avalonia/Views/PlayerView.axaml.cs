@@ -14,6 +14,7 @@ namespace TV_Player.AvaloniaApp.Views;
 
 public partial class PlayerView : UserControl
 {
+    private readonly DispatcherTimer _clockTimer = new() { Interval = TimeSpan.FromSeconds(10) };
     private readonly DispatcherTimer _overlayTimer = new() { Interval = TimeSpan.FromSeconds(5) };
     private bool _overlayVisible = true;
     private LibVLC? _libVlc;
@@ -28,6 +29,8 @@ public partial class PlayerView : UserControl
     public PlayerView()
     {
         InitializeComponent();
+        PlayerClock.Text = DateTime.Now.ToString("HH:mm");
+        _clockTimer.Tick += (_, _) => PlayerClock.Text = DateTime.Now.ToString("HH:mm");
         _overlayTimer.Tick += OnOverlayTimerTick;
         Log("PlayerView ctor");
         DataContextChanged += OnDataContextChanged;
@@ -40,6 +43,7 @@ public partial class PlayerView : UserControl
         if (_initialized)
             return;
 
+        _clockTimer.Start();
         ShowOverlay();
         Log("Attach to visual tree -> initializing VLC");
         try
@@ -80,6 +84,7 @@ public partial class PlayerView : UserControl
 
     private void OnDetachedFromVisualTree(object? sender, Avalonia.VisualTreeAttachmentEventArgs e)
     {
+        _clockTimer.Stop();
         _overlayTimer.Stop();
         Log("Detach from visual tree -> disposing player resources");
         if (_viewModel != null)
