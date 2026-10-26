@@ -59,10 +59,10 @@ public partial class PlayerView : UserControl
         var scale = Math.Clamp(Math.Min(size.Width / 800.0, size.Height / 450.0), 0.85, 1.8);
         var barHeight = Math.Clamp(80 * scale, 68, 140);
         OverlayPanel.RowDefinitions[0].Height = new GridLength(barHeight);
-        OverlayPanel.RowDefinitions[2].Height = new GridLength(barHeight);
+        PlayerBottomBar.Height = barHeight;
 
         var buttonSize = Math.Clamp(54 * scale, 48, 94);
-        foreach (var button in new[] { PlayerNav1, PlayerNav2, PlayerNav3, PlayerNav4, PlayerNav5 })
+        foreach (var button in new[] { PlayerNav1, PlayerNav2, PlayerNav3, PlayerNav4 })
         {
             button.Width = buttonSize;
             button.Height = buttonSize;
@@ -78,7 +78,7 @@ public partial class PlayerView : UserControl
                 column.Width = new GridLength(topColumnWidth);
         }
 
-        PlayerBottomBar.ColumnDefinitions[0].Width = new GridLength(Math.Max(buttonSize * 2 + 45 * scale, 155));
+        PlayerBottomBar.ColumnDefinitions[0].Width = new GridLength(Math.Max(buttonSize + 32 * scale, 112 * scale));
         PlayerBottomBar.ColumnDefinitions[2].Width = PlayerBottomBar.ColumnDefinitions[0].Width;
         GuidePanel.Width = Math.Min(size.Width * 0.45, 360 * scale);
         GuideProgress.Width = Math.Clamp(size.Width * 0.25, 100, 360);
@@ -176,6 +176,13 @@ public partial class PlayerView : UserControl
 
     private void OnOverlayTimerTick(object? sender, System.EventArgs e)
     {
+        if (_viewModel?.ChannelPickerVisible == true)
+        {
+            _overlayTimer.Stop();
+            _overlayTimer.Start();
+            return;
+        }
+
         if (_hasPlaybackStarted)
             HideOverlay();
     }

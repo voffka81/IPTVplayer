@@ -2,6 +2,13 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vlc="clr-namespace:LibVLCSharp.Avalonia;assembly=LibVLCSharp.Avalonia"
              x:Class="TV_Player.AvaloniaApp.Views.PlayerView">
+  <UserControl.Styles>
+    <Style Selector="Button.channel-picker.active">
+      <Setter Property="Background" Value="#1A4263" />
+      <Setter Property="BorderBrush" Value="#55B9FF" />
+      <Setter Property="BorderThickness" Value="2" />
+    </Style>
+  </UserControl.Styles>
   <Grid>
     <vlc:VideoView x:Name="VideoView">
       <Grid x:Name="VideoSurfaceRoot" Background="#01000000" PointerPressed="OnOverlayPointerPressed">
@@ -10,7 +17,7 @@
       <Grid.RowDefinitions>
         <RowDefinition Height="80" />
         <RowDefinition Height="*" />
-        <RowDefinition Height="80" />
+        <RowDefinition Height="Auto" />
       </Grid.RowDefinitions>
 
       <Border Background="#D90A121E" BorderBrush="#304761" BorderThickness="0">
@@ -69,7 +76,51 @@
         </ItemsControl>
       </Border>
 
-      <Grid x:Name="PlayerBottomBar" Grid.Row="2" Background="#E609101B">
+      <StackPanel Grid.Row="2" VerticalAlignment="Bottom">
+        <Border Background="#E6101928"
+                BorderBrush="#304761"
+                BorderThickness="1"
+                CornerRadius="12"
+                Padding="12,8"
+                Margin="18,0,18,8"
+                IsVisible="{Binding ChannelPickerVisible}">
+          <StackPanel Spacing="6">
+            <TextBlock Text="КАНАЛЫ В ГРУППЕ" Foreground="#91A6BF" FontSize="11" FontWeight="Bold" />
+            <ScrollViewer Height="72"
+                          HorizontalScrollBarVisibility="Auto"
+                          VerticalScrollBarVisibility="Disabled">
+              <ItemsControl ItemsSource="{Binding ChannelPickerItems}">
+                <ItemsControl.ItemsPanel>
+                  <ItemsPanelTemplate>
+                    <StackPanel Orientation="Horizontal" />
+                  </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate>
+                    <Button Width="136"
+                            Height="62"
+                            Margin="0,0,8,0"
+                            Classes="handheld-tile channel-picker"
+                            Classes.active="{Binding IsCurrent}"
+                            Command="{Binding DataContext.SelectChannelCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                            CommandParameter="{Binding}">
+                      <TextBlock Text="{Binding Name}"
+                                 Foreground="#F5F8FF"
+                                 FontSize="13"
+                                 TextWrapping="Wrap"
+                                 TextAlignment="Center"
+                                 VerticalAlignment="Center"
+                                 HorizontalAlignment="Center"
+                                 MaxHeight="42" />
+                    </Button>
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+            </ScrollViewer>
+          </StackPanel>
+        </Border>
+
+      <Grid x:Name="PlayerBottomBar" Background="#E609101B">
         <Grid.ColumnDefinitions>
           <ColumnDefinition Width="180" />
           <ColumnDefinition Width="*" />
@@ -77,14 +128,9 @@
         </Grid.ColumnDefinitions>
 
         <StackPanel Grid.Column="0" Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
-          <Button x:Name="PlayerNav4" Width="54" Height="54" Classes="toolbar-flat" Command="{Binding PreviousCommand}">
-            <Viewbox Width="20" Height="20">
-              <Path Fill="#F5F8FF" Data="M14 18L8 12L14 6Z" />
-            </Viewbox>
-          </Button>
-          <Button x:Name="PlayerNav5" Width="54" Height="54" Classes="toolbar-flat" Command="{Binding NextCommand}">
-            <Viewbox Width="20" Height="20">
-              <Path Fill="#F5F8FF" Data="M10 18L16 12L10 6Z" />
+          <Button x:Name="PlayerNav4" Width="68" Height="54" Classes="toolbar-flat" ToolTip.Tip="Выбор канала" Command="{Binding ToggleChannelPickerCommand}">
+            <Viewbox Width="22" Height="22">
+              <Path Fill="#F5F8FF" Data="M3 4H10V11H3ZM14 4H21V11H14ZM3 14H10V21H3ZM14 14H21V21H14Z" />
             </Viewbox>
           </Button>
         </StackPanel>
@@ -112,6 +158,7 @@
           <ProgressBar Width="180" Height="8" IsIndeterminate="True" Foreground="#8DD2FF" />
         </StackPanel>
       </Grid>
+      </StackPanel>
     </Grid>
 
     <Border Background="#D9141F30"
