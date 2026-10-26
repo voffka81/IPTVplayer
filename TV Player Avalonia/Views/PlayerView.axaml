@@ -6,7 +6,7 @@
     <vlc:VideoView x:Name="VideoView">
       <Grid>
 
-    <Grid Background="#00000000">
+    <Grid x:Name="OverlayPanel" Background="#01000000" PointerPressed="OnOverlayPointerPressed">
       <Grid.RowDefinitions>
         <RowDefinition Height="80" />
         <RowDefinition Height="*" />
