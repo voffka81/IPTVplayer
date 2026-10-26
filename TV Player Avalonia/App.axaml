@@ -201,7 +201,9 @@
     <Style Selector="Button.handheld-nav">
       <Setter Property="Width" Value="52" />
       <Setter Property="Height" Value="52" />
-      <Setter Property="Padding" Value="12" />
+      <Setter Property="Padding" Value="0" />
+      <Setter Property="HorizontalContentAlignment" Value="Center" />
+      <Setter Property="VerticalContentAlignment" Value="Center" />
       <Setter Property="Background" Value="#192537" />
       <Setter Property="Foreground" Value="#F3F7FF" />
       <Setter Property="BorderBrush" Value="#31445F" />

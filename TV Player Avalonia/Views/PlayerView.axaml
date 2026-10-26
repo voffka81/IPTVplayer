@@ -21,18 +21,18 @@
           <ColumnDefinition Width="80" />
           <ColumnDefinition Width="80" />
         </Grid.ColumnDefinitions>
-        <Button x:Name="PlayerNav1" Width="48" Height="48" Margin="12,0,0,0" Classes="handheld-nav" Command="{Binding BackCommand}">
+        <Button x:Name="PlayerNav1" Width="54" Height="54" HorizontalAlignment="Center" VerticalAlignment="Center" Classes="handheld-nav" Command="{Binding BackCommand}">
           <Viewbox Width="20" Height="20">
             <Path Fill="#F5F8FF" Data="M14.7 5.3L8 12L14.7 18.7L16.1 17.3L10.8 12L16.1 6.7Z" />
           </Viewbox>
         </Button>
         <TextBlock Grid.Column="1" FontSize="20" FontWeight="SemiBold" Foreground="White" Text="{Binding TopPanelTitle}" HorizontalAlignment="Center" VerticalAlignment="Center" />
-        <Button x:Name="PlayerNav2" Grid.Column="2" Width="48" Height="48" Margin="12,0,0,0" Classes="handheld-nav" Command="{Binding FullscreenCommand}">
+        <Button x:Name="PlayerNav2" Grid.Column="2" Width="54" Height="54" HorizontalAlignment="Center" VerticalAlignment="Center" Classes="handheld-nav" Command="{Binding FullscreenCommand}">
           <Viewbox Width="20" Height="20">
             <Path Fill="#F5F8FF" Data="M4 9V4H9V6H6V9H4M15 4H20V9H18V6H15V4M20 15V20H15V18H18V15H20M9 20H4V15H6V18H9V20Z" />
           </Viewbox>
         </Button>
-        <Button x:Name="PlayerNav3" Grid.Column="3" Width="48" Height="48" Margin="12,0,0,0" Classes="handheld-nav" Command="{Binding CloseAppCommand}">
+        <Button x:Name="PlayerNav3" Grid.Column="3" Width="54" Height="54" HorizontalAlignment="Center" VerticalAlignment="Center" Classes="handheld-nav" Command="{Binding CloseAppCommand}">
           <Viewbox Width="20" Height="20">
             <Path Stroke="White" StrokeThickness="2.5" Data="M5,5 L19,19 M19,5 L5,19" />
           </Viewbox>
