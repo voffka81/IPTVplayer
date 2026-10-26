@@ -31,6 +31,8 @@ namespace TV_Player
     }
     public static class M3UParser
     {
+        private const string DefaultEpgShareBaseUrl = "https://epgshare01.online/epgshare01/epg_ripper_";
+
         private static string GetWritableAppDataFolder()
         {
             var localAppData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
@@ -229,22 +231,34 @@ namespace TV_Player
         public static (string url, string? cacheKey) SelectGuideUrl(string guideUrls, M3UInfo channel)
         {
             var urls = guideUrls.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
-            if (urls.Length == 0)
-                return (string.Empty, null);
-            if (urls.Length == 1)
-                return (urls[0], null);
-
             var country = channel.TvgCountry?.Trim();
             if (string.IsNullOrWhiteSpace(country) && !string.IsNullOrWhiteSpace(channel.TvgID))
                 country = channel.TvgID.Split('.').LastOrDefault();
 
             if (!string.IsNullOrWhiteSpace(country) && Regex.IsMatch(country, @"^[A-Za-z]{2,3}$"))
             {
+                country = country.ToUpperInvariant();
+                if (urls.Length == 0)
+                    return (DefaultEpgShareBaseUrl + country + "1.xml.gz", country);
+
+                if (urls.Length == 1)
+                {
+                    var declaredCountry = Regex.Match(urls[0], @"_([A-Za-z]{2,3})1\.xml(?:\.gz)?(?:\?.*)?$", RegexOptions.IgnoreCase);
+                    if (declaredCountry.Success && !string.Equals(declaredCountry.Groups[1].Value, country, StringComparison.OrdinalIgnoreCase))
+                        return (DefaultEpgShareBaseUrl + country + "1.xml.gz", country);
+                    return (urls[0], declaredCountry.Success ? country : null);
+                }
+
                 var countryUrl = urls.FirstOrDefault(url =>
                     url.Contains($"_{country}1.xml", StringComparison.OrdinalIgnoreCase));
                 if (countryUrl != null)
-                    return (countryUrl, country.ToUpperInvariant());
+                    return (countryUrl, country);
+
+                return (DefaultEpgShareBaseUrl + country + "1.xml.gz", country);
             }
+
+            if (urls.Length == 1)
+                return (urls[0], null);
 
             System.Diagnostics.Debug.WriteLine($"No country-specific XMLTV URL found for '{channel.Name}' ({channel.TvgCountry}, {channel.TvgID}).");
             return (string.Empty, null);

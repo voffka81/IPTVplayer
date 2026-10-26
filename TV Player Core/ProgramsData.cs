@@ -81,7 +81,7 @@ namespace TV_Player
                 }
                 groupsSubject.OnNext(groupping);
                 
-                if (!string.IsNullOrWhiteSpace(guideLink))
+                if (!string.IsNullOrWhiteSpace(guideLink) || Provider is M3UChannelProvider)
                     programGuideSubject.OnNext(Unit.Default);
             }
             catch (Exception ex)
