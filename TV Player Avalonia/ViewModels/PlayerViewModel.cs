@@ -294,7 +294,6 @@ public class PlayerViewModel : TV_Player.ObservableViewModelBase, IDisposable
         if (index < 0)
             return;
 
-        ChannelPickerVisible = false;
         if (index == _currentProgramIndex)
             return;
 

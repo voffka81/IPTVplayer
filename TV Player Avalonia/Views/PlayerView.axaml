@@ -191,28 +191,32 @@
                     Spacing="6"
                     HorizontalAlignment="Center"
                     VerticalAlignment="Center">
-          <Button x:Name="VolumeMuteButton"
-                  Width="48"
-                  Height="48"
-                  Classes="toolbar-flat"
-                  ToolTip.Tip="Mute or restore volume"
-                  Click="OnVolumeMuteButtonClick">
-            <TextBlock x:Name="VolumeIcon" Text="🔊" FontSize="20" VerticalAlignment="Center" HorizontalAlignment="Center" />
-          </Button>
-          <Slider x:Name="VolumeSlider"
-                  Width="90"
-                  Minimum="0"
-                  Maximum="100"
-                  Value="100"
-                  VerticalAlignment="Center"
-                  ValueChanged="OnVolumeSliderValueChanged" />
-          <TextBlock x:Name="VolumeLabel"
-                     Width="36"
-                     Text="100%"
-                     Foreground="#F5F8FF"
-                     FontSize="12"
-                     VerticalAlignment="Center"
-                     TextAlignment="Right" />
+          <StackPanel x:Name="MasterVolumePanel"
+                      Orientation="Horizontal"
+                      Spacing="4"
+                      VerticalAlignment="Center">
+            <Button x:Name="MasterVolumeMuteButton"
+                    Width="36"
+                    Height="36"
+                    Classes="toolbar-flat"
+                    Content="🔊"
+                    ToolTip.Tip="Отключить или включить звук Windows"
+                    Click="OnMasterVolumeMuteButtonClick" />
+            <Slider x:Name="MasterVolumeSlider"
+                    Minimum="0"
+                    Maximum="100"
+                    Width="60"
+                    IsEnabled="False"
+                    ToolTip.Tip="Общая громкость Windows"
+                    ValueChanged="OnMasterVolumeSliderValueChanged" />
+            <TextBlock x:Name="MasterVolumeLabel"
+                       Width="36"
+                       Text="--"
+                       Foreground="#F5F8FF"
+                       FontSize="12"
+                       VerticalAlignment="Center"
+                       TextAlignment="Right" />
+          </StackPanel>
         </StackPanel>
       </Grid>
       </StackPanel>

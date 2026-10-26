@@ -5,6 +5,7 @@ using Avalonia.VisualTree;
 using Avalonia.Threading;
 using Avalonia.Controls.Primitives;
 using LibVLCSharp.Shared;
+using NAudio.CoreAudioApi;
 using System.Diagnostics;
 using System.ComponentModel;
 using System.Threading;
@@ -30,12 +31,15 @@ public partial class PlayerView : UserControl
     private IReadOnlyList<string> _fallbackStreamUrls = Array.Empty<string>();
     private int _fallbackStreamIndex;
     private bool _fallbackAttempted;
-    private static int _lastVolume = 100;
-    private static int _volumeBeforeMute = 100;
+    private MMDeviceEnumerator? _audioDeviceEnumerator;
+    private MMDevice? _masterAudioDevice;
+    private int _systemVolumeBeforeMute = 100;
+    private bool _updatingMasterVolume;
 
     public PlayerView()
     {
         InitializeComponent();
+        MasterVolumePanel.IsVisible = OperatingSystem.IsWindows();
         PlayerClock.Text = DateTime.Now.ToString("HH:mm");
         _clockTimer.Tick += (_, _) => PlayerClock.Text = DateTime.Now.ToString("HH:mm");
         SizeChanged += OnPlayerSizeChanged;
@@ -82,15 +86,13 @@ public partial class PlayerView : UserControl
         }
 
         var leftColumnWidth = Math.Max(buttonSize + 32 * scale, 112 * scale);
-        var volumeSliderWidth = Math.Clamp(size.Width * 0.12, 52, 110);
-        var rightColumnWidth = buttonSize + volumeSliderWidth + 54;
+        var masterVolumeSliderWidth = Math.Clamp(size.Width * 0.07, 40, 70);
+        var rightColumnWidth = Math.Max(160, masterVolumeSliderWidth + 84);
         PlayerBottomBar.ColumnDefinitions[0].Width = new GridLength(leftColumnWidth);
         PlayerBottomBar.ColumnDefinitions[2].Width = new GridLength(rightColumnWidth);
-        VolumeMuteButton.Width = buttonSize;
-        VolumeMuteButton.Height = buttonSize;
-        VolumeSlider.Width = volumeSliderWidth;
         var centerColumnWidth = Math.Max(0, size.Width - leftColumnWidth - rightColumnWidth);
         GuideProgress.Width = Math.Clamp(centerColumnWidth * 0.42, 40, 360);
+        MasterVolumeSlider.Width = masterVolumeSliderWidth;
         GuidePanel.Width = Math.Min(size.Width * 0.45, 360 * scale);
     }
 
@@ -101,6 +103,7 @@ public partial class PlayerView : UserControl
 
         _clockTimer.Start();
         ShowOverlay();
+        InitializeMasterVolume();
         Log("Attach to visual tree -> initializing VLC");
         try
         {
@@ -115,10 +118,9 @@ public partial class PlayerView : UserControl
             {
                 // Software decode is more reliable for mixed IPTV codecs on macOS.
                 EnableHardwareDecoding = !OperatingSystem.IsMacOS(),
-                Volume = _lastVolume
+                Volume = 100,
+                Mute = false
             };
-            VolumeSlider.Value = _lastVolume;
-            UpdateVolumeControls(_lastVolume);
             Log($"MediaPlayer created. HW decoding enabled: {_mediaPlayer.EnableHardwareDecoding}");
 
             _mediaPlayer.Buffering += OnMediaPlayerBuffering;
@@ -177,6 +179,7 @@ public partial class PlayerView : UserControl
         _currentMedia?.Dispose();
         _mediaPlayer?.Dispose();
         _libVlc?.Dispose();
+        DisposeMasterVolume();
         _bufferingWatchdogCts = null;
         _currentMedia = null;
         _mediaPlayer = null;
@@ -185,6 +188,112 @@ public partial class PlayerView : UserControl
         _hasPlaybackStarted = false;
         _fallbackAttempted = false;
         _initialized = false;
+    }
+
+    private void InitializeMasterVolume()
+    {
+        if (!OperatingSystem.IsWindows())
+            return;
+
+        try
+        {
+            _audioDeviceEnumerator = new MMDeviceEnumerator();
+            _masterAudioDevice = _audioDeviceEnumerator.GetDefaultAudioEndpoint(DataFlow.Render, Role.Multimedia);
+            var endpointVolume = _masterAudioDevice.AudioEndpointVolume;
+            var volume = Math.Clamp((int)Math.Round(endpointVolume.MasterVolumeLevelScalar * 100), 0, 100);
+            _systemVolumeBeforeMute = volume > 0 ? volume : 100;
+
+            _updatingMasterVolume = true;
+            MasterVolumeSlider.Value = volume;
+            MasterVolumeSlider.IsEnabled = true;
+            MasterVolumeMuteButton.IsEnabled = true;
+            UpdateMasterVolumeControls(volume, endpointVolume.Mute);
+            _updatingMasterVolume = false;
+            Log($"Windows master volume initialized: {volume}%, muted={endpointVolume.Mute}");
+        }
+        catch (Exception ex)
+        {
+            _updatingMasterVolume = false;
+            DisableMasterVolume(ex);
+        }
+    }
+
+    private void OnMasterVolumeSliderValueChanged(object? sender, RangeBaseValueChangedEventArgs e)
+    {
+        if (_updatingMasterVolume || _masterAudioDevice == null)
+            return;
+
+        var volume = Math.Clamp((int)Math.Round(e.NewValue), 0, 100);
+        try
+        {
+            var endpointVolume = _masterAudioDevice.AudioEndpointVolume;
+            endpointVolume.MasterVolumeLevelScalar = volume / 100f;
+            if (volume > 0)
+            {
+                _systemVolumeBeforeMute = volume;
+                endpointVolume.Mute = false;
+            }
+
+            UpdateMasterVolumeControls(volume, endpointVolume.Mute);
+        }
+        catch (Exception ex)
+        {
+            DisableMasterVolume(ex);
+        }
+    }
+
+    private void OnMasterVolumeMuteButtonClick(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+    {
+        if (_masterAudioDevice == null)
+            return;
+
+        try
+        {
+            var endpointVolume = _masterAudioDevice.AudioEndpointVolume;
+            var volume = Math.Clamp((int)Math.Round(endpointVolume.MasterVolumeLevelScalar * 100), 0, 100);
+            if (endpointVolume.Mute || volume == 0)
+            {
+                endpointVolume.Mute = false;
+                volume = Math.Clamp(_systemVolumeBeforeMute, 1, 100);
+                MasterVolumeSlider.Value = volume;
+                endpointVolume.MasterVolumeLevelScalar = volume / 100f;
+            }
+            else
+            {
+                _systemVolumeBeforeMute = volume;
+                endpointVolume.Mute = true;
+            }
+
+            UpdateMasterVolumeControls(volume, endpointVolume.Mute);
+        }
+        catch (Exception ex)
+        {
+            DisableMasterVolume(ex);
+        }
+    }
+
+    private void UpdateMasterVolumeControls(int volume, bool isMuted)
+    {
+        MasterVolumeLabel.Text = $"{volume}%";
+        MasterVolumeMuteButton.Content = isMuted || volume == 0 ? "🔇" : "🔊";
+    }
+
+    private void DisableMasterVolume(Exception exception)
+    {
+        Log($"Windows master volume unavailable: {exception}");
+        _viewModel?.SetPlaybackStatus($"Windows master volume unavailable: {exception.Message}");
+        MasterVolumeSlider.IsEnabled = false;
+        MasterVolumeMuteButton.IsEnabled = false;
+        MasterVolumeLabel.Text = "N/A";
+        DisposeMasterVolume();
+    }
+
+    private void DisposeMasterVolume()
+    {
+        _masterAudioDevice?.Dispose();
+        _audioDeviceEnumerator?.Dispose();
+        _masterAudioDevice = null;
+        _audioDeviceEnumerator = null;
     }
 
     private void OnOverlayTimerTick(object? sender, System.EventArgs e)
@@ -238,7 +347,7 @@ public partial class PlayerView : UserControl
         {
             for (Avalonia.Visual? current = source; current != null && current != OverlayPanel; current = current.GetVisualParent())
             {
-                if (current is Button || current is ScrollViewer)
+                if (current == PlayerBottomBar || current is Button || current is ScrollViewer)
                 {
                     ShowOverlay();
                     return;
@@ -269,37 +378,6 @@ public partial class PlayerView : UserControl
         var nextOffset = Math.Clamp(scrollViewer.Offset.X - wheelDelta * 110, 0, maxOffset);
         scrollViewer.Offset = new Vector(nextOffset, scrollViewer.Offset.Y);
         e.Handled = true;
-    }
-
-    private void OnVolumeSliderValueChanged(object? sender, RangeBaseValueChangedEventArgs e)
-    {
-        var volume = Math.Clamp((int)Math.Round(e.NewValue), 0, 100);
-        _lastVolume = volume;
-        if (volume > 0)
-            _volumeBeforeMute = volume;
-
-        if (_mediaPlayer != null)
-            _mediaPlayer.Volume = volume;
-        UpdateVolumeControls(volume);
-    }
-
-    private void OnVolumeMuteButtonClick(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
-    {
-        if (_lastVolume > 0)
-        {
-            _volumeBeforeMute = _lastVolume;
-            VolumeSlider.Value = 0;
-        }
-        else
-        {
-            VolumeSlider.Value = Math.Clamp(_volumeBeforeMute, 1, 100);
-        }
-    }
-
-    private void UpdateVolumeControls(int volume)
-    {
-        VolumeLabel.Text = $"{volume}%";
-        VolumeIcon.Text = volume == 0 ? "🔇" : "🔊";
     }
 
     private void OnDataContextChanged(object? sender, System.EventArgs e)
@@ -438,6 +516,8 @@ public partial class PlayerView : UserControl
         if (_mediaPlayer == null || _libVlc == null)
             return false;
 
+        _mediaPlayer.Mute = false;
+        _mediaPlayer.Volume = 100;
         Log($"StartPlayback called. fallback={fallback}, url={FormatUrlForLog(streamUrl)}");
 
         _currentMedia?.Dispose();
@@ -559,7 +639,7 @@ public partial class PlayerView : UserControl
         Dispatcher.UIThread.Post(() =>
         {
             _bufferingWatchdogCts?.Cancel();
-            Log("MediaPlayer event: Playing");
+            Log($"MediaPlayer event: Playing. audioTracks={_mediaPlayer?.AudioTrackCount}, audioTrack={_mediaPlayer?.AudioTrack}, volume={_mediaPlayer?.Volume}, muted={_mediaPlayer?.Mute}");
             _hasPlaybackStarted = true;
             _viewModel.IsBuffering = false;
             ShowOverlay();
