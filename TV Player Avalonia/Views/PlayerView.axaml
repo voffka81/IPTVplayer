@@ -100,13 +100,13 @@
       </Grid>
     </Grid>
 
-    <Border Background="#F0182637"
-            BorderBrush="#304761"
-            BorderThickness="1"
-            Padding="10"
-            HorizontalAlignment="Right"
-            VerticalAlignment="Top"
-            Margin="10"
+    <Border Background="#D9141F30"
+            BorderThickness="0"
+            CornerRadius="12"
+            Padding="18,12"
+            HorizontalAlignment="Center"
+            VerticalAlignment="Center"
+            Margin="20"
             IsVisible="{Binding HasPlaybackStatus}">
       <TextBlock Text="{Binding PlaybackStatus}" Foreground="White" TextWrapping="Wrap" MaxWidth="420" />
     </Border>
