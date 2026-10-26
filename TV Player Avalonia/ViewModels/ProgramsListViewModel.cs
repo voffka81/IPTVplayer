@@ -26,7 +26,7 @@ public class ProgramsListViewModel : TV_Player.ObservableViewModelBase, IDisposa
             .Subscribe(newPrograms =>
             {
                 var filteredPrograms = newPrograms
-                    .Where(p => p.GroupTitle == groupInfo.Name && !string.IsNullOrWhiteSpace(p.Url))
+                    .Where(p => p.GroupTitle == groupInfo.Name && (!string.IsNullOrWhiteSpace(p.Url) || (!string.IsNullOrWhiteSpace(p.ProviderId) && !string.IsNullOrWhiteSpace(p.ChannelId))))
                     .ToList();
 
                 Dispatcher.UIThread.Post(() =>

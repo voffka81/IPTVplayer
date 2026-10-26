@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+using Newtonsoft.Json;
+using TV_Player.Plugins;
 using System.IO;
 
 namespace TV_Player.ViewModels
@@ -26,6 +27,7 @@ namespace TV_Player.ViewModels
         }
 
         public static Dictionary<string,string> Playlists { get; set; }
+        public static List<ProviderSourceConfiguration> ProviderSources { get; set; } = new();
         public static bool StartFullScreen { get; set; } 
         public static bool StartFromLastScreen { get; set; } 
         public static string LastScreen { get; set; }
@@ -41,6 +43,7 @@ namespace TV_Player.ViewModels
             var dataToSerialize = new
             {
                 Playlists,
+                ProviderSources,
                 StartFromLastScreen,
                 StartFullScreen,
                 LastScreen,
@@ -64,6 +67,7 @@ namespace TV_Player.ViewModels
             var loadedData = new
             {
                 Playlists = default(Dictionary<string,string>),
+                ProviderSources = default(List<ProviderSourceConfiguration>),
                 LastScreen = default(string),
                 Group = default(GroupInfo),
                 Program = default(M3UInfo),
@@ -80,6 +84,7 @@ namespace TV_Player.ViewModels
             }
             // Assign the values to the properties
             Playlists = loadedData.Playlists;
+            ProviderSources = loadedData.ProviderSources ?? new List<ProviderSourceConfiguration>();
             LastScreen = loadedData.LastScreen;
             Group = loadedData.Group;
             Program = loadedData.Program;

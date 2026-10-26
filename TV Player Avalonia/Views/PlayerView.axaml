@@ -8,9 +8,9 @@
 
     <Grid x:Name="OverlayPanel" Background="#01000000">
       <Grid.RowDefinitions>
-        <RowDefinition x:Name="TopControlsRow" Height="80" />
+        <RowDefinition Height="80" />
         <RowDefinition Height="*" />
-        <RowDefinition x:Name="BottomControlsRow" Height="80" />
+        <RowDefinition Height="80" />
       </Grid.RowDefinitions>
 
       <Border Background="#D90A121E" BorderBrush="#304761" BorderThickness="0">
@@ -25,7 +25,7 @@
         </Grid.ColumnDefinitions>
         <Button x:Name="PlayerNav1" Width="54" Height="54" HorizontalAlignment="Center" VerticalAlignment="Center" Classes="toolbar-flat" Command="{Binding BackCommand}">
           <Viewbox Width="20" Height="20">
-            <Path Stroke="#F5F8FF" StrokeThickness="2" StrokeLineCap="Round" StrokeLineJoin="Round" Data="M20 12H4 M11 5L4 12L11 19" />
+            <Path Stroke="#F5F8FF" StrokeThickness="2" StrokeLineCap="Round" StrokeJoin="Round" Data="M20 12H4 M11 5L4 12L11 19" />
           </Viewbox>
         </Button>
         <TextBlock Grid.Column="1" FontSize="20" FontWeight="SemiBold" Foreground="White" Text="{Binding TopPanelTitle}" HorizontalAlignment="Center" VerticalAlignment="Center" />
@@ -71,9 +71,9 @@
 
       <Grid x:Name="PlayerBottomBar" Grid.Row="2" Background="#D90A121E">
         <Grid.ColumnDefinitions>
-          <ColumnDefinition x:Name="ChannelControlsColumn" Width="180" />
+          <ColumnDefinition Width="180" />
           <ColumnDefinition Width="*" />
-          <ColumnDefinition x:Name="BottomTrailingColumn" Width="70" />
+          <ColumnDefinition Width="70" />
         </Grid.ColumnDefinitions>
 
         <StackPanel Orientation="Horizontal">

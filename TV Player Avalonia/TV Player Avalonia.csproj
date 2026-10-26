@@ -8,6 +8,7 @@
     <RootNamespace>TV_Player</RootNamespace>
     <AssemblyName>TV Player Avalonia</AssemblyName>
     <AvaloniaUseCompiledBindingsByDefault>false</AvaloniaUseCompiledBindingsByDefault>
+    <EnableDevelopmentPlugins Condition="'$(EnableDevelopmentPlugins)' == '' and '$(Configuration)' == 'Debug'">true</EnableDevelopmentPlugins>
   </PropertyGroup>
 
   <ItemGroup>
@@ -26,10 +27,27 @@
 
   <ItemGroup>
     <ProjectReference Include="..\TV Player Core\TV Player Core.csproj" />
+    <ProjectReference Include="..\Examples\HtmlPageStreamsPlugin\HtmlPageStreamsPlugin.csproj"
+                      ReferenceOutputAssembly="false"
+                      Condition="'$(EnableDevelopmentPlugins)' == 'true'" />
   </ItemGroup>
 
   <ItemGroup>
     <AvaloniaResource Include="Assets\**\*" />
   </ItemGroup>
+
+  <Target Name="CopyDevelopmentPlugins" AfterTargets="ResolveProjectReferences" Condition="'$(EnableDevelopmentPlugins)' == 'true'">
+    <PropertyGroup>
+      <_DevelopmentPluginOutput>$(MSBuildThisFileDirectory)..\Examples\HtmlPageStreamsPlugin\bin\$(Configuration)\net10.0</_DevelopmentPluginOutput>
+      <_DevelopmentPluginDestination>$(OutDir)Plugins\HtmlPageStreamsPlugin</_DevelopmentPluginDestination>
+    </PropertyGroup>
+    <RemoveDir Directories="$(_DevelopmentPluginDestination)" />
+    <MakeDir Directories="$(_DevelopmentPluginDestination)" />
+    <ItemGroup>
+      <_DevelopmentPluginFiles Include="$(_DevelopmentPluginOutput)\**\*" />
+    </ItemGroup>
+    <Copy SourceFiles="@(_DevelopmentPluginFiles)"
+          DestinationFiles="@(_DevelopmentPluginFiles->'$(_DevelopmentPluginDestination)\%(RecursiveDir)%(Filename)%(Extension)')" />
+  </Target>
 
 </Project>
