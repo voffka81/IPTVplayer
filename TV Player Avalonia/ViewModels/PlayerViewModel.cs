@@ -141,9 +141,7 @@ public class PlayerViewModel : TV_Player.ObservableViewModelBase, IDisposable
         _resolveCts = new CancellationTokenSource();
         StreamUrl = string.Empty;
         _ = ResolveCurrentStreamAsync(_currentProgram, _resolveCts.Token);
-        SetPlaybackStatus(string.IsNullOrWhiteSpace(StreamUrl)
-            ? "No stream URL available for this channel."
-            : "Buffering stream...");
+        SetPlaybackStatus("Resolving stream...");
         ProgramGuideVisible = false;
 
         _programGuideDisposable?.Dispose();
