@@ -11,11 +11,8 @@
         Title="TV"
         WindowState="{Binding CurrentWindowState}"
         Background="#090F19">
-  <Grid RowDefinitions="Auto,*">
-    <Grid.Background>
-      <ImageBrush Source="/Assets/bkground.jpg" Stretch="UniformToFill" />
-    </Grid.Background>
-    <Border IsVisible="{Binding IsTopPanelVisible}" Height="76" Background="#E609101B" BorderBrush="#25344A" BorderThickness="0,0,0,1">
+  <Grid RowDefinitions="Auto,*" Background="#090F19">
+    <Border IsVisible="{Binding IsTopPanelVisible}" Height="76" Background="#E609101B" BorderThickness="0">
       <Grid ColumnDefinitions="76,76,*,76,76">
         <Button Width="48" Height="48" Margin="16,0,0,0" Classes="handheld-nav" Foreground="#F3F7FF" Command="{Binding SettingsCommand}">
           <Viewbox Width="18" Height="18">
@@ -47,8 +44,7 @@
       </Grid>
     </Border>
 
-    <Border Grid.Row="1" Margin="10,8,10,10" CornerRadius="14" Background="#E609101B" BorderBrush="#26344A" BorderThickness="1">
-      <ContentControl Content="{Binding CurrentViewModel}" Margin="12,8" />
-    </Border>
+    <!-- Edge-to-edge content: no decorative frame or exposed wallpaper. -->
+    <ContentControl Grid.Row="1" Content="{Binding CurrentViewModel}" Margin="14,12" />
   </Grid>
 </Window>
