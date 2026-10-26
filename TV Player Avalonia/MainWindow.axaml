@@ -13,7 +13,7 @@
         Background="#101820">
   <Grid RowDefinitions="Auto,*">
     <Grid.Background>
-      <ImageBrush Source="avares://TV Player Avalonia/Assets/bkground.jpg" Stretch="UniformToFill" />
+      <ImageBrush Source="/Assets/bkground.jpg" Stretch="UniformToFill" />
     </Grid.Background>
     <Border IsVisible="{Binding IsTopPanelVisible}" Height="80" Background="#99000000" BorderBrush="#66FFD600" BorderThickness="0,0,0,1">
       <Grid ColumnDefinitions="80,80,*,80,80">
