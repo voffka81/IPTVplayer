@@ -22,7 +22,14 @@ namespace TV_Player
         {
             _programName = name;
             Provider = new M3UChannelProvider("m3u:" + name, name, playlistURL);
-            Task.Run(() => GetPrograms(name,playlistURL), _cts.Token);
+            Task.Run(() => GetPrograms(name, playlistURL), _cts.Token);
+        }
+
+        public ProgramsData(string name, IChannelProvider provider)
+        {
+            _programName = name;
+            Provider = provider ?? throw new ArgumentNullException(nameof(provider));
+            Task.Run(() => GetPrograms(name, string.Empty), _cts.Token);
         }
 
         private async Task GetPrograms(string name,string m3uLink)
@@ -32,38 +39,34 @@ namespace TV_Player
             //string m3uLink = "http://pl.da-tv.vip/a71e77fa/835b3216/tv.m3u";
             try
             {
-                // if link is a well-formed absolute URI load from web, otherwise treat as a local file path
-                // for relative paths try resolving against the application's base directory
-                var result = (programList: new List<M3UInfo>(), programGuide: string.Empty);
-                if (Uri.IsWellFormedUriString(m3uLink, UriKind.Absolute))
+                List<M3UInfo> programs;
+                string guideLink = string.Empty;
+                if (Provider is M3UChannelProvider m3uProvider)
                 {
-                    System.Diagnostics.Debug.WriteLine("[ProgramsData] Detected URL, downloading from web");
-                    result = await ((M3UChannelProvider)Provider).LoadPlaylistAsync(_cts.Token);
+                    var result = await m3uProvider.LoadPlaylistAsync(_cts.Token);
+                    programs = result.programList;
+                    guideLink = result.programGuide;
                 }
                 else
                 {
-                    // try as provided path first
-                    var candidate = m3uLink;
-                    if (!Path.IsPathRooted(candidate))
+                    var channels = await Provider.GetChannelsAsync(_cts.Token);
+                    programs = channels.Select(channel => new M3UInfo
                     {
-                        candidate = Path.Combine(AppContext.BaseDirectory ?? string.Empty, candidate);
-                    }
-
-                    if (File.Exists(candidate))
-                    {
-                        System.Diagnostics.Debug.WriteLine($"[ProgramsData] Detected local file, loading from disk: {candidate}");
-                        result = await ((M3UChannelProvider)Provider).LoadPlaylistAsync(_cts.Token);
-                    }
-                    else
-                    {
-                        throw new FileNotFoundException($"M3U file not found: {m3uLink}");
-                    }
+                        ProviderId = Provider.Id,
+                        ChannelId = channel.Id,
+                        Name = channel.Name,
+                        GroupTitle = channel.GroupTitle,
+                        Logo = channel.Logo ?? string.Empty,
+                        TvgID = channel.EpgId ?? string.Empty,
+                        Url = string.Empty
+                    }).ToList();
                 }
-                System.Diagnostics.Debug.WriteLine($"[ProgramsData] Downloaded {result.programList.Count} programs");
+                _cts.Token.ThrowIfCancellationRequested();
+                System.Diagnostics.Debug.WriteLine($"[ProgramsData] Downloaded {programs.Count} programs");
 
-                programsSubject.OnNext(result.programList);
+                programsSubject.OnNext(programs);
 
-                var groupping = result.programList.GroupBy(item => item.GroupTitle)
+                var groupping = programs.GroupBy(item => item.GroupTitle)
                                    .Select(group => new GroupInfo() { Name = group.Key, Count = group.Count() })
                                    .OrderBy(g => g.Name)
                                    .ToList();
@@ -74,7 +77,8 @@ namespace TV_Player
                 }
                 groupsSubject.OnNext(groupping);
                 
-                await Task.Run(() => GetProgramGuide(name, result.programGuide), _cts.Token);
+                if (!string.IsNullOrWhiteSpace(guideLink))
+                    await GetProgramGuide(name, guideLink);
             }
             catch (Exception ex)
             {
