@@ -25,7 +25,6 @@ public class PlayerViewModel : TV_Player.ObservableViewModelBase, IDisposable
     public ICommand SettingsCommand { get; }
     public ICommand FullscreenCommand { get; }
     public ICommand ToggleChannelPickerCommand { get; }
-    public ICommand SelectChannelCommand { get; }
     public ICommand ShowProgramListCommand { get; }
     public ICommand CloseAppCommand { get; }
     public ICommand OpenStreamCommand { get; }
@@ -37,6 +36,18 @@ public class PlayerViewModel : TV_Player.ObservableViewModelBase, IDisposable
     {
         get => _channelPickerVisible;
         set => SetProperty(ref _channelPickerVisible, value);
+    }
+
+    private ChannelPickerItem? _selectedChannelPickerItem;
+    private bool _updatingChannelPickerSelection;
+    public ChannelPickerItem? SelectedChannelPickerItem
+    {
+        get => _selectedChannelPickerItem;
+        set
+        {
+            if (SetProperty(ref _selectedChannelPickerItem, value) && value != null && !_updatingChannelPickerSelection)
+                SelectChannel(value);
+        }
     }
 
     private string _topPanelTitle = string.Empty;
@@ -145,7 +156,6 @@ public class PlayerViewModel : TV_Player.ObservableViewModelBase, IDisposable
         BackCommand = new RelayCommand(OnButtonBackClick);
         SettingsCommand = new RelayCommand(TVPlayerViewModel.Instance.ShowSettingsScreen);
         ToggleChannelPickerCommand = new RelayCommand(() => ChannelPickerVisible = !ChannelPickerVisible);
-        SelectChannelCommand = new RelayCommand<ChannelPickerItem>(SelectChannel);
         FullscreenCommand = new RelayCommand(TVPlayerViewModel.Instance.FullScreenToggle);
         CloseAppCommand = new RelayCommand(TVPlayerViewModel.Instance.CloseAppCommand);
         ShowProgramListCommand = new RelayCommand(ShowProgramList);
@@ -179,6 +189,9 @@ public class PlayerViewModel : TV_Player.ObservableViewModelBase, IDisposable
     {
         foreach (var item in ChannelPickerItems)
             item.IsCurrent = IsCurrentChannel(item.Channel);
+        _updatingChannelPickerSelection = true;
+        SelectedChannelPickerItem = ChannelPickerItems.FirstOrDefault(item => item.IsCurrent);
+        _updatingChannelPickerSelection = false;
         TVPlayerViewModel.Instance.TopPanelVisible(false, _currentProgram.Name);
         TopPanelTitle = _currentProgram.Name;
         _resolveCts?.Cancel();
@@ -261,9 +274,12 @@ public class PlayerViewModel : TV_Player.ObservableViewModelBase, IDisposable
 
     private void RefreshChannelPickerItems()
     {
+        _updatingChannelPickerSelection = true;
         ChannelPickerItems.Clear();
         foreach (var program in _programs)
             ChannelPickerItems.Add(new ChannelPickerItem(program, IsCurrentChannel(program)));
+        SelectedChannelPickerItem = ChannelPickerItems.FirstOrDefault(item => item.IsCurrent);
+        _updatingChannelPickerSelection = false;
     }
 
     private void SelectChannel(ChannelPickerItem? item)
@@ -278,9 +294,12 @@ public class PlayerViewModel : TV_Player.ObservableViewModelBase, IDisposable
         if (index < 0)
             return;
 
+        ChannelPickerVisible = false;
+        if (index == _currentProgramIndex)
+            return;
+
         _currentProgramIndex = index;
         _currentProgram = _programs[index];
-        ChannelPickerVisible = false;
         UpdateUi();
     }
 
