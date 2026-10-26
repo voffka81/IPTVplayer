@@ -29,15 +29,6 @@ public class SettingsViewModel : TV_Player.ObservableViewModelBase
         set => SetProperty(ref _playlists, value);
     }
 
-    public string[] PlaybackEngines { get; } = ["vlc", "mpv"];
-
-    private string _selectedPlaybackEngine = "vlc";
-    public string SelectedPlaybackEngine
-    {
-        get => _selectedPlaybackEngine;
-        set => SetProperty(ref _selectedPlaybackEngine, value);
-    }
-
     private bool _startFullScreen;
     public bool StartFullScreen
     {
@@ -139,7 +130,6 @@ public class SettingsViewModel : TV_Player.ObservableViewModelBase
         ShowPluginsSectionCommand = new RelayCommand(() => SelectedSettingsSection = "plugins");
         ShowPlaybackSectionCommand = new RelayCommand(() => SelectedSettingsSection = "playback");
 
-        SelectedPlaybackEngine = SettingsModel.PlaybackEngine == "mpv" ? "mpv" : "vlc";
         StartFullScreen = SettingsModel.StartFullScreen;
         StartLastScreen = SettingsModel.StartFromLastScreen;
         var savedPlaylists = SettingsModel.Playlists ?? new Dictionary<string, string>();
@@ -302,7 +292,9 @@ public class SettingsViewModel : TV_Player.ObservableViewModelBase
         }
 
         PlaylistError = string.Empty;
-        SettingsModel.PlaybackEngine = SelectedPlaybackEngine == "mpv" ? "mpv" : "vlc";
+        // Only VLC is wired to the Avalonia video surface; normalize older saved
+        // "mpv" selections so settings do not imply an inactive backend is in use.
+        SettingsModel.PlaybackEngine = "vlc";
         SettingsModel.StartFullScreen = StartFullScreen;
         SettingsModel.StartFromLastScreen = StartLastScreen;
         foreach (var entry in Playlists)
