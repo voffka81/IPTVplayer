@@ -2,23 +2,23 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              x:Class="TV_Player.AvaloniaApp.Views.SettingsView">
   <ScrollViewer HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
-    <StackPanel MaxWidth="700" HorizontalAlignment="Center" Margin="24" Spacing="16">
+    <StackPanel MaxWidth="860" HorizontalAlignment="Center" Margin="16" Spacing="20">
 
-      <TextBlock Foreground="#111827"
+      <TextBlock Foreground="#F5F8FF"
                  HorizontalAlignment="Center"
-                 FontSize="20"
-                 FontWeight="Bold"
+                 FontSize="28"
+                 FontWeight="SemiBold"
                  Text="Settings" />
 
       <!-- Add Playlist Section -->
-      <Border Background="#FFFFFF" BorderBrush="#E5E7EB" BorderThickness="1" CornerRadius="12" Padding="16">
+      <Border Background="#141F2E" BorderBrush="#273B53" BorderThickness="1" CornerRadius="16" Padding="22">
         <StackPanel Spacing="10">
-          <TextBlock Foreground="#374151" FontSize="13" FontWeight="SemiBold" Text="Add Playlist" />
-          <TextBlock Foreground="#6B7280" FontSize="12" Text="Playlist URL" />
+          <TextBlock Foreground="#E8F2FF" FontSize="16" FontWeight="SemiBold" Text="Add Playlist" />
+          <TextBlock Foreground="#A9BDD5" FontSize="14" Text="Playlist URL" />
           <TextBox Text="{Binding PlaylistURL}" />
-          <TextBlock Foreground="#6B7280" FontSize="12" Text="Playlist Name" />
+          <TextBlock Foreground="#A9BDD5" FontSize="14" Text="Playlist Name" />
           <TextBox Text="{Binding PlaylistName}" />
-          <Button Width="36" Height="36" HorizontalAlignment="Left" Classes="icon-green" Command="{Binding AddPlaylistCommand}">
+          <Button Width="52" Height="52" HorizontalAlignment="Left" Classes="handheld-primary" Command="{Binding AddPlaylistCommand}">
             <Viewbox Width="14" Height="14">
               <Path Fill="White" Data="M11 5H13V11H19V13H13V19H11V13H5V11H11V5Z" />
             </Viewbox>
@@ -27,7 +27,7 @@
       </Border>
 
       <!-- Playlists List -->
-      <Border Background="#FFFFFF" BorderBrush="#E5E7EB" BorderThickness="1" CornerRadius="12" Padding="8">
+      <Border Background="#141F2E" BorderBrush="#273B53" BorderThickness="1" CornerRadius="16" Padding="14">
         <ListBox ItemsSource="{Binding Playlists}"
                  Background="Transparent"
                  BorderThickness="0"
@@ -40,13 +40,13 @@
           </ListBox.ItemContainerTheme>
           <ListBox.ItemTemplate>
             <DataTemplate>
-              <Grid HorizontalAlignment="Stretch" Height="48" ColumnDefinitions="180,*,48">
-                <TextBlock Foreground="#111827" VerticalAlignment="Center" FontSize="13" FontWeight="SemiBold" Text="{Binding Key}" TextTrimming="CharacterEllipsis" />
-                <TextBlock Grid.Column="1" Foreground="#4B5563" VerticalAlignment="Center" FontSize="12" Text="{Binding Value}" TextTrimming="CharacterEllipsis" />
+              <Grid HorizontalAlignment="Stretch" Height="64" ColumnDefinitions="180,*,60">
+                <TextBlock Foreground="#F5F8FF" VerticalAlignment="Center" FontSize="16" FontWeight="SemiBold" Text="{Binding Key}" TextTrimming="CharacterEllipsis" />
+                <TextBlock Grid.Column="1" Foreground="#B7C8DC" VerticalAlignment="Center" FontSize="14" Text="{Binding Value}" TextTrimming="CharacterEllipsis" />
                 <Button Grid.Column="2"
-                        Width="32" Height="32"
+                        Width="48" Height="48"
                         VerticalAlignment="Center"
-                        Classes="icon-red"
+                        Classes="handheld-danger"
                         CommandParameter="{Binding}"
                         Command="{Binding DataContext.PlaylistDeleteCommand, RelativeSource={RelativeSource AncestorType=UserControl}}">
                   <Viewbox Width="12" Height="12">
@@ -60,24 +60,24 @@
       </Border>
 
       <!-- Options -->
-      <Border Background="#FFFFFF" BorderBrush="#E5E7EB" BorderThickness="1" CornerRadius="12" Padding="16">
+      <Border Background="#141F2E" BorderBrush="#273B53" BorderThickness="1" CornerRadius="16" Padding="22">
         <StackPanel Spacing="10">
-          <TextBlock Foreground="#374151" FontSize="13" FontWeight="SemiBold" Text="Options" />
-          <TextBlock Foreground="#374151" FontSize="13" Text="Playback engine (mpv requires native integration; VLC is currently used for video)" />
-          <ComboBox ItemsSource="{Binding PlaybackEngines}" SelectedItem="{Binding SelectedPlaybackEngine}" Width="180" HorizontalAlignment="Left" />
-          <CheckBox Foreground="#111827" FontSize="13" IsChecked="{Binding StartFullScreen}" Content="Start fullscreen" />
-          <CheckBox Foreground="#111827" FontSize="13" IsChecked="{Binding StartLastScreen}" Content="Remember last channel" />
+          <TextBlock Foreground="#E8F2FF" FontSize="16" FontWeight="SemiBold" Text="Options" />
+          <TextBlock Foreground="#E8F2FF" FontSize="16" Text="Playback engine (mpv requires native integration; VLC is currently used for video)" />
+          <ComboBox ItemsSource="{Binding PlaybackEngines}" SelectedItem="{Binding SelectedPlaybackEngine}" MinWidth="220" HorizontalAlignment="Left" />
+          <CheckBox Foreground="#F5F8FF" FontSize="16" IsChecked="{Binding StartFullScreen}" Content="Start fullscreen" />
+          <CheckBox Foreground="#F5F8FF" FontSize="16" IsChecked="{Binding StartLastScreen}" Content="Remember last channel" />
         </StackPanel>
       </Border>
 
       <!-- Actions -->
       <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="10">
-        <Button Width="36" Height="36" Classes="icon-neutral" Command="{Binding BackCommand}">
+        <Button Width="52" Height="52" Classes="handheld-nav" Command="{Binding BackCommand}">
           <Viewbox Width="14" Height="14">
             <Path Fill="#374151" Data="M14.7 5.3L8 12L14.7 18.7L16.1 17.3L10.8 12L16.1 6.7Z" />
           </Viewbox>
         </Button>
-        <Button Width="36" Height="36" Classes="icon-lightgreen" Command="{Binding SaveCommand}">
+        <Button Width="52" Height="52" Classes="handheld-primary" Command="{Binding SaveCommand}">
           <Viewbox Width="14" Height="14">
             <Path Fill="White" Data="M9 16.2L4.8 12L3.4 13.4L9 19L21 7L19.6 5.6Z" />
           </Viewbox>
