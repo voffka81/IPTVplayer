@@ -1,5 +1,6 @@
 using Avalonia.Threading;
 using CommunityToolkit.Mvvm.Input;
+using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Reactive.Linq;
 using System.Windows.Input;
@@ -23,11 +24,31 @@ public class PlayerViewModel : TV_Player.ObservableViewModelBase, IDisposable
     public ICommand BackCommand { get; }
     public ICommand SettingsCommand { get; }
     public ICommand FullscreenCommand { get; }
-    public ICommand NextCommand { get; }
-    public ICommand PreviousCommand { get; }
+    public ICommand ToggleChannelPickerCommand { get; }
     public ICommand ShowProgramListCommand { get; }
     public ICommand CloseAppCommand { get; }
     public ICommand OpenStreamCommand { get; }
+
+    public ObservableCollection<ChannelPickerItem> ChannelPickerItems { get; } = new();
+
+    private bool _channelPickerVisible;
+    public bool ChannelPickerVisible
+    {
+        get => _channelPickerVisible;
+        set => SetProperty(ref _channelPickerVisible, value);
+    }
+
+    private ChannelPickerItem? _selectedChannelPickerItem;
+    private bool _updatingChannelPickerSelection;
+    public ChannelPickerItem? SelectedChannelPickerItem
+    {
+        get => _selectedChannelPickerItem;
+        set
+        {
+            if (SetProperty(ref _selectedChannelPickerItem, value) && value != null && !_updatingChannelPickerSelection)
+                SelectChannel(value);
+        }
+    }
 
     private string _topPanelTitle = string.Empty;
     public string TopPanelTitle
@@ -134,8 +155,7 @@ public class PlayerViewModel : TV_Player.ObservableViewModelBase, IDisposable
         _currentProgram = selectedProgram;
         BackCommand = new RelayCommand(OnButtonBackClick);
         SettingsCommand = new RelayCommand(TVPlayerViewModel.Instance.ShowSettingsScreen);
-        NextCommand = new RelayCommand(NextProgram);
-        PreviousCommand = new RelayCommand(PreviousProgram);
+        ToggleChannelPickerCommand = new RelayCommand(() => ChannelPickerVisible = !ChannelPickerVisible);
         FullscreenCommand = new RelayCommand(TVPlayerViewModel.Instance.FullScreenToggle);
         CloseAppCommand = new RelayCommand(TVPlayerViewModel.Instance.CloseAppCommand);
         ShowProgramListCommand = new RelayCommand(ShowProgramList);
@@ -145,10 +165,15 @@ public class PlayerViewModel : TV_Player.ObservableViewModelBase, IDisposable
             .AllPrograms
             .Subscribe(programs =>
             {
-                _programs = programs.Where(p => p.GroupTitle == _currentProgram.GroupTitle).ToList();
-                _currentProgramIndex = _programs.FindIndex(p => p.Name == _currentProgram.Name);
-                if (_currentProgramIndex < 0)
-                    _currentProgramIndex = 0;
+                var groupPrograms = programs.Where(p => p.GroupTitle == _currentProgram.GroupTitle).ToList();
+                Dispatcher.UIThread.Post(() =>
+                {
+                    _programs = groupPrograms;
+                    _currentProgramIndex = _programs.FindIndex(IsCurrentChannel);
+                    if (_currentProgramIndex < 0)
+                        _currentProgramIndex = 0;
+                    RefreshChannelPickerItems();
+                });
             });
 
         UpdateUi();
@@ -162,6 +187,11 @@ public class PlayerViewModel : TV_Player.ObservableViewModelBase, IDisposable
 
     private void UpdateUi()
     {
+        foreach (var item in ChannelPickerItems)
+            item.IsCurrent = IsCurrentChannel(item.Channel);
+        _updatingChannelPickerSelection = true;
+        SelectedChannelPickerItem = ChannelPickerItems.FirstOrDefault(item => item.IsCurrent);
+        _updatingChannelPickerSelection = false;
         TVPlayerViewModel.Instance.TopPanelVisible(false, _currentProgram.Name);
         TopPanelTitle = _currentProgram.Name;
         _resolveCts?.Cancel();
@@ -233,23 +263,43 @@ public class PlayerViewModel : TV_Player.ObservableViewModelBase, IDisposable
         }
     }
 
-    private void PreviousProgram()
+    private bool IsCurrentChannel(M3UInfo program)
     {
-        if (_programs.Count == 0)
-            return;
+        if (!string.IsNullOrWhiteSpace(_currentProgram.ProviderId) && !string.IsNullOrWhiteSpace(_currentProgram.ChannelId))
+            return program.ProviderId == _currentProgram.ProviderId && program.ChannelId == _currentProgram.ChannelId;
 
-        _currentProgramIndex = (_currentProgramIndex - 1 + _programs.Count) % _programs.Count;
-        _currentProgram = _programs[_currentProgramIndex];
-        UpdateUi();
+        return ReferenceEquals(program, _currentProgram) ||
+               (program.Name == _currentProgram.Name && program.Url == _currentProgram.Url);
     }
 
-    private void NextProgram()
+    private void RefreshChannelPickerItems()
     {
-        if (_programs.Count == 0)
+        _updatingChannelPickerSelection = true;
+        ChannelPickerItems.Clear();
+        foreach (var program in _programs)
+            ChannelPickerItems.Add(new ChannelPickerItem(program, IsCurrentChannel(program)));
+        SelectedChannelPickerItem = ChannelPickerItems.FirstOrDefault(item => item.IsCurrent);
+        _updatingChannelPickerSelection = false;
+    }
+
+    private void SelectChannel(ChannelPickerItem? item)
+    {
+        if (item == null)
             return;
 
-        _currentProgramIndex = (_currentProgramIndex + 1) % _programs.Count;
-        _currentProgram = _programs[_currentProgramIndex];
+        var index = _programs.FindIndex(program =>
+            !string.IsNullOrWhiteSpace(item.Channel.ProviderId)
+                ? program.ProviderId == item.Channel.ProviderId && program.ChannelId == item.Channel.ChannelId
+                : ReferenceEquals(program, item.Channel) || (program.Name == item.Channel.Name && program.Url == item.Channel.Url));
+        if (index < 0)
+            return;
+
+        ChannelPickerVisible = false;
+        if (index == _currentProgramIndex)
+            return;
+
+        _currentProgramIndex = index;
+        _currentProgram = _programs[index];
         UpdateUi();
     }
 
@@ -329,5 +379,25 @@ public class PlayerViewModel : TV_Player.ObservableViewModelBase, IDisposable
         _programSubscription.Dispose();
         _programGuideDisposable?.Dispose();
         _timer?.Dispose();
+    }
+}
+
+public sealed class ChannelPickerItem : TV_Player.ObservableViewModelBase
+{
+    private bool _isCurrent;
+
+    public M3UInfo Channel { get; }
+    public string Name => Channel.Name;
+
+    public bool IsCurrent
+    {
+        get => _isCurrent;
+        set => SetProperty(ref _isCurrent, value);
+    }
+
+    public ChannelPickerItem(M3UInfo channel, bool isCurrent)
+    {
+        Channel = channel;
+        _isCurrent = isCurrent;
     }
 }

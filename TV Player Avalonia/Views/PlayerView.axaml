@@ -1,7 +1,15 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vlc="clr-namespace:LibVLCSharp.Avalonia;assembly=LibVLCSharp.Avalonia"
+             xmlns:asyncImageLoader="clr-namespace:AsyncImageLoader;assembly=AsyncImageLoader.Avalonia"
              x:Class="TV_Player.AvaloniaApp.Views.PlayerView">
+  <UserControl.Styles>
+    <Style Selector="ListBox.channel-picker-list ListBoxItem:selected Border.channel-picker-tile">
+      <Setter Property="Background" Value="#1A4263" />
+      <Setter Property="BorderBrush" Value="#55B9FF" />
+      <Setter Property="BorderThickness" Value="2" />
+    </Style>
+  </UserControl.Styles>
   <Grid>
     <vlc:VideoView x:Name="VideoView">
       <Grid x:Name="VideoSurfaceRoot" Background="#01000000" PointerPressed="OnOverlayPointerPressed">
@@ -10,7 +18,7 @@
       <Grid.RowDefinitions>
         <RowDefinition Height="80" />
         <RowDefinition Height="*" />
-        <RowDefinition Height="80" />
+        <RowDefinition Height="Auto" />
       </Grid.RowDefinitions>
 
       <Border Background="#D90A121E" BorderBrush="#304761" BorderThickness="0">
@@ -69,7 +77,72 @@
         </ItemsControl>
       </Border>
 
-      <Grid x:Name="PlayerBottomBar" Grid.Row="2" Background="#E609101B">
+      <StackPanel Grid.Row="2" VerticalAlignment="Bottom">
+        <Border Background="#E6101928"
+                BorderBrush="#304761"
+                BorderThickness="1"
+                CornerRadius="12"
+                Padding="12,8"
+                Margin="18,0,18,8"
+                IsVisible="{Binding ChannelPickerVisible}">
+          <StackPanel Spacing="6">
+            <TextBlock Text="КАНАЛЫ В ГРУППЕ" Foreground="#91A6BF" FontSize="11" FontWeight="Bold" />
+            <ListBox x:Name="ChannelPickerList"
+                     Height="82"
+                     Classes="channel-picker-list"
+                     ItemsSource="{Binding ChannelPickerItems}"
+                     SelectedItem="{Binding SelectedChannelPickerItem, Mode=TwoWay}"
+                     Background="Transparent"
+                     BorderThickness="0"
+                     PointerWheelChanged="OnChannelPickerPointerWheelChanged"
+                     ScrollViewer.HorizontalScrollBarVisibility="Auto"
+                     ScrollViewer.VerticalScrollBarVisibility="Disabled">
+              <ListBox.ItemContainerTheme>
+                <ControlTheme TargetType="ListBoxItem">
+                  <Setter Property="Padding" Value="0" />
+                  <Setter Property="Margin" Value="2,0,4,0" />
+                  <Setter Property="Background" Value="Transparent" />
+                  <Setter Property="BorderThickness" Value="0" />
+                  <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+                </ControlTheme>
+              </ListBox.ItemContainerTheme>
+              <ListBox.ItemsPanel>
+                <ItemsPanelTemplate>
+                  <StackPanel Orientation="Horizontal" />
+                </ItemsPanelTemplate>
+              </ListBox.ItemsPanel>
+              <ListBox.ItemTemplate>
+                <DataTemplate>
+                  <Border Classes="channel-picker-tile"
+                          Width="76"
+                          Height="72"
+                          Background="#162130"
+                          BorderBrush="#304054"
+                          BorderThickness="1"
+                          CornerRadius="12"
+                          Padding="6">
+                    <Grid RowDefinitions="*,Auto">
+                      <Image asyncImageLoader:ImageLoader.Source="{Binding Channel.Logo}"
+                             MaxWidth="54"
+                             Margin="0,0,0,4"
+                             Stretch="Uniform" />
+                      <TextBlock Grid.Row="1"
+                                 Text="{Binding Name}"
+                                 FontSize="10"
+                                 Foreground="#F5F8FF"
+                                 TextWrapping="Wrap"
+                                 TextAlignment="Center"
+                                 MaxHeight="26"
+                                 HorizontalAlignment="Center" />
+                    </Grid>
+                  </Border>
+                </DataTemplate>
+              </ListBox.ItemTemplate>
+            </ListBox>
+          </StackPanel>
+        </Border>
+
+      <Grid x:Name="PlayerBottomBar" Background="#E609101B">
         <Grid.ColumnDefinitions>
           <ColumnDefinition Width="180" />
           <ColumnDefinition Width="*" />
@@ -77,14 +150,9 @@
         </Grid.ColumnDefinitions>
 
         <StackPanel Grid.Column="0" Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
-          <Button x:Name="PlayerNav4" Width="54" Height="54" Classes="toolbar-flat" Command="{Binding PreviousCommand}">
-            <Viewbox Width="20" Height="20">
-              <Path Fill="#F5F8FF" Data="M14 18L8 12L14 6Z" />
-            </Viewbox>
-          </Button>
-          <Button x:Name="PlayerNav5" Width="54" Height="54" Classes="toolbar-flat" Command="{Binding NextCommand}">
-            <Viewbox Width="20" Height="20">
-              <Path Fill="#F5F8FF" Data="M10 18L16 12L10 6Z" />
+          <Button x:Name="PlayerNav4" Width="68" Height="54" Classes="toolbar-flat" ToolTip.Tip="Выбор канала" Command="{Binding ToggleChannelPickerCommand}">
+            <Viewbox Width="22" Height="22">
+              <Path Fill="#F5F8FF" Data="M3 4H10V11H3ZM14 4H21V11H14ZM3 14H10V21H3ZM14 14H21V21H14Z" />
             </Viewbox>
           </Button>
         </StackPanel>
@@ -112,6 +180,7 @@
           <ProgressBar Width="180" Height="8" IsIndeterminate="True" Foreground="#8DD2FF" />
         </StackPanel>
       </Grid>
+      </StackPanel>
     </Grid>
 
     <Border Background="#D9141F30"
