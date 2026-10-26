@@ -72,6 +72,7 @@ public class SettingsViewModel : TV_Player.ObservableViewModelBase
     public bool IsPlaybackSection => SelectedSettingsSection == "playback";
 
     public ObservableCollection<IChannelProviderPlugin> AvailableProviderPlugins { get; }
+    public ObservableCollection<ProviderPluginToggleEntry> ProviderPluginEntries { get; }
     public ObservableCollection<PluginSettingEditor> PluginSettingEditors { get; } = new();
     public ObservableCollection<ProviderSourceConfiguration> PluginSources { get; }
     public bool IsNoProviderSources => PluginSources.Count == 0;
@@ -106,11 +107,25 @@ public class SettingsViewModel : TV_Player.ObservableViewModelBase
         set => SetProperty(ref _pluginSourceError, value);
     }
 
+    private string _pluginSourceMessage = string.Empty;
+    public string PluginSourceMessage
+    {
+        get => _pluginSourceMessage;
+        set => SetProperty(ref _pluginSourceMessage, value);
+    }
+
     private string _playlistError = string.Empty;
     public string PlaylistError
     {
         get => _playlistError;
         set => SetProperty(ref _playlistError, value);
+    }
+
+    private string _settingsSaveMessage = string.Empty;
+    public string SettingsSaveMessage
+    {
+        get => _settingsSaveMessage;
+        set => SetProperty(ref _settingsSaveMessage, value);
     }
 
     public ICommand SaveCommand { get; }
@@ -163,9 +178,106 @@ public class SettingsViewModel : TV_Player.ObservableViewModelBase
             ? "No provider plugins are installed yet."
             : "Select a plugin, then fill in its source settings.";
         PluginSources = new ObservableCollection<ProviderSourceConfiguration>(
-            SettingsModel.ProviderSources ?? new List<ProviderSourceConfiguration>());
-        PluginSources.CollectionChanged += (_, _) => RaisePropertyChanged(nameof(IsNoProviderSources));
+            (SettingsModel.ProviderSources ?? new List<ProviderSourceConfiguration>()).Select(CloneProviderSource));
+        PluginSources.CollectionChanged += OnPluginSourcesChanged;
+        ProviderPluginEntries = new ObservableCollection<ProviderPluginToggleEntry>(
+            AvailableProviderPlugins.Select(plugin => new ProviderPluginToggleEntry(plugin)));
+        foreach (var entry in ProviderPluginEntries)
+        {
+            UpdatePluginToggleState(entry, notify: false);
+            entry.EnabledChanged += OnProviderPluginEnabledChanged;
+        }
         SelectedProviderPlugin = AvailableProviderPlugins.FirstOrDefault();
+    }
+
+    private static ProviderSourceConfiguration CloneProviderSource(ProviderSourceConfiguration source) => new()
+    {
+        Id = source.Id,
+        Name = source.Name,
+        PluginId = source.PluginId,
+        Enabled = source.Enabled,
+        Settings = new Dictionary<string, string>(source.Settings ?? new Dictionary<string, string>(), StringComparer.OrdinalIgnoreCase)
+    };
+
+    private void OnPluginSourcesChanged(object? sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
+    {
+        RaisePropertyChanged(nameof(IsNoProviderSources));
+        foreach (var entry in ProviderPluginEntries)
+            UpdatePluginToggleState(entry, notify: true);
+    }
+
+    private void UpdatePluginToggleState(ProviderPluginToggleEntry entry, bool notify)
+    {
+        var sources = PluginSources.Where(source => string.Equals(source.PluginId, entry.Plugin.Id, StringComparison.OrdinalIgnoreCase)).ToList();
+        entry.SetHasConfiguredSource(sources.Count > 0, notify);
+        entry.SetEnabled(sources.Any(source => source.Enabled), notify);
+    }
+
+    private void OnProviderPluginEnabledChanged(ProviderPluginToggleEntry entry)
+    {
+        PluginSourceError = string.Empty;
+        PluginSourceMessage = string.Empty;
+        var matchingSources = PluginSources
+            .Where(source => string.Equals(source.PluginId, entry.Plugin.Id, StringComparison.OrdinalIgnoreCase))
+            .ToList();
+
+        if (!entry.IsEnabled)
+        {
+            foreach (var source in matchingSources)
+                source.Enabled = false;
+            PluginSourceMessage = $"{entry.Name} disabled. Its source and name are kept in Sources.";
+            return;
+        }
+
+        if (matchingSources.Count > 0)
+        {
+            foreach (var source in matchingSources)
+                source.Enabled = true;
+            PluginSourceMessage = $"{entry.Name} enabled.";
+            return;
+        }
+
+        IReadOnlyList<PluginSettingDefinition> definitions;
+        try
+        {
+            definitions = entry.Plugin.Settings;
+        }
+        catch (Exception ex)
+        {
+            entry.SetEnabled(false, notify: false);
+            PluginSourceError = $"Could not read settings for {entry.Name}: {ex.Message}";
+            return;
+        }
+
+        var missingSetting = definitions.FirstOrDefault(setting =>
+            setting.IsRequired && string.IsNullOrWhiteSpace(setting.DefaultValue));
+        if (missingSetting != null)
+        {
+            entry.SetEnabled(false, notify: false);
+            PluginSourceError = $"{entry.Name} needs a value for {missingSetting.Label} before it can be enabled.";
+            return;
+        }
+
+        var sourceName = entry.Plugin.Name.Trim();
+        if (Playlists.Any(playlist => playlist.Name.Equals(sourceName, StringComparison.OrdinalIgnoreCase)) ||
+            PluginSources.Any(source => source.Name.Equals(sourceName, StringComparison.OrdinalIgnoreCase)))
+        {
+            entry.SetEnabled(false, notify: false);
+            PluginSourceError = $"The default source name '{sourceName}' is already in use. Rename that source first.";
+            return;
+        }
+
+        var configuration = new ProviderSourceConfiguration
+        {
+            Id = $"{entry.Plugin.Id}:{Guid.NewGuid():N}",
+            Name = sourceName,
+            PluginId = entry.Plugin.Id,
+            Enabled = true,
+            Settings = definitions.ToDictionary(setting => setting.Key, setting => setting.DefaultValue ?? string.Empty,
+                StringComparer.OrdinalIgnoreCase)
+        };
+        PluginSources.Add(configuration);
+        PluginSourceMessage = $"{sourceName} enabled and added to Sources. Save changes to keep it.";
     }
 
     private void RefreshPluginSettingEditors()
@@ -226,6 +338,7 @@ public class SettingsViewModel : TV_Player.ObservableViewModelBase
     private void OnAddPluginSourceCommand()
     {
         PluginSourceError = string.Empty;
+        PluginSourceMessage = string.Empty;
         var name = NewPluginSourceName.Trim();
         var plugin = SelectedProviderPlugin;
         if (plugin == null)
@@ -267,6 +380,7 @@ public class SettingsViewModel : TV_Player.ObservableViewModelBase
         PluginSources.Add(configuration);
         NewPluginSourceName = string.Empty;
         RefreshPluginSettingEditors();
+        PluginSourceMessage = $"Source '{name}' added. Click Save changes to keep it.";
     }
 
     private void OnPluginSourceDeleteCommand(ProviderSourceConfiguration? source)
@@ -282,36 +396,58 @@ public class SettingsViewModel : TV_Player.ObservableViewModelBase
 
     private void OnSaveSettings()
     {
+        SettingsSaveMessage = string.Empty;
+        PlaylistError = string.Empty;
+        PluginSourceError = string.Empty;
         var names = Playlists.Select(entry => entry.Name.Trim()).ToList();
+        var canSavePlaylists = true;
         if (names.Any(string.IsNullOrWhiteSpace))
         {
             PlaylistError = "Every playlist needs a name.";
-            return;
+            canSavePlaylists = false;
         }
-        if (names.Distinct(StringComparer.OrdinalIgnoreCase).Count() != names.Count ||
-            names.Any(name => PluginSources.Any(source => source.Name.Equals(name, StringComparison.OrdinalIgnoreCase))))
+        else if (names.Distinct(StringComparer.OrdinalIgnoreCase).Count() != names.Count ||
+                 names.Any(name => PluginSources.Any(source => source.Name.Equals(name, StringComparison.OrdinalIgnoreCase))))
         {
             PlaylistError = "Playlist names must be unique.";
-            return;
+            canSavePlaylists = false;
         }
-        if (Playlists.Any(entry => !Uri.TryCreate(entry.Url.Trim(), UriKind.Absolute, out var uri) ||
-                                   (uri.Scheme != Uri.UriSchemeHttp && uri.Scheme != Uri.UriSchemeHttps)))
+        else if (Playlists.Any(entry => !Uri.TryCreate(entry.Url.Trim(), UriKind.Absolute, out var uri) ||
+                                        (uri.Scheme != Uri.UriSchemeHttp && uri.Scheme != Uri.UriSchemeHttps)))
         {
             PlaylistError = "Every playlist needs a valid HTTP or HTTPS URL.";
-            return;
+            canSavePlaylists = false;
         }
 
-        PlaylistError = string.Empty;
+        var providerNames = PluginSources.Select(source => source.Name?.Trim() ?? string.Empty).ToList();
+        var canSaveProviderSources = !providerNames.Any(string.IsNullOrWhiteSpace) &&
+            providerNames.Distinct(StringComparer.OrdinalIgnoreCase).Count() == providerNames.Count &&
+            !providerNames.Any(name => names.Any(playlistName =>
+                string.Equals(name, playlistName, StringComparison.OrdinalIgnoreCase)));
+        if (!canSaveProviderSources)
+            PluginSourceError = "Provider source names must be non-empty and unique across all sources.";
+
         SettingsModel.PlaybackEngine = SelectedPlaybackEngine == "mpv" ? "mpv" : "vlc";
         SettingsModel.StartFullScreen = StartFullScreen;
         SettingsModel.StartFromLastScreen = StartLastScreen;
-        foreach (var entry in Playlists)
-            entry.Name = entry.Name.Trim();
-        SettingsModel.Playlists = Playlists.ToDictionary(entry => entry.Name, entry => entry.Url.Trim());
-        SettingsModel.PlaylistOrder = Playlists.Select(entry => entry.Name).ToList();
-        SettingsModel.ProviderSources = PluginSources.ToList();
+        if (canSavePlaylists)
+        {
+            foreach (var entry in Playlists)
+                entry.Name = entry.Name.Trim();
+            SettingsModel.Playlists = Playlists.ToDictionary(entry => entry.Name, entry => entry.Url.Trim());
+            SettingsModel.PlaylistOrder = Playlists.Select(entry => entry.Name).ToList();
+        }
+        if (canSaveProviderSources)
+        {
+            foreach (var source in PluginSources)
+                source.Name = source.Name.Trim();
+            SettingsModel.ProviderSources = PluginSources.ToList();
+        }
         SettingsModel.SaveSetttings();
         TVPlayerViewModel.Instance.InitializeTVWithData();
+        SettingsSaveMessage = canSavePlaylists && canSaveProviderSources
+            ? "Settings saved."
+            : "Valid settings were saved; fix the errors shown below to save the remaining edits.";
     }
 }
 
@@ -361,5 +497,72 @@ public sealed class PluginSettingEditor : TV_Player.ObservableViewModelBase
         Description = definition.Description;
         IsRequired = definition.IsRequired;
         _value = definition.DefaultValue ?? string.Empty;
+    }
+}
+
+public sealed class ProviderPluginToggleEntry : TV_Player.ObservableViewModelBase
+{
+    private bool _isEnabled;
+    private bool _hasConfiguredSource;
+
+    public IChannelProviderPlugin Plugin { get; }
+    public string Name => Plugin.Name;
+    public event Action<ProviderPluginToggleEntry>? EnabledChanged;
+
+    public bool CanEnable => _hasConfiguredSource || HasUsableDefaults();
+
+    public string StatusText => _hasConfiguredSource
+        ? (_isEnabled ? "Source configured" : "Source configured, currently disabled")
+        : CanEnable ? "Default source will be added when enabled" : "Requires settings before it can be enabled";
+
+    public bool IsEnabled
+    {
+        get => _isEnabled;
+        set
+        {
+            if (!SetProperty(ref _isEnabled, value))
+                return;
+
+            RaisePropertyChanged(nameof(StatusText));
+            EnabledChanged?.Invoke(this);
+        }
+    }
+
+    public ProviderPluginToggleEntry(IChannelProviderPlugin plugin) =>
+        Plugin = plugin ?? throw new ArgumentNullException(nameof(plugin));
+
+    public void SetEnabled(bool value, bool notify)
+    {
+        if (notify)
+        {
+            IsEnabled = value;
+            return;
+        }
+
+        if (SetProperty(ref _isEnabled, value, nameof(IsEnabled)))
+            RaisePropertyChanged(nameof(StatusText));
+    }
+
+    public void SetHasConfiguredSource(bool value, bool notify)
+    {
+        if (_hasConfiguredSource == value)
+            return;
+
+        _hasConfiguredSource = value;
+        RaisePropertyChanged(nameof(CanEnable));
+        RaisePropertyChanged(nameof(StatusText));
+    }
+
+    private bool HasUsableDefaults()
+    {
+        try
+        {
+            return Plugin.Settings.All(setting =>
+                !setting.IsRequired || !string.IsNullOrWhiteSpace(setting.DefaultValue));
+        }
+        catch
+        {
+            return false;
+        }
     }
 }

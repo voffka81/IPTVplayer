@@ -57,7 +57,7 @@
           <Grid IsVisible="{Binding IsSourcesSection}" RowDefinitions="Auto,Auto,*,Auto">
             <StackPanel Spacing="4">
               <TextBlock Text="Sources" Foreground="#F5F8FF" FontSize="22" FontWeight="SemiBold" />
-              <TextBlock Text="Manage your M3U playlists." Foreground="#91A6BF" FontSize="13" />
+                <TextBlock Text="Manage M3U playlists and provider sources." Foreground="#91A6BF" FontSize="13" />
             </StackPanel>
             <Border Grid.Row="1" Margin="0,14,0,0" Background="#141F2E" BorderBrush="#273B53" BorderThickness="1" CornerRadius="13" Padding="14">
               <StackPanel Spacing="6">
@@ -105,12 +105,13 @@
                   <ItemsControl ItemsSource="{Binding PluginSources}">
                     <ItemsControl.ItemTemplate>
                       <DataTemplate>
-                        <Grid ColumnDefinitions="*,Auto" MinHeight="48" Margin="4,1">
+                        <Grid ColumnDefinitions="*,Auto,Auto" MinHeight="48" Margin="4,1">
                           <StackPanel VerticalAlignment="Center" Spacing="2">
-                            <TextBlock Text="{Binding Name}" Foreground="#F5F8FF" FontWeight="SemiBold" />
+                            <TextBox Text="{Binding Name, Mode=TwoWay}" Watermark="Source name" />
                             <TextBlock Text="{Binding PluginId}" Foreground="#91A6BF" FontSize="11" />
                           </StackPanel>
-                          <Button Grid.Column="1" Classes="handheld-danger" Width="40" Height="40" CommandParameter="{Binding}" Command="{Binding DataContext.PluginSourceDeleteCommand, RelativeSource={RelativeSource AncestorType=UserControl}}">
+                          <CheckBox Grid.Column="1" IsChecked="{Binding Enabled}" IsEnabled="False" Content="Enabled" VerticalAlignment="Center" Margin="8,0" />
+                          <Button Grid.Column="2" Classes="handheld-danger" Width="40" Height="40" CommandParameter="{Binding}" Command="{Binding DataContext.PluginSourceDeleteCommand, RelativeSource={RelativeSource AncestorType=UserControl}}">
                             <TextBlock Text="−" FontSize="20" />
                           </Button>
                         </Grid>
@@ -128,43 +129,27 @@
             <StackPanel Spacing="14">
               <StackPanel Spacing="4">
                 <TextBlock Text="Provider plugins" Foreground="#F5F8FF" FontSize="22" FontWeight="SemiBold" />
-                <TextBlock Text="Create sources from installed website or service plugins." Foreground="#91A6BF" FontSize="13" TextWrapping="Wrap" />
+                <TextBlock Text="Enable a plugin to add its default source. Rename sources in the Sources tab." Foreground="#91A6BF" FontSize="13" TextWrapping="Wrap" />
               </StackPanel>
               <Border Background="#141F2E" BorderBrush="#273B53" BorderThickness="1" CornerRadius="13" Padding="16">
                 <StackPanel Spacing="10">
-                  <TextBlock Text="Plugin folder" Foreground="#A9BDD5" FontSize="13" />
-                  <TextBlock Text="{Binding PluginDirectory}" Foreground="#8DD2FF" FontSize="13" TextWrapping="Wrap" />
-                  <TextBlock Text="Development build output (loaded automatically)" Foreground="#A9BDD5" FontSize="13" />
-                  <TextBlock Text="{Binding DevelopmentPluginDirectory}" Foreground="#8DD2FF" FontSize="13" TextWrapping="Wrap" />
-                  <TextBlock Text="Plugin request log" Foreground="#A9BDD5" FontSize="13" />
-                  <TextBlock Text="{Binding PluginLogPath}" Foreground="#8DD2FF" FontSize="13" TextWrapping="Wrap" />
-                  <TextBlock Text="{Binding PluginAvailabilityMessage}" Foreground="#A9BDD5" FontSize="13" TextWrapping="Wrap" />
-                  <TextBlock Text="{Binding PluginLoadErrors}" Foreground="#FF9B91" FontSize="12" TextWrapping="Wrap" />
-                </StackPanel>
-              </Border>
-              <Border Background="#141F2E" BorderBrush="#273B53" BorderThickness="1" CornerRadius="13" Padding="16">
-                <StackPanel Spacing="10">
-                  <TextBlock Text="Add provider source" Foreground="#F5F8FF" FontSize="16" FontWeight="SemiBold" />
-                  <TextBlock Text="Added sources appear in the Sources tab. Save changes to load them." Foreground="#7188A3" FontSize="12" TextWrapping="Wrap" />
-                  <ComboBox ItemsSource="{Binding AvailableProviderPlugins}" SelectedItem="{Binding SelectedProviderPlugin, Mode=TwoWay}" HorizontalAlignment="Stretch">
-                    <ComboBox.ItemTemplate><DataTemplate><TextBlock Text="{Binding Name}" /></DataTemplate></ComboBox.ItemTemplate>
-                  </ComboBox>
-                  <TextBox Text="{Binding NewPluginSourceName, Mode=TwoWay}" Watermark="Source name" />
-                  <ItemsControl ItemsSource="{Binding PluginSettingEditors}">
+                  <ItemsControl ItemsSource="{Binding ProviderPluginEntries}">
                     <ItemsControl.ItemTemplate>
                       <DataTemplate>
-                        <StackPanel Spacing="4" Margin="0,4">
-                          <TextBlock Text="{Binding Label}" Foreground="#A9BDD5" FontSize="13" />
-                          <TextBlock Text="{Binding Description}" Foreground="#7188A3" FontSize="12" TextWrapping="Wrap" />
-                          <TextBox Text="{Binding Value, Mode=TwoWay}" />
-                        </StackPanel>
+                        <Grid ColumnDefinitions="*,Auto" MinHeight="56" Margin="4,2">
+                          <StackPanel VerticalAlignment="Center" Spacing="2">
+                            <TextBlock Text="{Binding Name}" Foreground="#F5F8FF" FontWeight="SemiBold" />
+                            <TextBlock Text="{Binding StatusText}" Foreground="#91A6BF" FontSize="12" TextWrapping="Wrap" />
+                          </StackPanel>
+                          <CheckBox Grid.Column="1" IsChecked="{Binding IsEnabled, Mode=TwoWay}" IsEnabled="{Binding CanEnable}" VerticalAlignment="Center" Margin="12,0" />
+                        </Grid>
                       </DataTemplate>
                     </ItemsControl.ItemTemplate>
                   </ItemsControl>
                   <TextBlock Text="{Binding PluginSourceError}" Foreground="#FF9B91" FontSize="13" TextWrapping="Wrap" />
-                  <Button Classes="handheld-primary" Command="{Binding AddPluginSourceCommand}" HorizontalAlignment="Left" Padding="16,0">
-                    <TextBlock Text="Add source" />
-                  </Button>
+                  <TextBlock Text="{Binding PluginSourceMessage}" Foreground="#8FE0AA" FontSize="13" TextWrapping="Wrap" />
+                  <TextBlock Text="{Binding PluginLoadErrors}" Foreground="#FF9B91" FontSize="12" TextWrapping="Wrap" />
+                  <TextBlock Text="{Binding PluginLogPath}" Foreground="#7188A3" FontSize="11" TextWrapping="Wrap" />
                 </StackPanel>
               </Border>
             </StackPanel>
@@ -195,7 +180,10 @@
     </Grid>
 
     <Grid Grid.Row="1" ColumnDefinitions="*,Auto" Margin="194,12,0,0">
-      <TextBlock Text="Settings are saved together" Foreground="#7188A3" FontSize="12" VerticalAlignment="Center" />
+      <StackPanel VerticalAlignment="Center" Spacing="2">
+        <TextBlock Text="{Binding SettingsSaveMessage}" Foreground="#8FE0AA" FontSize="12" TextWrapping="Wrap" />
+        <TextBlock Text="{Binding PlaylistError}" Foreground="#FF9B91" FontSize="12" TextWrapping="Wrap" />
+      </StackPanel>
       <Button Grid.Column="1" Classes="handheld-primary" Command="{Binding SaveCommand}" Padding="20,0">
         <TextBlock Text="Save changes" />
       </Button>
