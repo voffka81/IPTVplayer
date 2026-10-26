@@ -1,4 +1,4 @@
-﻿using TV_Player.Plugins;
+using TV_Player.Plugins;
 using TV_Player.Providers;
 using System.Reactive;
 using System.Reactive.Subjects;
@@ -131,6 +131,10 @@ namespace TV_Player
                 groupsSubject.Dispose();
             }
             catch { }
+            if (Provider is IDisposable providerDisposable)
+            {
+                try { providerDisposable.Dispose(); } catch { }
+            }
         }
         
     }

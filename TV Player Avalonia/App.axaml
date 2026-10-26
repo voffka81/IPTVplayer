@@ -25,27 +25,25 @@
     <Style Selector="TextBox">
       <Setter Property="CornerRadius" Value="10" />
       <Setter Property="Padding" Value="10,8" />
-      <Setter Property="Background" Value="White" />
-      <Setter Property="BorderBrush" Value="#D1D5DB" />
+      <Setter Property="Background" Value="#0D1725" />
+      <Setter Property="Foreground" Value="#F5F8FF" />
+      <Setter Property="CaretBrush" Value="#F5F8FF" />
+      <Setter Property="SelectionForegroundBrush" Value="#F5F8FF" />
+      <Setter Property="BorderBrush" Value="#344B67" />
       <Setter Property="BorderThickness" Value="1" />
       <Setter Property="FontFamily" Value=".AppleSystemUIFont, -apple-system, Helvetica Neue, Helvetica, Arial" />
     </Style>
     <Style Selector="TextBox /template/ Border#PART_BorderElement">
-      <Setter Property="Background" Value="White" />
+      <Setter Property="Background" Value="#0D1725" />
       <Setter Property="CornerRadius" Value="10" />
     </Style>
-    <Style Selector="TextBox">
-      <Setter Property="Foreground" Value="#111827" />
-      <Setter Property="CaretBrush" Value="#111827" />
-      <Setter Property="SelectionForegroundBrush" Value="#111827" />
-    </Style>
     <Style Selector="TextBox:pointerover /template/ Border#PART_BorderElement">
-      <Setter Property="Background" Value="White" />
-      <Setter Property="BorderBrush" Value="#0A84FF" />
+      <Setter Property="Background" Value="#111F30" />
+      <Setter Property="BorderBrush" Value="#55B9FF" />
     </Style>
     <Style Selector="TextBox:focus /template/ Border#PART_BorderElement">
-      <Setter Property="Background" Value="White" />
-      <Setter Property="BorderBrush" Value="#0A84FF" />
+      <Setter Property="Background" Value="#111F30" />
+      <Setter Property="BorderBrush" Value="#55B9FF" />
     </Style>
     <Style Selector="ListBox">
       <Setter Property="Background" Value="Transparent" />

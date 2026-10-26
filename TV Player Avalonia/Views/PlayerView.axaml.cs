@@ -18,6 +18,7 @@ public partial class PlayerView : UserControl
     private readonly DispatcherTimer _clockTimer = new() { Interval = TimeSpan.FromSeconds(10) };
     private readonly DispatcherTimer _overlayTimer = new() { Interval = TimeSpan.FromSeconds(5) };
     private bool _overlayVisible = true;
+    private bool _hasPlaybackStarted;
     private LibVLC? _libVlc;
     private MediaPlayer? _mediaPlayer;
     private Media? _currentMedia;
@@ -25,8 +26,9 @@ public partial class PlayerView : UserControl
     private bool _initialized;
     private CancellationTokenSource? _bufferingWatchdogCts;
     private string? _activeStreamUrl;
+    private IReadOnlyList<string> _fallbackStreamUrls = Array.Empty<string>();
+    private int _fallbackStreamIndex;
     private bool _fallbackAttempted;
-    private bool _playbackStarted;
 
     public PlayerView()
     {
@@ -77,7 +79,7 @@ public partial class PlayerView : UserControl
         }
 
         PlayerBottomBar.ColumnDefinitions[0].Width = new GridLength(Math.Max(buttonSize * 2 + 45 * scale, 155));
-        PlayerBottomBar.ColumnDefinitions[2].Width = PlayerBottomBar.ColumnDefinitions[0].Width;
+        PlayerBottomBar.ColumnDefinitions[2].Width = new GridLength(Math.Max(24, 40 * scale));
         GuidePanel.Width = Math.Min(size.Width * 0.45, 360 * scale);
         GuideProgress.Width = Math.Clamp(size.Width * 0.25, 100, 360);
     }
@@ -122,11 +124,7 @@ public partial class PlayerView : UserControl
         catch (System.Exception ex)
         {
             Log($"VLC initialization failed: {ex}");
-            if (_viewModel != null)
-            {
-                _viewModel.IsBuffering = false;
-                _viewModel.SetPlaybackStatus($"VLC init failed: {ex.Message}");
-            }
+            _viewModel?.SetPlaybackStatus($"VLC init failed: {ex.Message}");
         }
     }
 
@@ -171,19 +169,15 @@ public partial class PlayerView : UserControl
         _mediaPlayer = null;
         _libVlc = null;
         _activeStreamUrl = null;
+        _hasPlaybackStarted = false;
         _fallbackAttempted = false;
         _initialized = false;
     }
 
     private void OnOverlayTimerTick(object? sender, System.EventArgs e)
     {
-        if (!_playbackStarted)
-        {
-            _overlayTimer.Stop();
-            return;
-        }
-
-        HideOverlay();
+        if (_hasPlaybackStarted)
+            HideOverlay();
     }
 
     private void ShowOverlay()
@@ -191,11 +185,18 @@ public partial class PlayerView : UserControl
         _overlayVisible = true;
         OverlayPanel.IsVisible = true;
         _overlayTimer.Stop();
-        _overlayTimer.Start();
+        if (_hasPlaybackStarted)
+            _overlayTimer.Start();
     }
 
     private void HideOverlay()
     {
+        if (!_hasPlaybackStarted)
+        {
+            ShowOverlay();
+            return;
+        }
+
         _overlayTimer.Stop();
         _overlayVisible = false;
         OverlayPanel.IsVisible = false;
@@ -205,6 +206,12 @@ public partial class PlayerView : UserControl
 
     private void OnOverlayPointerPressed(object? sender, PointerPressedEventArgs e)
     {
+        if (!_hasPlaybackStarted)
+        {
+            ShowOverlay();
+            return;
+        }
+
         // Buttons and other interactive elements retain their own commands.
         // A click on the video/background toggles the control overlay.
         if (e.Source is Avalonia.Visual source)
@@ -267,10 +274,13 @@ public partial class PlayerView : UserControl
 
         try
         {
-            _playbackStarted = false;
             var streamUrl = _viewModel.StreamUrl.Trim();
-            Log($"PlayCurrentStream start. Url={SanitizeUrlForLog(streamUrl)}");
+            Log($"PlayCurrentStream start. Url={FormatUrlForLog(streamUrl)}");
+            _hasPlaybackStarted = false;
+            ShowOverlay();
             _activeStreamUrl = streamUrl;
+            _fallbackStreamUrls = _viewModel.FallbackStreamUrls;
+            _fallbackStreamIndex = 0;
             _fallbackAttempted = false;
 
             _mediaPlayer.Stop();
@@ -278,21 +288,18 @@ public partial class PlayerView : UserControl
             _currentMedia = null;
 
             _viewModel.SetPlaybackStatus(string.Empty);
-            _viewModel.IsBuffering = true;
             StartBufferingWatchdog();
 
             var started = StartPlayback(streamUrl, fallback: false);
             Log($"Primary playback start result: {started}");
-            if (!started)
+            if (!started && !TryStartNextStreamFallback())
             {
-                _viewModel.IsBuffering = false;
                 _viewModel.SetPlaybackStatus("Stream failed to start. Try another channel or Open Externally.");
             }
         }
         catch (System.Exception ex)
         {
             Log($"PlayCurrentStream exception: {ex}");
-            _viewModel.IsBuffering = false;
             _viewModel.SetPlaybackStatus($"Embedded playback failed: {ex.Message}. Use Open Externally as a fallback.");
         }
     }
@@ -361,7 +368,7 @@ public partial class PlayerView : UserControl
         if (_mediaPlayer == null || _libVlc == null)
             return false;
 
-        Log($"StartPlayback called. fallback={fallback}, url={SanitizeUrlForLog(streamUrl)}");
+        Log($"StartPlayback called. fallback={fallback}, url={FormatUrlForLog(streamUrl)}");
 
         _currentMedia?.Dispose();
         _currentMedia = BuildMediaFromStreamUrl(_libVlc, streamUrl);
@@ -409,29 +416,52 @@ public partial class PlayerView : UserControl
             if (token.IsCancellationRequested)
                 return;
 
-            if (_mediaPlayer == null || _viewModel == null || string.IsNullOrWhiteSpace(_activeStreamUrl))
-                return;
-
-            if (_mediaPlayer.IsPlaying || _fallbackAttempted)
-                return;
-
-            _fallbackAttempted = true;
-            Log("Buffering watchdog triggered fallback attempt");
             Dispatcher.UIThread.Post(() =>
             {
-                if (_viewModel == null)
+                if (token.IsCancellationRequested || _mediaPlayer == null || _viewModel == null ||
+                    string.IsNullOrWhiteSpace(_activeStreamUrl) || _mediaPlayer.IsPlaying)
                     return;
 
+                if (TryStartNextStreamFallback())
+                    return;
+
+                if (_fallbackAttempted)
+                    return;
+
+                _fallbackAttempted = true;
+                Log("Buffering watchdog triggered fallback attempt");
                 _viewModel.SetPlaybackStatus(string.Empty);
                 var started = StartPlayback(_activeStreamUrl!, fallback: true);
                 Log($"Fallback playback start result: {started}");
                 if (!started)
                 {
-                    _viewModel.IsBuffering = false;
                     _viewModel.SetPlaybackStatus("Fallback playback failed. Try Open Externally for this channel.");
                 }
             });
         }, token);
+    }
+
+    private bool TryStartNextStreamFallback()
+    {
+        if (_mediaPlayer == null || _viewModel == null || _fallbackStreamIndex >= _fallbackStreamUrls.Count)
+            return false;
+
+        var fallbackUrl = _fallbackStreamUrls[_fallbackStreamIndex++];
+        _activeStreamUrl = fallbackUrl;
+        _hasPlaybackStarted = false;
+        ShowOverlay();
+        _fallbackAttempted = false;
+        Log($"Trying alternate stream URL {_fallbackStreamIndex}/{_fallbackStreamUrls.Count}: {FormatUrlForLog(fallbackUrl)}");
+
+        _mediaPlayer.Stop();
+        _currentMedia?.Dispose();
+        _currentMedia = null;
+        _viewModel.SetPlaybackStatus("Trying alternate stream…");
+        StartBufferingWatchdog();
+
+        var started = StartPlayback(fallbackUrl, fallback: false);
+        Log($"Alternate stream start result: {started}");
+        return started;
     }
 
     private void OnMediaPlayerBuffering(object? sender, MediaPlayerBufferingEventArgs e)
@@ -446,8 +476,7 @@ public partial class PlayerView : UserControl
 
         Dispatcher.UIThread.Post(() =>
         {
-            if (_viewModel != null && !_playbackStarted)
-                _viewModel.IsBuffering = true;
+            // Buffering is transient: keep the video unobstructed.
         });
     }
 
@@ -460,10 +489,9 @@ public partial class PlayerView : UserControl
         {
             _bufferingWatchdogCts?.Cancel();
             Log("MediaPlayer event: Playing");
-            _playbackStarted = true;
+            _hasPlaybackStarted = true;
             _viewModel.IsBuffering = false;
-            if (_overlayVisible)
-                ShowOverlay();
+            ShowOverlay();
             _viewModel.SetPlaybackStatus(string.Empty);
         });
     }
@@ -475,10 +503,14 @@ public partial class PlayerView : UserControl
 
         Dispatcher.UIThread.Post(() =>
         {
-            _bufferingWatchdogCts?.Cancel();
             Log("MediaPlayer event: EncounteredError");
-            _playbackStarted = false;
+            if (TryStartNextStreamFallback())
+                return;
+
+            _bufferingWatchdogCts?.Cancel();
+            _hasPlaybackStarted = false;
             _viewModel.IsBuffering = false;
+            ShowOverlay();
             _viewModel.SetPlaybackStatus("Playback error. The stream may be unavailable or unsupported.");
         });
     }
@@ -492,8 +524,9 @@ public partial class PlayerView : UserControl
         {
             _bufferingWatchdogCts?.Cancel();
             Log("MediaPlayer event: EndReached");
-            _playbackStarted = false;
+            _hasPlaybackStarted = false;
             _viewModel.IsBuffering = false;
+            ShowOverlay();
             _viewModel.SetPlaybackStatus("Stream ended.");
         });
     }
@@ -511,20 +544,12 @@ public partial class PlayerView : UserControl
         });
     }
 
-    private static string SanitizeUrlForLog(string url)
+    private static string FormatUrlForLog(string url)
     {
         if (string.IsNullOrWhiteSpace(url))
             return "<empty>";
 
-        var trimmed = url.Trim();
-        var tokenIndex = trimmed.IndexOf("token=", System.StringComparison.OrdinalIgnoreCase);
-        if (tokenIndex >= 0)
-        {
-            return "<url-with-token-redacted>";
-        }
-
-        var splitIndex = trimmed.IndexOf('|');
-        return splitIndex > 0 ? trimmed[..splitIndex] + "|<headers>" : trimmed;
+        return url.Trim();
     }
 
     private static void Log(string message)
@@ -532,5 +557,18 @@ public partial class PlayerView : UserControl
         var line = $"[PlayerView] {DateTime.Now:HH:mm:ss.fff} {message}";
         Debug.WriteLine(line);
         Console.WriteLine(line);
+
+        try
+        {
+            var logPath = Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+                "TVPlayer", "Logs", "player.log");
+            Directory.CreateDirectory(Path.GetDirectoryName(logPath)!);
+            File.AppendAllText(logPath, $"{DateTime.Now:yyyy-MM-dd} {line}{Environment.NewLine}");
+        }
+        catch
+        {
+            // Keep player diagnostics from interrupting playback when the log is unavailable.
+        }
     }
 }

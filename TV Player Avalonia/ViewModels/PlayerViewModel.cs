@@ -13,6 +13,7 @@ public class PlayerViewModel : TV_Player.ObservableViewModelBase, IDisposable
     private IDisposable? _timer;
     private M3UInfo _currentProgram;
     private List<M3UInfo> _programs = new();
+    private IReadOnlyList<string> _fallbackStreamUrls = Array.Empty<string>();
     private ProgramGuide? _currentGuide;
     private ProgramInfo? _currentProgramInfo;
     private int _currentProgramIndex;
@@ -101,6 +102,12 @@ public class PlayerViewModel : TV_Player.ObservableViewModelBase, IDisposable
         set => SetProperty(ref _streamUrl, value);
     }
 
+    public IReadOnlyList<string> FallbackStreamUrls
+    {
+        get => _fallbackStreamUrls;
+        private set => SetProperty(ref _fallbackStreamUrls, value);
+    }
+
     private string _playbackStatus = string.Empty;
     public string PlaybackStatus
     {
@@ -161,6 +168,7 @@ public class PlayerViewModel : TV_Player.ObservableViewModelBase, IDisposable
         _resolveCts?.Dispose();
         _resolveCts = new CancellationTokenSource();
         StreamUrl = string.Empty;
+        FallbackStreamUrls = Array.Empty<string>();
         SetPlaybackStatus(string.Empty);
         IsBuffering = true;
         _ = ResolveCurrentStreamAsync(_currentProgram, _resolveCts.Token);
@@ -192,14 +200,17 @@ public class PlayerViewModel : TV_Player.ObservableViewModelBase, IDisposable
         {
             var provider = TVPlayerViewModel.Instance.CurrentProgramsData?.Provider;
             var url = channel.Url;
+            IReadOnlyList<string> fallbackUrls = Array.Empty<string>();
             if (provider != null && channel.ProviderId == provider.Id && channel.ChannelId != null)
             {
                 var stream = await provider.ResolveStreamAsync(channel.ChannelId, token);
                 url = stream.PrimaryUrl;
+                fallbackUrls = stream.FallbackUrls ?? Array.Empty<string>();
             }
             await Dispatcher.UIThread.InvokeAsync(() =>
             {
                 if (token.IsCancellationRequested || _disposed) return;
+                FallbackStreamUrls = fallbackUrls;
                 IsBuffering = !string.IsNullOrWhiteSpace(url);
                 SetPlaybackStatus(string.IsNullOrWhiteSpace(url)
                     ? "No stream URL available for this channel."
@@ -214,8 +225,10 @@ public class PlayerViewModel : TV_Player.ObservableViewModelBase, IDisposable
             await Dispatcher.UIThread.InvokeAsync(() =>
             {
                 if (!token.IsCancellationRequested && !_disposed)
+                {
                     IsBuffering = false;
                     SetPlaybackStatus($"Cannot resolve stream: {ex.Message}");
+                }
             });
         }
     }
@@ -250,9 +263,11 @@ public class PlayerViewModel : TV_Player.ObservableViewModelBase, IDisposable
         if (string.IsNullOrWhiteSpace(StreamUrl))
             return;
 
+        var externalUrl = StreamUrl.Split('|', 2)[0];
+
         Process.Start(new ProcessStartInfo
         {
-            FileName = StreamUrl,
+            FileName = externalUrl,
             UseShellExecute = true
         });
     }

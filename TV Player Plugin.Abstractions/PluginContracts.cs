@@ -7,6 +7,30 @@ public interface IPlayerPlugin
     Version Version { get; }
 }
 
+/// <summary>Installed plugin that creates configured channel-provider instances.</summary>
+public interface IChannelProviderPlugin : IPlayerPlugin
+{
+    IReadOnlyList<PluginSettingDefinition> Settings { get; }
+    IChannelProvider CreateProvider(ProviderSourceConfiguration configuration);
+}
+
+/// <summary>A user-configured source created by a provider plugin.</summary>
+public sealed class ProviderSourceConfiguration
+{
+    public string Id { get; set; } = string.Empty;
+    public string Name { get; set; } = string.Empty;
+    public string PluginId { get; set; } = string.Empty;
+    public Dictionary<string, string> Settings { get; set; } = new(StringComparer.OrdinalIgnoreCase);
+}
+
+/// <summary>One text setting shown in the host's generic plugin-source form.</summary>
+public sealed record PluginSettingDefinition(
+    string Key,
+    string Label,
+    bool IsRequired = false,
+    string? DefaultValue = null,
+    string? Description = null);
+
 public interface IChannelProvider : IPlayerPlugin
 {
     Task<IReadOnlyList<ChannelInfo>> GetChannelsAsync(CancellationToken cancellationToken = default);

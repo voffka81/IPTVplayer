@@ -1,4 +1,6 @@
 using TV_Player.ViewModels;
+using TV_Player.Plugins;
+using TV_Player.Providers;
 
 namespace TV_Player.AvaloniaApp.ViewModels;
 
@@ -12,6 +14,11 @@ public class TVPlayerViewModel : IDisposable
     public MainWindowViewModel MainWindowViewModel => _mainWindowViewModel;
     public ProgramsData? CurrentProgramsData { get; private set; }
     public Dictionary<string, ProgramsData> PlayListsData { get; } = new();
+    public ChannelProviderRegistry ProviderRegistry { get; } = new();
+    public string PluginDirectory => Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "TVPlayer", "Plugins");
+    public string PluginLogPath => Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "TVPlayer", "Logs", "player.log");
+    public string DevelopmentPluginDirectory => Path.Combine(AppContext.BaseDirectory, "Plugins");
+    private bool _pluginsLoaded;
     public string? CurrentPlaylistName { get; private set; }
 
     private TVPlayerViewModel()
@@ -25,16 +32,52 @@ public class TVPlayerViewModel : IDisposable
         InitializeTVWithData();
     }
 
+    public void LoadProviderPlugins()
+    {
+        if (_pluginsLoaded)
+            return;
+
+        // Development builds copy the sample plugin and dependencies beside the app,
+        // so developers can rebuild and run without manually deploying DLLs.
+        ProviderRegistry.LoadPlugins(DevelopmentPluginDirectory, PluginDirectory);
+        _pluginsLoaded = true;
+    }
+
     public void InitializeTVWithData()
     {
+        LoadProviderPlugins();
+        foreach (var existingData in PlayListsData.Values)
+        {
+            try { existingData.Dispose(); } catch { }
+        }
+        PlayListsData.Clear();
+
         if (SettingsModel.Playlists is { Count: > 0 })
         {
-            PlayListsData.Clear();
             foreach (var playlist in SettingsModel.Playlists)
             {
                 PlayListsData[playlist.Key] = new ProgramsData(playlist.Key, playlist.Value);
             }
+        }
 
+        foreach (var source in SettingsModel.ProviderSources ?? new List<ProviderSourceConfiguration>())
+        {
+            try
+            {
+                if (PlayListsData.ContainsKey(source.Name))
+                    throw new InvalidOperationException($"A source named '{source.Name}' already exists.");
+
+                var provider = ProviderRegistry.CreateProvider(source);
+                PlayListsData[source.Name] = new ProgramsData(source.Name, provider);
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[TVPlayerViewModel] Could not initialize plugin source '{source.Name}': {ex.Message}");
+            }
+        }
+
+        if (PlayListsData.Count > 0)
+        {
             if (SettingsModel.StartFullScreen)
             {
                 FullScreenToggle();
@@ -170,5 +213,7 @@ public class TVPlayerViewModel : IDisposable
         {
             try { CurrentProgramsData.Dispose(); } catch { }
         }
+
+        ProviderRegistry.Dispose();
     }
 }
