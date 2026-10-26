@@ -118,6 +118,7 @@ public class TVPlayerViewModel : IDisposable
     public void ShowSettingsScreen()
     {
         TopPanelVisible(false, string.Empty);
+        _mainWindowViewModel.ContentMargin = new Avalonia.Thickness(14, 12);
         SetPageContext(new SettingsViewModel());
     }
 
@@ -125,6 +126,7 @@ public class TVPlayerViewModel : IDisposable
     {
         _mainWindowViewModel.IsTopPanelVisible = value;
         _mainWindowViewModel.TopPanelTitle = title;
+        _mainWindowViewModel.ContentMargin = value ? new Avalonia.Thickness(14, 12) : new Avalonia.Thickness(0);
     }
 
     public void FullScreenToggle()
