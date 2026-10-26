@@ -5,8 +5,8 @@
   <Grid>
     <ListBox ItemsSource="{Binding Programs}"
              Background="Transparent"
-             VerticalAlignment="Top"
-             Margin="0,50,0,0"
+             VerticalAlignment="Stretch"
+             Margin="0"
              BorderThickness="0"
              ScrollViewer.HorizontalScrollBarVisibility="Disabled"
              ScrollViewer.VerticalScrollBarVisibility="Auto">
@@ -17,17 +17,17 @@
       </ListBox.ItemsPanel>
       <ListBox.ItemTemplate>
         <DataTemplate>
-          <Button Width="106"
-                  Height="145"
-                  Margin="5"
-              Classes="legacy-card"
+          <Button Width="152"
+                  Height="144"
+                  Margin="7"
+              Classes="handheld-tile"
                   Command="{Binding DataContext.SelectProgramCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
                   CommandParameter="{Binding}">
             <Grid Margin="1" Background="Transparent" RowDefinitions="*,Auto">
-              <Image asyncImageLoader:ImageLoader.Source="{Binding Logo}" MaxWidth="100" Margin="0,0,0,10" Stretch="Uniform" />
+              <Image asyncImageLoader:ImageLoader.Source="{Binding Logo}" MaxWidth="120" Margin="0,0,0,10" Stretch="Uniform" />
               <TextBlock Grid.Row="1"
                          Text="{Binding Name}"
-                         FontSize="15"
+                         FontSize="16"
                          Foreground="White"
                          TextWrapping="Wrap"
                          TextAlignment="Center"

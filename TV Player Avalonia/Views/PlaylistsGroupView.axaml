@@ -2,7 +2,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              x:Class="TV_Player.AvaloniaApp.Views.PlaylistsGroupView"
              x:Name="Root">
-  <Grid VerticalAlignment="Center">
+  <Grid>
     <ListBox ItemsSource="{Binding Programs}"
              Background="Transparent"
              BorderThickness="0"
@@ -10,20 +10,20 @@
              ScrollViewer.VerticalScrollBarVisibility="Auto">
       <ListBox.ItemsPanel>
         <ItemsPanelTemplate>
-          <UniformGrid Columns="4" />
+          <WrapPanel Orientation="Horizontal" />
         </ItemsPanelTemplate>
       </ListBox.ItemsPanel>
       <ListBox.ItemTemplate>
         <DataTemplate>
-          <Button Width="150"
-                  Height="70"
-                  Margin="8,6"
-              Classes="legacy-card"
+          <Button Width="188"
+                  Height="108"
+                  Margin="7"
+              Classes="handheld-tile"
                   Command="{Binding DataContext.SelectPlaylistCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
                   CommandParameter="{Binding}">
             <TextBlock Text="{Binding Name}"
                    Foreground="White"
-                       FontSize="15"
+                       FontSize="19"
                        TextWrapping="Wrap"
                        HorizontalAlignment="Center"
                        VerticalAlignment="Center"

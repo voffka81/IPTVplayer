@@ -1,7 +1,7 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              x:Class="TV_Player.AvaloniaApp.Views.ProgramsGroupView">
-  <Grid VerticalAlignment="Center">
+  <Grid>
     <ListBox ItemsSource="{Binding Programs}"
              Background="Transparent"
              BorderThickness="0"
@@ -9,21 +9,21 @@
              ScrollViewer.VerticalScrollBarVisibility="Auto">
       <ListBox.ItemsPanel>
         <ItemsPanelTemplate>
-          <UniformGrid Columns="4" />
+          <WrapPanel Orientation="Horizontal" />
         </ItemsPanelTemplate>
       </ListBox.ItemsPanel>
       <ListBox.ItemTemplate>
         <DataTemplate>
-          <Button Width="150"
-                  Height="70"
-                  Margin="8,6"
-              Classes="legacy-card"
+          <Button Width="188"
+                  Height="108"
+                  Margin="7"
+              Classes="handheld-tile"
                   Command="{Binding DataContext.SelectGroupCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
                   CommandParameter="{Binding}">
             <Grid RowDefinitions="*,Auto" VerticalAlignment="Center" HorizontalAlignment="Stretch">
               <TextBlock Text="{Binding Name}"
                          Foreground="White"
-                         FontSize="15"
+                         FontSize="19"
                          TextWrapping="Wrap"
                          HorizontalAlignment="Center"
                          VerticalAlignment="Center"
@@ -31,8 +31,8 @@
                          Margin="4,0" />
               <TextBlock Text="{Binding Count}"
                          Grid.Row="1"
-                         Foreground="#FFF3A0"
-                         FontSize="10"
+                         Foreground="#91C9FF"
+                         FontSize="13"
                          HorizontalAlignment="Center"
                          Margin="0,0,0,2" />
             </Grid>
