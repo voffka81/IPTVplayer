@@ -178,9 +178,8 @@
             </StackPanel>
             <Border Background="#141F2E" BorderBrush="#273B53" BorderThickness="1" CornerRadius="13" Padding="16">
               <StackPanel Spacing="12">
-                <TextBlock Text="Playback engine" Foreground="#A9BDD5" FontSize="13" />
-                <ComboBox ItemsSource="{Binding PlaybackEngines}" SelectedItem="{Binding SelectedPlaybackEngine}" HorizontalAlignment="Left" MinWidth="220" />
-                <TextBlock Text="mpv requires native integration; VLC is currently used for video." Foreground="#7188A3" FontSize="12" TextWrapping="Wrap" />
+                <TextBlock Text="Active playback engine" Foreground="#A9BDD5" FontSize="13" />
+                <TextBlock Text="VLC" Foreground="#F5F8FF" FontSize="16" FontWeight="SemiBold" />
               </StackPanel>
             </Border>
             <Border Background="#141F2E" BorderBrush="#273B53" BorderThickness="1" CornerRadius="13" Padding="12">
