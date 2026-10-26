@@ -2,8 +2,13 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:asyncImageLoader="clr-namespace:AsyncImageLoader;assembly=AsyncImageLoader.Avalonia"
              x:Class="TV_Player.AvaloniaApp.Views.ProgramsListView">
-  <Grid>
-    <ListBox ItemsSource="{Binding Programs}"
+  <Grid RowDefinitions="Auto,*">
+    <TextBox Grid.Row="0"
+             Margin="7,0,7,8"
+             Watermark="Поиск каналов"
+             Text="{Binding SearchText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+    <ListBox Grid.Row="1"
+             ItemsSource="{Binding Programs}"
              Background="Transparent"
              VerticalAlignment="Stretch"
              Margin="0"

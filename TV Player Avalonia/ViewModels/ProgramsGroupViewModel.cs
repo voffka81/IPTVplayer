@@ -1,4 +1,5 @@
 using CommunityToolkit.Mvvm.Input;
+using Avalonia.Threading;
 using System.Windows.Input;
 using TV_Player.ViewModels;
 
@@ -7,6 +8,7 @@ namespace TV_Player.AvaloniaApp.ViewModels;
 public class ProgramsGroupViewModel : TV_Player.ObservableViewModelBase, IDisposable
 {
     private List<GroupInfo> _programs = new();
+    private List<GroupInfo> _allGroups = new();
     private readonly IDisposable _groupInformationSubscriber;
 
     public List<GroupInfo> Programs
@@ -16,6 +18,17 @@ public class ProgramsGroupViewModel : TV_Player.ObservableViewModelBase, IDispos
     }
 
     public ICommand SelectGroupCommand { get; }
+
+    private string _searchText = string.Empty;
+    public string SearchText
+    {
+        get => _searchText;
+        set
+        {
+            if (SetProperty(ref _searchText, value))
+                ApplyFilter();
+        }
+    }
 
     public ProgramsGroupViewModel()
     {
@@ -34,13 +47,22 @@ public class ProgramsGroupViewModel : TV_Player.ObservableViewModelBase, IDispos
             {
                 System.Diagnostics.Debug.WriteLine($"[ProgramsGroupViewModel.Subscribe] Received {groups.Count} groups from observable");
                 // Filter hidden groups but keep all others (including "undefined")
-                var filteredGroups = SettingsModel.HiddenGroups == null
+                _allGroups = SettingsModel.HiddenGroups == null
                     ? groups
                     : groups.Where(g => !SettingsModel.HiddenGroups.Contains(g.Name.ToLowerInvariant())).ToList();
                 
-                System.Diagnostics.Debug.WriteLine($"[ProgramsGroupViewModel] Groups after filter: {string.Join(", ", filteredGroups.Select(g => $"{g.Name}({g.Count})"))}");
-                Programs = filteredGroups;
+                Dispatcher.UIThread.Post(ApplyFilter);
             });
+    }
+
+    private void ApplyFilter()
+    {
+        var query = SearchText.Trim();
+        Programs = string.IsNullOrEmpty(query)
+            ? _allGroups
+            : _allGroups.Where(group => group.Name.Contains(query, StringComparison.CurrentCultureIgnoreCase)).ToList();
+
+        System.Diagnostics.Debug.WriteLine($"[ProgramsGroupViewModel] Groups after filter: {string.Join(", ", Programs.Select(g => $"{g.Name}({g.Count})"))}");
     }
 
     private void OnItemSelected(GroupInfo? group)
