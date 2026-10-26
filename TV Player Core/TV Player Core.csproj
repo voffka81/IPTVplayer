@@ -10,6 +10,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\\TV Player Plugin.Abstractions\\TV Player Plugin.Abstractions.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
     <PackageReference Include="System.Reactive" Version="6.0.2" />
   </ItemGroup>

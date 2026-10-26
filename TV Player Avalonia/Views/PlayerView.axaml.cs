@@ -141,7 +141,6 @@ public partial class PlayerView : UserControl
         if (string.IsNullOrWhiteSpace(_viewModel.StreamUrl))
         {
             Log("PlayCurrentStream aborted: empty StreamUrl");
-            _viewModel.SetPlaybackStatus("No stream URL available for this channel.");
             return;
         }
 
