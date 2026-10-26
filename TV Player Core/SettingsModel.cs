@@ -27,6 +27,7 @@ namespace TV_Player.ViewModels
         }
 
         public static Dictionary<string,string> Playlists { get; set; }
+        public static List<string> PlaylistOrder { get; set; } = new List<string>();
         public static List<ProviderSourceConfiguration> ProviderSources { get; set; } = new();
         public static bool StartFullScreen { get; set; } 
         public static bool StartFromLastScreen { get; set; } 
@@ -43,6 +44,7 @@ namespace TV_Player.ViewModels
             var dataToSerialize = new
             {
                 Playlists,
+                PlaylistOrder,
                 ProviderSources,
                 StartFromLastScreen,
                 StartFullScreen,
@@ -67,6 +69,7 @@ namespace TV_Player.ViewModels
             var loadedData = new
             {
                 Playlists = default(Dictionary<string,string>),
+                PlaylistOrder = default(List<string>),
                 ProviderSources = default(List<ProviderSourceConfiguration>),
                 LastScreen = default(string),
                 Group = default(GroupInfo),
@@ -83,7 +86,12 @@ namespace TV_Player.ViewModels
                 loadedData = JsonConvert.DeserializeAnonymousType(json, loadedData);
             }
             // Assign the values to the properties
-            Playlists = loadedData.Playlists;
+            Playlists = loadedData.Playlists ?? new Dictionary<string, string>();
+            PlaylistOrder = (loadedData.PlaylistOrder ?? new List<string>())
+                .Where(name => Playlists.ContainsKey(name))
+                .Distinct(StringComparer.Ordinal)
+                .Concat(Playlists.Keys.Where(name => !(loadedData.PlaylistOrder ?? new List<string>()).Contains(name, StringComparer.Ordinal)))
+                .ToList();
             ProviderSources = loadedData.ProviderSources ?? new List<ProviderSourceConfiguration>();
             LastScreen = loadedData.LastScreen;
             Group = loadedData.Group;

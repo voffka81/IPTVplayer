@@ -6,6 +6,7 @@
         public string Number { get; set; }
         public string TvgID { get; set; }
         public string TvgName { get; set; }
+        public string TvgCountry { get; set; } = string.Empty;
         public string GroupTitle { get; set; }
         public string Logo { get; set; }
         public string Name{ get; set; }

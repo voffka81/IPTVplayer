@@ -54,9 +54,13 @@ public class TVPlayerViewModel : IDisposable
 
         if (SettingsModel.Playlists is { Count: > 0 })
         {
-            foreach (var playlist in SettingsModel.Playlists)
+            var orderedNames = SettingsModel.PlaylistOrder
+                .Where(name => SettingsModel.Playlists.ContainsKey(name))
+                .Distinct(StringComparer.Ordinal)
+                .Concat(SettingsModel.Playlists.Keys.Where(name => !SettingsModel.PlaylistOrder.Contains(name, StringComparer.Ordinal)));
+            foreach (var name in orderedNames)
             {
-                PlayListsData[playlist.Key] = new ProgramsData(playlist.Key, playlist.Value);
+                PlayListsData[name] = new ProgramsData(name, SettingsModel.Playlists[name]);
             }
         }
 

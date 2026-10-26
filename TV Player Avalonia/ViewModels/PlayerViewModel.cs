@@ -183,7 +183,7 @@ public class PlayerViewModel : TV_Player.ObservableViewModelBase, IDisposable
             {
                 try
                 {
-                    _currentGuide = await TVPlayerViewModel.Instance.CurrentProgramsData.GetGuideByProgram(_currentProgram.TvgID);
+                    _currentGuide = await TVPlayerViewModel.Instance.CurrentProgramsData.GetGuideByProgram(_currentProgram);
                     UpdateScreenInfo();
                     _timer = Observable.Interval(TimeSpan.FromMinutes(1)).Subscribe(_ => UpdateScreenInfo());
                 }

@@ -1,5 +1,6 @@
 using CommunityToolkit.Mvvm.Input;
 using System.Windows.Input;
+using TV_Player.ViewModels;
 
 namespace TV_Player.AvaloniaApp.ViewModels;
 
@@ -17,8 +18,13 @@ public class PlaylistsGroupViewModel : TV_Player.ObservableViewModelBase
     public PlaylistsGroupViewModel()
     {
         SelectPlaylistCommand = new RelayCommand<GroupInfo>(OnItemSelected);
-        Programs = TVPlayerViewModel.Instance.PlayListsData
-            .Select(x => new GroupInfo { Name = x.Key, Count = 0 })
+        var playlists = TVPlayerViewModel.Instance.PlayListsData;
+        var orderedNames = SettingsModel.PlaylistOrder
+            .Where(playlists.ContainsKey)
+            .Distinct(StringComparer.Ordinal)
+            .Concat(playlists.Keys.Where(name => !SettingsModel.PlaylistOrder.Contains(name, StringComparer.Ordinal)));
+        Programs = orderedNames
+            .Select(name => new GroupInfo { Name = name, Count = 0 })
             .ToList();
     }
 

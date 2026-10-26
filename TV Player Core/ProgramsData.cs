@@ -16,6 +16,7 @@ namespace TV_Player
         public IObservable<Unit> ProgramGuideInfo => programGuideSubject;
 
         private readonly string _programName;
+        private string _programGuideLink = string.Empty;
         public IChannelProvider Provider { get; }
 
         public ProgramsData(string name,string playlistURL)
@@ -63,6 +64,7 @@ namespace TV_Player
                     if (Provider is IProgramGuideSource guideSource)
                         guideLink = guideSource.ProgramGuideUrl ?? string.Empty;
                 }
+                _programGuideLink = guideLink;
                 _cts.Token.ThrowIfCancellationRequested();
                 System.Diagnostics.Debug.WriteLine($"[ProgramsData] Downloaded {programs.Count} programs");
 
@@ -80,16 +82,7 @@ namespace TV_Player
                 groupsSubject.OnNext(groupping);
                 
                 if (!string.IsNullOrWhiteSpace(guideLink))
-                {
-                    try
-                    {
-                        await GetProgramGuide(name, guideLink);
-                    }
-                    catch (Exception ex) when (ex is not OperationCanceledException)
-                    {
-                        System.Diagnostics.Debug.WriteLine($"[ProgramsData] EPG download failed for '{name}': {ex.Message}");
-                    }
-                }
+                    programGuideSubject.OnNext(Unit.Default);
             }
             catch (Exception ex)
             {
@@ -100,15 +93,21 @@ namespace TV_Player
 
         public Task<ProgramGuide> GetGuideByProgram(string channelID)
         {
-            return M3UParser.ParseEpg(_programName,channelID);
+            return GetGuideByProgram(new M3UInfo { TvgID = channelID, TvgName = string.Empty, Name = string.Empty });
         }
 
-        private async Task GetProgramGuide(string name, string guideLink)
+        public async Task<ProgramGuide> GetGuideByProgram(M3UInfo channel)
         {
-            if (_cts.IsCancellationRequested) return;
-            //guideLink = "http://epg.da-tv.vip/107-light.xml";
-            await M3UParser.DownloadGuideFromWebAsync(name,guideLink);
-            programGuideSubject.OnNext(Unit.Default);
+            if (_cts.IsCancellationRequested || string.IsNullOrWhiteSpace(_programGuideLink))
+                return null;
+
+            var (guideUrl, cacheKey) = M3UParser.SelectGuideUrl(_programGuideLink, channel);
+            if (string.IsNullOrWhiteSpace(guideUrl))
+                return null;
+
+            await M3UParser.DownloadGuideFromWebAsync(_programName, guideUrl, cacheKey);
+            var names = new[] { channel.TvgName, channel.Name };
+            return await M3UParser.ParseEpg(_programName, channel.TvgID ?? string.Empty, names, cacheKey);
         }
         public void Dispose()
         {

@@ -6,6 +6,7 @@ using System.Security.Policy;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Xml;
+using System.Xml.Linq;
 
 namespace TV_Player
 {
@@ -47,9 +48,10 @@ namespace TV_Player
             return AppContext.BaseDirectory;
         }
 
-        public static async Task DownloadGuideFromWebAsync(string name, string url)
+        public static async Task DownloadGuideFromWebAsync(string name, string url, string? guideKey = null)
         {
-            var fileName = name + "_guide.xml";
+            var suffix = string.IsNullOrWhiteSpace(guideKey) ? string.Empty : "_" + guideKey;
+            var fileName = name + "_guide" + suffix + ".xml";
             string programDataPath = GetWritableAppDataFolder();
             string filePath = Path.Combine(programDataPath, "TVPlayer", fileName);
 
@@ -139,7 +141,10 @@ namespace TV_Player
             }
         }
 
-        public static async Task<ProgramGuide> ParseEpg(string groupName, string channelId)
+        public static Task<ProgramGuide> ParseEpg(string groupName, string channelId)
+            => ParseEpg(groupName, channelId, Array.Empty<string>());
+
+        public static async Task<ProgramGuide> ParseEpg(string groupName, string channelId, IReadOnlyCollection<string> channelNames, string? guideKey = null)
         {
             XmlReaderSettings settings = new XmlReaderSettings();
             settings.IgnoreWhitespace = true;
@@ -147,9 +152,9 @@ namespace TV_Player
             settings.DtdProcessing = DtdProcessing.Prohibit;
             settings.XmlResolver = null;
             settings.Async = true;
-            ProgramGuide channel = null;
 
-            var fileName = groupName + "_guide.xml";
+            var suffix = string.IsNullOrWhiteSpace(guideKey) ? string.Empty : "_" + guideKey;
+            var fileName = groupName + "_guide" + suffix + ".xml";
             string programDataPath = GetWritableAppDataFolder();
             string filePath = Path.Combine(programDataPath, "TVPlayer", fileName);
 
@@ -159,63 +164,90 @@ namespace TV_Player
                 return null;
             }
 
-            using (XmlReader reader = XmlReader.Create(filePath, settings))
+            try
             {
-                try
+                using var reader = XmlReader.Create(filePath, settings);
+                var document = await XDocument.LoadAsync(reader, LoadOptions.None, CancellationToken.None);
+                var channels = document.Root?.Elements("channel") ?? Enumerable.Empty<XElement>();
+                var requestedNames = channelNames
+                    .Where(value => !string.IsNullOrWhiteSpace(value))
+                    .Select(NormalizeChannelName)
+                    .Where(value => value.Length > 0)
+                    .ToHashSet(StringComparer.OrdinalIgnoreCase);
+
+                var matchedChannel = channels.FirstOrDefault(item =>
+                    string.Equals((string?)item.Attribute("id"), channelId, StringComparison.Ordinal));
+                matchedChannel ??= channels.FirstOrDefault(item => item.Elements("display-name")
+                    .Any(displayName => requestedNames.Contains(NormalizeChannelName(displayName.Value))));
+                if (matchedChannel == null)
+                    return null;
+
+                var matchedId = (string?)matchedChannel.Attribute("id") ?? string.Empty;
+                var channel = new ProgramGuide
                 {
-                    while (await reader.ReadAsync())
+                    Id = matchedId,
+                    DisplayName = matchedChannel.Elements("display-name").FirstOrDefault()?.Value ?? string.Empty
+                };
+
+                foreach (var item in document.Root?.Elements("programme") ?? Enumerable.Empty<XElement>())
+                {
+                    if (!string.Equals((string?)item.Attribute("channel"), matchedId, StringComparison.Ordinal) ||
+                        !TryParseXmlTvTimestamp((string?)item.Attribute("start"), out var startTime) ||
+                        !TryParseXmlTvTimestamp((string?)item.Attribute("stop"), out var endTime))
+                        continue;
+
+                    channel.Programs.Add(new ProgramInfo
                     {
-                        if (reader.NodeType == XmlNodeType.Element && reader.Name == "channel")
-                        {
-                            var id = reader.GetAttribute("id");
-                            if (id == channelId)
-                            {
-                                channel = new ProgramGuide
-                                {
-                                    Id = id
-                                };
-                                reader.Read();
-                                channel.DisplayName = reader.ReadElementContentAsString();
-                            }
-                            continue;
-                        }
-
-                        if (channel != null && reader.NodeType == XmlNodeType.Element && reader.Name == "programme")
-                        {
-                            ProgramInfo program = new ProgramInfo();
-
-                            var id = reader.GetAttribute("channel");
-                            if (id != channelId) continue;
-                            
-                            if (!TryParseXmlTvTimestamp(reader.GetAttribute("start"), out var startTime))
-                                continue;
-                            if (!TryParseXmlTvTimestamp(reader.GetAttribute("stop"), out var endTime))
-                                continue;
-                                
-                            program.StartTime = startTime;
-                            program.EndTime = endTime;
-
-                            reader.Read();
-                            program.Title = reader.ReadElementContentAsString();
-
-                            channel.Programs.Add(program);
-                        }
-                    }
+                        StartTime = startTime,
+                        EndTime = endTime,
+                        Title = item.Elements("title").FirstOrDefault()?.Value ?? string.Empty
+                    });
                 }
-                catch (XmlException ex)
-                {
-                    System.Diagnostics.Debug.WriteLine($"XML parsing error in EPG file: {ex.Message}");
-                }
-                catch (FileNotFoundException ex)
-                {
-                    System.Diagnostics.Debug.WriteLine($"EPG file not found: {ex.Message}");
-                }
-                catch (Exception ex)
-                {
-                    System.Diagnostics.Debug.WriteLine($"Unexpected error parsing EPG: {ex.Message}");
-                }
+
+                channel.Programs = channel.Programs.OrderBy(program => program.StartTime).ToList();
+                return channel;
             }
-            return channel;
+            catch (XmlException ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"XML parsing error in EPG file: {ex.Message}");
+            }
+            catch (FileNotFoundException ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"EPG file not found: {ex.Message}");
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Unexpected error parsing EPG: {ex.Message}");
+            }
+
+            return null;
+        }
+
+        private static string NormalizeChannelName(string value)
+            => new string(value.Where(char.IsLetterOrDigit).ToArray()).ToUpperInvariant();
+
+        public static (string url, string? cacheKey) SelectGuideUrl(string guideUrls, M3UInfo channel)
+        {
+            var urls = guideUrls.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+            if (urls.Length == 0)
+                return (string.Empty, null);
+            if (urls.Length == 1)
+                return (urls[0], null);
+
+            var country = channel.TvgCountry?.Trim();
+            if (string.IsNullOrWhiteSpace(country) && !string.IsNullOrWhiteSpace(channel.TvgID))
+                country = channel.TvgID.Split('.').LastOrDefault();
+
+            if (!string.IsNullOrWhiteSpace(country) && Regex.IsMatch(country, @"^[A-Za-z]{2,3}$"))
+            {
+                var countryUrl = urls.FirstOrDefault(url =>
+                    url.Contains($"_{country}1.xml", StringComparison.OrdinalIgnoreCase));
+                if (countryUrl != null)
+                    return (countryUrl, country.ToUpperInvariant());
+            }
+
+            System.Diagnostics.Debug.WriteLine($"No country-specific XMLTV URL found for '{channel.Name}' ({channel.TvgCountry}, {channel.TvgID}).");
+            return (string.Empty, null);
         }
 
         private static bool TryParseXmlTvTimestamp(string? value, out DateTime localTime)
@@ -388,6 +420,7 @@ namespace TV_Player
                 Number = GetAttribute("number"),
                 TvgID = GetAttribute("tvg-id"),
                 TvgName = GetAttribute("tvg-name"),
+                TvgCountry = GetAttribute("tvg-country"),
                 GroupTitle = string.IsNullOrEmpty(groupTitle) ? "undefined" : groupTitle,
                 Logo = GetAttribute("tvg-logo"),
                 Name = header[(commaIndex + 1)..].Trim(),
