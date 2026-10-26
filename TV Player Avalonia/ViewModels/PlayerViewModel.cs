@@ -20,6 +20,7 @@ public class PlayerViewModel : TV_Player.ObservableViewModelBase, IDisposable
     private bool _disposed;
 
     public ICommand BackCommand { get; }
+    public ICommand SettingsCommand { get; }
     public ICommand FullscreenCommand { get; }
     public ICommand NextCommand { get; }
     public ICommand PreviousCommand { get; }
@@ -108,6 +109,7 @@ public class PlayerViewModel : TV_Player.ObservableViewModelBase, IDisposable
     {
         _currentProgram = selectedProgram;
         BackCommand = new RelayCommand(OnButtonBackClick);
+        SettingsCommand = new RelayCommand(TVPlayerViewModel.Instance.ShowSettingsScreen);
         NextCommand = new RelayCommand(NextProgram);
         PreviousCommand = new RelayCommand(PreviousProgram);
         FullscreenCommand = new RelayCommand(TVPlayerViewModel.Instance.FullScreenToggle);
