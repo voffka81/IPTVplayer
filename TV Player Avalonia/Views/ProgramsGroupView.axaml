@@ -17,12 +17,12 @@
           <Button Width="150"
                   Height="70"
                   Margin="8,6"
-              Classes="card"
+              Classes="legacy-card"
                   Command="{Binding DataContext.SelectGroupCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
                   CommandParameter="{Binding}">
             <Grid RowDefinitions="*,Auto" VerticalAlignment="Center" HorizontalAlignment="Stretch">
               <TextBlock Text="{Binding Name}"
-                         Foreground="#111827"
+                         Foreground="White"
                          FontSize="15"
                          TextWrapping="Wrap"
                          HorizontalAlignment="Center"
@@ -31,7 +31,7 @@
                          Margin="4,0" />
               <TextBlock Text="{Binding Count}"
                          Grid.Row="1"
-                         Foreground="#6B7280"
+                         Foreground="#FFF3A0"
                          FontSize="10"
                          HorizontalAlignment="Center"
                          Margin="0,0,0,2" />

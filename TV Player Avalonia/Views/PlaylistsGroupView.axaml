@@ -18,11 +18,11 @@
           <Button Width="150"
                   Height="70"
                   Margin="8,6"
-              Classes="card"
+              Classes="legacy-card"
                   Command="{Binding DataContext.SelectPlaylistCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
                   CommandParameter="{Binding}">
             <TextBlock Text="{Binding Name}"
-                   Foreground="#111827"
+                   Foreground="White"
                        FontSize="15"
                        TextWrapping="Wrap"
                        HorizontalAlignment="Center"

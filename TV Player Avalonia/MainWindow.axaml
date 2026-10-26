@@ -10,9 +10,12 @@
         MinHeight="450"
         Title="TV"
         WindowState="{Binding CurrentWindowState}"
-        Background="#EEF1F5">
+        Background="#101820">
   <Grid RowDefinitions="Auto,*">
-    <Border IsVisible="{Binding IsTopPanelVisible}" Height="80" Background="#F8F9FB" BorderBrush="#E5E7EB" BorderThickness="0,0,0,1">
+    <Grid.Background>
+      <ImageBrush Source="/Assets/bkground.jpg" Stretch="UniformToFill" />
+    </Grid.Background>
+    <Border IsVisible="{Binding IsTopPanelVisible}" Height="80" Background="#99000000" BorderBrush="#66FFD600" BorderThickness="0,0,0,1">
       <Grid ColumnDefinitions="80,80,*,80,80">
         <Button Width="36" Height="36" Margin="16,0,0,0" Classes="icon-neutral" Foreground="#6B7280" Command="{Binding SettingsCommand}">
           <Viewbox Width="18" Height="18">
@@ -26,11 +29,11 @@
         </Button>
         <TextBlock Grid.Column="2"
                    Text="{Binding TopPanelTitle}"
-                   FontSize="22"
+                   FontSize="30"
                    FontWeight="SemiBold"
                    VerticalAlignment="Center"
                    HorizontalAlignment="Center"
-                   Foreground="#111827" />
+                   Foreground="White" />
         <Button Grid.Column="3" Width="36" Height="36" Margin="16,0,0,0" Classes="icon-neutral" Foreground="#6B7280" Command="{Binding FullscreenCommand}">
           <Viewbox Width="16" Height="16">
             <Path Fill="#6B7280" Data="M4 9V4H9V6H6V9H4M15 4H20V9H18V6H15V4M20 15V20H15V18H18V15H20M9 20H4V15H6V18H9V20Z" />
@@ -44,7 +47,7 @@
       </Grid>
     </Border>
 
-    <Border Grid.Row="1" Margin="12" CornerRadius="16" Background="#FFFFFF" BorderBrush="#E5E7EB" BorderThickness="1">
+    <Border Grid.Row="1" Margin="12" CornerRadius="16" Background="#88000000" BorderBrush="#66FFD600" BorderThickness="1">
       <ContentControl Content="{Binding CurrentViewModel}" Margin="12" />
     </Border>
   </Grid>
