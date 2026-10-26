@@ -89,6 +89,17 @@ public partial class PlayerView : UserControl
             _mediaPlayer.Stopped -= OnMediaPlayerStopped;
         }
 
+        // NativeControlHost may destroy its HWND after this UserControl detaches.
+        // Clear VideoView.MediaPlayer before disposing the native MediaPlayer;
+        // otherwise VideoView.Detach() can call libvlc_media_player_set_hwnd
+        // on an already-freed native pointer (0xC0000005).
+        var videoView = this.FindControl<LibVLCSharp.Avalonia.VideoView>("VideoView");
+        if (videoView != null)
+        {
+            videoView.MediaPlayer = null;
+            Log("VideoView.MediaPlayer detached before disposal");
+        }
+
         _mediaPlayer?.Stop();
         _bufferingWatchdogCts?.Cancel();
         _bufferingWatchdogCts?.Dispose();
