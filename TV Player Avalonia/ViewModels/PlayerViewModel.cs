@@ -68,8 +68,25 @@ public class PlayerViewModel : TV_Player.ObservableViewModelBase, IDisposable
     public bool IsProgramInfoVisible
     {
         get => _isProgramInfoVisible;
-        set => SetProperty(ref _isProgramInfoVisible, value);
+        set
+        {
+            if (SetProperty(ref _isProgramInfoVisible, value))
+                RaisePropertyChanged(nameof(ShowProgramInfo));
+        }
     }
+
+    private bool _isBuffering;
+    public bool IsBuffering
+    {
+        get => _isBuffering;
+        set
+        {
+            if (SetProperty(ref _isBuffering, value))
+                RaisePropertyChanged(nameof(ShowProgramInfo));
+        }
+    }
+
+    public bool ShowProgramInfo => IsProgramInfoVisible && !IsBuffering;
 
     private bool _programGuideVisible;
     public bool ProgramGuideVisible
@@ -153,6 +170,7 @@ public class PlayerViewModel : TV_Player.ObservableViewModelBase, IDisposable
         StreamUrl = string.Empty;
         FallbackStreamUrls = Array.Empty<string>();
         SetPlaybackStatus(string.Empty);
+        IsBuffering = true;
         _ = ResolveCurrentStreamAsync(_currentProgram, _resolveCts.Token);
         ProgramGuideVisible = false;
 
@@ -193,6 +211,7 @@ public class PlayerViewModel : TV_Player.ObservableViewModelBase, IDisposable
             {
                 if (token.IsCancellationRequested || _disposed) return;
                 FallbackStreamUrls = fallbackUrls;
+                IsBuffering = !string.IsNullOrWhiteSpace(url);
                 SetPlaybackStatus(string.IsNullOrWhiteSpace(url)
                     ? "No stream URL available for this channel."
                     : string.Empty);
@@ -206,7 +225,10 @@ public class PlayerViewModel : TV_Player.ObservableViewModelBase, IDisposable
             await Dispatcher.UIThread.InvokeAsync(() =>
             {
                 if (!token.IsCancellationRequested && !_disposed)
+                {
+                    IsBuffering = false;
                     SetPlaybackStatus($"Cannot resolve stream: {ex.Message}");
+                }
             });
         }
     }

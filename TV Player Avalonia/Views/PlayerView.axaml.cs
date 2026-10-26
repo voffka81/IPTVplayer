@@ -490,6 +490,7 @@ public partial class PlayerView : UserControl
             _bufferingWatchdogCts?.Cancel();
             Log("MediaPlayer event: Playing");
             _hasPlaybackStarted = true;
+            _viewModel.IsBuffering = false;
             ShowOverlay();
             _viewModel.SetPlaybackStatus(string.Empty);
         });
@@ -508,6 +509,7 @@ public partial class PlayerView : UserControl
 
             _bufferingWatchdogCts?.Cancel();
             _hasPlaybackStarted = false;
+            _viewModel.IsBuffering = false;
             ShowOverlay();
             _viewModel.SetPlaybackStatus("Playback error. The stream may be unavailable or unsupported.");
         });
@@ -523,6 +525,7 @@ public partial class PlayerView : UserControl
             _bufferingWatchdogCts?.Cancel();
             Log("MediaPlayer event: EndReached");
             _hasPlaybackStarted = false;
+            _viewModel.IsBuffering = false;
             ShowOverlay();
             _viewModel.SetPlaybackStatus("Stream ended.");
         });
