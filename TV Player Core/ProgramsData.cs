@@ -81,7 +81,7 @@ namespace TV_Player
                 }
                 groupsSubject.OnNext(groupping);
                 
-                if (!string.IsNullOrWhiteSpace(guideLink) || Provider is M3UChannelProvider)
+                if (!string.IsNullOrWhiteSpace(guideLink) || Provider is M3UChannelProvider || Provider is IChannelProgramGuideSource)
                     programGuideSubject.OnNext(Unit.Default);
             }
             catch (Exception ex)
@@ -98,7 +98,35 @@ namespace TV_Player
 
         public async Task<ProgramGuide> GetGuideByProgram(M3UInfo channel)
         {
-            if (_cts.IsCancellationRequested || string.IsNullOrWhiteSpace(_programGuideLink))
+            if (_cts.IsCancellationRequested)
+                return null;
+
+            var names = new[] { channel.TvgName, channel.Name }
+                .Where(name => !string.IsNullOrWhiteSpace(name))
+                .ToArray();
+            if (Provider is IChannelProgramGuideSource providerGuide)
+            {
+                var providerResult = await providerGuide.GetProgramGuideAsync(
+                    channel.ChannelId ?? channel.TvgID ?? string.Empty,
+                    names,
+                    _cts.Token);
+                if (providerResult == null)
+                    return null;
+
+                return new ProgramGuide
+                {
+                    Id = providerResult.Id,
+                    DisplayName = providerResult.DisplayName,
+                    Programs = providerResult.Programs.Select(program => new ProgramInfo
+                    {
+                        StartTime = program.StartTime,
+                        EndTime = program.EndTime,
+                        Title = program.Title
+                    }).ToList()
+                };
+            }
+
+            if (string.IsNullOrWhiteSpace(_programGuideLink))
                 return null;
 
             var (guideUrl, cacheKey) = M3UParser.SelectGuideUrl(_programGuideLink, channel);
@@ -106,7 +134,6 @@ namespace TV_Player
                 return null;
 
             await M3UParser.DownloadGuideFromWebAsync(_programName, guideUrl, cacheKey);
-            var names = new[] { channel.TvgName, channel.Name };
             return await M3UParser.ParseEpg(_programName, channel.TvgID ?? string.Empty, names, cacheKey);
         }
         public void Dispose()
