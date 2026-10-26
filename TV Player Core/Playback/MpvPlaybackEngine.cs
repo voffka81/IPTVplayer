@@ -100,8 +100,8 @@ public sealed class MpvPlaybackEngine : IPlaybackEngine, IVideoSurfacePlaybackEn
             Check(MpvNative.mpv_set_option_string(handle, "wid", _windowHandle.ToString(System.Globalization.CultureInfo.InvariantCulture)));
             Check(MpvNative.mpv_set_option_string(handle, "terminal", "no"));
             Check(MpvNative.mpv_initialize(handle));
+            Check(MpvNative.mpv_set_property_string(handle, "volume", _volume.ToString(System.Globalization.CultureInfo.InvariantCulture)));
             _mpv = handle;
-            Volume = _volume;
         }
         catch
         {
