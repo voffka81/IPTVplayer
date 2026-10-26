@@ -87,18 +87,20 @@
                 IsVisible="{Binding ChannelPickerVisible}">
           <StackPanel Spacing="6">
             <TextBlock Text="КАНАЛЫ В ГРУППЕ" Foreground="#91A6BF" FontSize="11" FontWeight="Bold" />
-            <ListBox Height="154"
+            <ListBox x:Name="ChannelPickerList"
+                     Height="82"
                      Classes="channel-picker-list"
                      ItemsSource="{Binding ChannelPickerItems}"
                      SelectedItem="{Binding SelectedChannelPickerItem, Mode=TwoWay}"
                      Background="Transparent"
                      BorderThickness="0"
+                     PointerWheelChanged="OnChannelPickerPointerWheelChanged"
                      ScrollViewer.HorizontalScrollBarVisibility="Auto"
                      ScrollViewer.VerticalScrollBarVisibility="Disabled">
               <ListBox.ItemContainerTheme>
                 <ControlTheme TargetType="ListBoxItem">
                   <Setter Property="Padding" Value="0" />
-                  <Setter Property="Margin" Value="3,0,5,0" />
+                  <Setter Property="Margin" Value="2,0,4,0" />
                   <Setter Property="Background" Value="Transparent" />
                   <Setter Property="BorderThickness" Value="0" />
                   <Setter Property="HorizontalContentAlignment" Value="Stretch" />
@@ -112,25 +114,25 @@
               <ListBox.ItemTemplate>
                 <DataTemplate>
                   <Border Classes="channel-picker-tile"
-                          Width="152"
-                          Height="144"
+                          Width="76"
+                          Height="72"
                           Background="#162130"
                           BorderBrush="#304054"
                           BorderThickness="1"
                           CornerRadius="12"
-                          Padding="12">
+                          Padding="6">
                     <Grid RowDefinitions="*,Auto">
                       <Image asyncImageLoader:ImageLoader.Source="{Binding Channel.Logo}"
-                             MaxWidth="108"
-                             Margin="0,0,0,8"
+                             MaxWidth="54"
+                             Margin="0,0,0,4"
                              Stretch="Uniform" />
                       <TextBlock Grid.Row="1"
                                  Text="{Binding Name}"
-                                 FontSize="14"
+                                 FontSize="10"
                                  Foreground="#F5F8FF"
                                  TextWrapping="Wrap"
                                  TextAlignment="Center"
-                                 MaxHeight="38"
+                                 MaxHeight="26"
                                  HorizontalAlignment="Center" />
                     </Grid>
                   </Border>
