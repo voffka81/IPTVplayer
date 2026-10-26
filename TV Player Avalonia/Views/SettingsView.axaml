@@ -63,6 +63,8 @@
       <Border Background="#FFFFFF" BorderBrush="#E5E7EB" BorderThickness="1" CornerRadius="12" Padding="16">
         <StackPanel Spacing="10">
           <TextBlock Foreground="#374151" FontSize="13" FontWeight="SemiBold" Text="Options" />
+          <TextBlock Foreground="#374151" FontSize="13" Text="Playback engine (mpv requires native integration; VLC is currently used for video)" />
+          <ComboBox ItemsSource="{Binding PlaybackEngines}" SelectedItem="{Binding SelectedPlaybackEngine}" Width="180" HorizontalAlignment="Left" />
           <CheckBox Foreground="#111827" FontSize="13" IsChecked="{Binding StartFullScreen}" Content="Start fullscreen" />
           <CheckBox Foreground="#111827" FontSize="13" IsChecked="{Binding StartLastScreen}" Content="Remember last channel" />
         </StackPanel>
