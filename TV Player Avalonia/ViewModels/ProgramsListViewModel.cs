@@ -10,6 +10,7 @@ public class ProgramsListViewModel : TV_Player.ObservableViewModelBase, IDisposa
     private readonly IDisposable _programSubscription;
     private ObservableCollection<M3UInfo> _programs = new();
     private List<M3UInfo> _allPrograms = new();
+    private CancellationTokenSource? _filterCancellation;
 
     public ObservableCollection<M3UInfo> Programs
     {
@@ -26,7 +27,7 @@ public class ProgramsListViewModel : TV_Player.ObservableViewModelBase, IDisposa
         set
         {
             if (SetProperty(ref _searchText, value))
-                ApplyFilter();
+                ScheduleFilter();
         }
     }
 
@@ -43,9 +44,31 @@ public class ProgramsListViewModel : TV_Player.ObservableViewModelBase, IDisposa
 
                 Dispatcher.UIThread.Post(() =>
                 {
-                    ApplyFilter();
+                    ScheduleFilter();
                 });
             });
+    }
+
+    private void ScheduleFilter()
+    {
+        _filterCancellation?.Cancel();
+        _filterCancellation?.Dispose();
+        var cancellation = _filterCancellation = new CancellationTokenSource();
+        _ = ApplyFilterAfterDelayAsync(cancellation.Token);
+    }
+
+    private async Task ApplyFilterAfterDelayAsync(CancellationToken cancellationToken)
+    {
+        try
+        {
+            await Task.Delay(180, cancellationToken);
+            await Dispatcher.UIThread.InvokeAsync(() =>
+            {
+                if (!cancellationToken.IsCancellationRequested)
+                    ApplyFilter();
+            });
+        }
+        catch (OperationCanceledException) { }
     }
 
     private void ApplyFilter()
@@ -68,6 +91,8 @@ public class ProgramsListViewModel : TV_Player.ObservableViewModelBase, IDisposa
 
     public void Dispose()
     {
+        _filterCancellation?.Cancel();
+        _filterCancellation?.Dispose();
         _programSubscription.Dispose();
     }
 }
