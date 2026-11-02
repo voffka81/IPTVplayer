@@ -9,14 +9,16 @@
       <CollectionView.ItemsLayout><GridItemsLayout x:Name="GroupGridLayout" Orientation="Vertical" Span="2" HorizontalItemSpacing="12" VerticalItemSpacing="12" /></CollectionView.ItemsLayout>
       <CollectionView.ItemTemplate>
         <DataTemplate>
-          <Button HeightRequest="108" Clicked="OnGroupClicked">
-            <Button.Content>
-              <VerticalStackLayout Spacing="4" VerticalOptions="Center">
-                <Label Text="{Binding Name}" FontSize="18" HorizontalTextAlignment="Center" />
-                <Label Text="{Binding Count}" FontSize="13" TextColor="#91C9FF" HorizontalTextAlignment="Center" />
-              </VerticalStackLayout>
-            </Button.Content>
-          </Button>
+          <Border HeightRequest="108" Padding="12,8" BackgroundColor="#162130" Stroke="#304054" StrokeThickness="1">
+            <Border.StrokeShape><RoundRectangle CornerRadius="12" /></Border.StrokeShape>
+            <Border.GestureRecognizers>
+              <TapGestureRecognizer Tapped="OnGroupTapped" />
+            </Border.GestureRecognizers>
+            <VerticalStackLayout Spacing="4" VerticalOptions="Center">
+              <Label Text="{Binding Name}" FontSize="18" HorizontalTextAlignment="Center" />
+              <Label Text="{Binding Count}" FontSize="13" TextColor="#91C9FF" HorizontalTextAlignment="Center" />
+            </VerticalStackLayout>
+          </Border>
         </DataTemplate>
       </CollectionView.ItemTemplate>
     </CollectionView>

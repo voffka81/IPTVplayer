@@ -44,9 +44,9 @@ public partial class ChannelPage : ContentPage
         .Where(channel => string.IsNullOrWhiteSpace(SearchEntry.Text) || channel.Name.Contains(SearchEntry.Text, StringComparison.CurrentCultureIgnoreCase))
         .Select(channel => new ChannelTile(channel.Name, channel.Logo, channel)).ToList();
 
-    private async void OnChannelClicked(object sender, EventArgs e)
+    private async void OnChannelTapped(object sender, TappedEventArgs e)
     {
-        if ((sender as Button)?.BindingContext is ChannelTile { Channel: not null } tile)
+        if ((sender as BindableObject)?.BindingContext is ChannelTile { Channel: not null } tile)
             await Navigation.PushAsync(new PlayerPage(tile.Channel, _allChannels));
     }
 }

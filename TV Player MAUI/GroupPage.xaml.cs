@@ -42,9 +42,9 @@ public partial class GroupPage : ContentPage
         .Where(group => string.IsNullOrWhiteSpace(SearchEntry.Text) || group.Name.Contains(SearchEntry.Text, StringComparison.CurrentCultureIgnoreCase))
         .ToList();
 
-    private async void OnGroupClicked(object sender, EventArgs e)
+    private async void OnGroupTapped(object sender, TappedEventArgs e)
     {
-        if ((sender as Button)?.BindingContext is GroupInfo group)
+        if ((sender as BindableObject)?.BindingContext is GroupInfo group)
             await Navigation.PushAsync(new ChannelPage(_session, group));
     }
 }
