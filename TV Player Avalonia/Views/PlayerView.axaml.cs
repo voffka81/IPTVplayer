@@ -14,6 +14,7 @@ using System.Web;
 using System.Runtime.InteropServices;
 using TV_Player.AvaloniaApp.Services;
 using TV_Player.AvaloniaApp.ViewModels;
+using TV_Player.Input;
 
 namespace TV_Player.AvaloniaApp.Views;
 
@@ -314,12 +315,7 @@ public partial class PlayerView : UserControl
         if (_viewModel == null || newlyPressed == 0)
             return;
 
-        var direction = (newlyPressed & dpadRight) != 0 ? 1 : -1;
-        if (_viewModel.ProgramGuideVisible)
-            ScrollProgramGuide(direction);
-        else
-            _viewModel.SwitchChannel(direction);
-        ShowOverlay();
+        DispatchHorizontalInput((newlyPressed & dpadRight) != 0 ? 1 : -1);
     }
 
     private void InstallKeyboardHook()
@@ -354,11 +350,7 @@ public partial class PlayerView : UserControl
                     {
                         if (_viewModel != null)
                         {
-                            var direction = key == VkRight ? 1 : -1;
-                            if (_viewModel.ProgramGuideVisible)
-                                ScrollProgramGuide(direction);
-                            else
-                                _viewModel.SwitchChannel(direction);
+                            DispatchHorizontalInput(key == VkRight ? 1 : -1);
                         }
                     });
                     return new IntPtr(1);
@@ -538,6 +530,42 @@ public partial class PlayerView : UserControl
             HideOverlay();
         else
             ShowOverlay();
+    }
+
+    private void DispatchHorizontalInput(int direction)
+    {
+        if (_viewModel == null) return;
+
+        var context = PlayerInputRouter.GetContext(
+            _viewModel.ProgramGuideVisible, _viewModel.ChannelPickerVisible);
+        var action = PlayerInputRouter.RouteHorizontal(direction, context);
+        switch (action.Action)
+        {
+            case PlayerInputAction.SwitchChannel:
+                _viewModel.SwitchChannel(action.Direction);
+                break;
+            case PlayerInputAction.MoveProgramGuide:
+                ScrollProgramGuide(action.Direction);
+                break;
+            case PlayerInputAction.MoveChannelPicker:
+                MoveChannelPicker(action.Direction);
+                break;
+        }
+
+        if (action.Action != PlayerInputAction.None)
+            ShowOverlay();
+    }
+
+    private void MoveChannelPicker(int direction)
+    {
+        if (_viewModel == null || _viewModel.ChannelPickerItems.Count == 0)
+            return;
+        var items = _viewModel.ChannelPickerItems;
+        var current = _viewModel.SelectedChannelPickerItem;
+        var index = current == null ? 0 : items.IndexOf(current);
+        var next = Math.Clamp(index + direction, 0, items.Count - 1);
+        _viewModel.SelectedChannelPickerItem = items[next];
+        ChannelPickerList.ScrollIntoView(items[next]);
     }
 
     private void ScrollProgramGuide(int direction)
