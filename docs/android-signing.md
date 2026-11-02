@@ -21,6 +21,10 @@ add that output and the passwords/alias as GitHub repository secrets under
 Settings → Secrets and variables → Actions. Never commit the keystore or its
 passwords.
 
-Increase `ApplicationVersion` in `TV Player MAUI.csproj` for every APK intended
-to update an earlier install. `ApplicationDisplayVersion` is the version shown
-to users.
+CI assigns each APK a larger Android version code from the GitHub Actions run
+number. `ApplicationDisplayVersion` in `TV Player MAUI.csproj` is the version
+shown to users. Local builds use the project `ApplicationVersion` value.
+
+The APK that was already installed before a persistent keystore was configured
+cannot be updated with the new key. Remove that test install once, then install
+the APK produced after the secrets are configured. Later APKs will update it.

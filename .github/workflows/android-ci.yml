@@ -52,24 +52,26 @@ jobs:
           ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
         shell: bash
         run: |
+          : "${ANDROID_KEYSTORE_BASE64:?Set repository secret ANDROID_KEYSTORE_BASE64 before building an installable APK}"
+          : "${ANDROID_KEYSTORE_PASSWORD:?Set repository secret ANDROID_KEYSTORE_PASSWORD}"
+          : "${ANDROID_KEY_ALIAS:?Set repository secret ANDROID_KEY_ALIAS}"
+          : "${ANDROID_KEY_PASSWORD:?Set repository secret ANDROID_KEY_PASSWORD}"
+
+          echo "$ANDROID_KEYSTORE_BASE64" | base64 --decode > "$RUNNER_TEMP/iptv-release.keystore"
+
           publish_args=(
             "TV Player MAUI/TV Player MAUI.csproj"
             --configuration Release
             --framework net10.0-android
             --property:AndroidPackageFormat=apk
+            --property:ApplicationVersion="$GITHUB_RUN_NUMBER"
             --output artifacts/android
+            --property:AndroidKeyStore=true
+            --property:AndroidSigningKeyStore="$RUNNER_TEMP/iptv-release.keystore"
+            --property:AndroidSigningKeyAlias="$ANDROID_KEY_ALIAS"
+            --property:AndroidSigningStorePass="$ANDROID_KEYSTORE_PASSWORD"
+            --property:AndroidSigningKeyPass="$ANDROID_KEY_PASSWORD"
           )
-
-          if [[ -n "$ANDROID_KEYSTORE_BASE64" ]]; then
-            echo "$ANDROID_KEYSTORE_BASE64" | base64 --decode > "$RUNNER_TEMP/iptv-release.keystore"
-            publish_args+=(
-              --property:AndroidKeyStore=true
-              --property:AndroidSigningKeyStore="$RUNNER_TEMP/iptv-release.keystore"
-              --property:AndroidSigningKeyAlias="$ANDROID_KEY_ALIAS"
-              --property:AndroidSigningStorePass="$ANDROID_KEYSTORE_PASSWORD"
-              --property:AndroidSigningKeyPass="$ANDROID_KEY_PASSWORD"
-            )
-          fi
 
           dotnet publish "${publish_args[@]}"
 

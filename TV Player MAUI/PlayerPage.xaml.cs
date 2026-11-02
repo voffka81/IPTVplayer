@@ -14,6 +14,7 @@ public partial class PlayerPage : ContentPage
     private readonly ProgramsData _sourceData;
     private CancellationTokenSource? _hideUiToken;
     private CancellationTokenSource? _guideLoadToken;
+    private CancellationTokenSource? _playbackRequestToken;
     private System.Threading.Timer? _guideRefreshTimer;
     private bool _isClosing;
 
@@ -25,15 +26,87 @@ public partial class PlayerPage : ContentPage
         ClockLabel.Text = DateTime.Now.ToString("HH:mm");
         foreach (var item in channels)
         {
-            var button = new Button { Text = item.Name, WidthRequest = 112, HeightRequest = 76, FontSize = 12, LineBreakMode = LineBreakMode.TailTruncation };
-            button.Clicked += (_, _) =>
-            {
-                ChannelPicker.IsVisible = false;
-                PlayChannel(item);
-            };
-            ChannelPickerItems.Children.Add(button);
+            ChannelPickerItems.Children.Add(CreateChannelPickerTile(item));
         }
         PlayChannel(channel);
+    }
+
+    private View CreateChannelPickerTile(M3UInfo channel)
+    {
+        var logoFallback = new Label
+        {
+            Text = string.IsNullOrWhiteSpace(channel.Name) ? "TV" : channel.Name[..Math.Min(channel.Name.Length, 2)].ToUpperInvariant(),
+            FontSize = 20,
+            FontAttributes = FontAttributes.Bold,
+            TextColor = Color.FromArgb("#8DD2FF"),
+            HorizontalTextAlignment = TextAlignment.Center,
+            VerticalTextAlignment = TextAlignment.Center
+        };
+        var logoContainer = new Grid { HeightRequest = 44, WidthRequest = 76 };
+        logoContainer.Children.Add(logoFallback);
+
+        if (Uri.TryCreate(channel.Logo, UriKind.Absolute, out var logoUri) &&
+            (logoUri.Scheme == Uri.UriSchemeHttp || logoUri.Scheme == Uri.UriSchemeHttps))
+        {
+            logoContainer.Children.Add(new Image
+            {
+                Source = new UriImageSource
+                {
+                    Uri = logoUri,
+                    CachingEnabled = true,
+                    CacheValidity = TimeSpan.FromDays(7)
+                },
+                Aspect = Aspect.AspectFit,
+                InputTransparent = true
+            });
+        }
+
+        var nameLabel = new Label
+        {
+            Text = channel.Name,
+            FontSize = 12,
+            LineBreakMode = LineBreakMode.TailTruncation,
+            MaxLines = 2,
+            HorizontalTextAlignment = TextAlignment.Center,
+            VerticalTextAlignment = TextAlignment.Center
+        };
+        var content = new VerticalStackLayout
+        {
+            Spacing = 4,
+            HorizontalOptions = LayoutOptions.Fill,
+            VerticalOptions = LayoutOptions.Fill,
+            InputTransparent = true,
+            Children = { logoContainer, nameLabel }
+        };
+        var tile = new Border
+        {
+            WidthRequest = 112,
+            HeightRequest = 88,
+            Padding = new Thickness(8, 5),
+            BackgroundColor = Color.FromArgb("#162130"),
+            Stroke = Color.FromArgb("#304054"),
+            StrokeThickness = 1,
+            StrokeShape = new Microsoft.Maui.Controls.Shapes.RoundRectangle { CornerRadius = 10 },
+            Content = new Grid { Children = { content } }
+        };
+        var button = new Button
+        {
+            BackgroundColor = Colors.Transparent,
+            BorderColor = Colors.Transparent,
+            BorderWidth = 0,
+            CornerRadius = 10,
+            Padding = 0,
+            Text = string.Empty
+        };
+        button.Clicked += (_, _) =>
+        {
+            ChannelPicker.IsVisible = false;
+            PlayChannel(channel);
+        };
+        button.Focused += (_, _) => tile.Stroke = Color.FromArgb("#55B9FF");
+        button.Unfocused += (_, _) => tile.Stroke = Color.FromArgb("#304054");
+        ((Grid)tile.Content).Children.Add(button);
+        return tile;
     }
 
     protected override void OnAppearing()
@@ -64,6 +137,13 @@ public partial class PlayerPage : ContentPage
 
     private async void PlayChannel(M3UInfo channel)
     {
+        if (_isClosing) return;
+
+        _playbackRequestToken?.Cancel();
+        _playbackRequestToken?.Dispose();
+        _playbackRequestToken = new CancellationTokenSource();
+        var playbackToken = _playbackRequestToken.Token;
+
         _ = LoadProgramGuideAsync(channel);
         var streamUrl = channel.Url;
         if (string.IsNullOrWhiteSpace(streamUrl) &&
@@ -73,15 +153,19 @@ public partial class PlayerPage : ContentPage
             StatusLabel.Text = "Получение потока…";
             try
             {
-                var resolved = await _sourceData.Provider.ResolveStreamAsync(channel.ChannelId);
+                var resolved = await _sourceData.Provider.ResolveStreamAsync(channel.ChannelId, playbackToken);
+                if (playbackToken.IsCancellationRequested || _isClosing) return;
                 streamUrl = resolved.PrimaryUrl;
             }
+            catch (OperationCanceledException) when (playbackToken.IsCancellationRequested) { return; }
             catch (Exception ex)
             {
+                if (playbackToken.IsCancellationRequested || _isClosing) return;
                 StatusLabel.Text = $"Не удалось получить поток: {ex.Message}";
                 return;
             }
         }
+        if (playbackToken.IsCancellationRequested || _isClosing) return;
         if (string.IsNullOrWhiteSpace(streamUrl))
         {
             StatusLabel.Text = "Для этого канала нет ссылки на поток.";
@@ -149,7 +233,10 @@ public partial class PlayerPage : ContentPage
         _isClosing = true;
         _hideUiToken?.Cancel();
         _guideLoadToken?.Cancel();
+        _playbackRequestToken?.Cancel();
         _guideRefreshTimer?.Dispose();
+
+        StopAndDetachVideo();
 
         try
         {
@@ -362,5 +449,21 @@ public partial class PlayerPage : ContentPage
         catch (Exception ex) { System.Diagnostics.Debug.WriteLine($"Failed to dispose media player: {ex.Message}"); }
         try { libVlc?.Dispose(); }
         catch (Exception ex) { System.Diagnostics.Debug.WriteLine($"Failed to dispose LibVLC: {ex.Message}"); }
+    }
+
+    private void StopAndDetachVideo()
+    {
+        try { _mediaPlayer?.Stop(); }
+        catch (Exception ex) { System.Diagnostics.Debug.WriteLine($"Failed to stop media before leaving: {ex.Message}"); }
+
+        try
+        {
+            if (VideoPlayer.VideoView != null)
+                VideoPlayer.VideoView.MediaPlayer = null;
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"Failed to detach video surface: {ex.Message}");
+        }
     }
 }
