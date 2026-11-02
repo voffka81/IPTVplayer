@@ -23,6 +23,7 @@ public partial class PlayerView : UserControl
 {
     private readonly DispatcherTimer _clockTimer = new() { Interval = TimeSpan.FromSeconds(10) };
     private readonly DispatcherTimer _overlayTimer = new() { Interval = TimeSpan.FromSeconds(5) };
+    private readonly DispatcherTimer _playbackUiTimer = new() { Interval = TimeSpan.FromMilliseconds(250) };
     private bool _overlayVisible = true;
     private bool _hasPlaybackStarted;
     private readonly PlaybackSession _playbackSession = new();
@@ -109,6 +110,7 @@ public partial class PlayerView : UserControl
         MasterVolumePanel.IsVisible = OperatingSystem.IsWindows();
         PlayerClock.Text = DateTime.Now.ToString("HH:mm");
         _clockTimer.Tick += (_, _) => PlayerClock.Text = DateTime.Now.ToString("HH:mm");
+        _playbackUiTimer.Tick += (_, _) => ReconcilePlayingUi();
         SizeChanged += OnPlayerSizeChanged;
         UpdateResponsiveControls(Bounds.Size);
         _overlayTimer.Tick += OnOverlayTimerTick;
@@ -276,6 +278,7 @@ public partial class PlayerView : UserControl
             Log("VideoView.MediaPlayer detached before disposal");
         }
 
+        _playbackUiTimer.Stop();
         _playbackEngine?.DisposeAsync().AsTask().GetAwaiter().GetResult();
         _playbackEngine = null;
         _bufferingWatchdogCts?.Cancel();
@@ -490,6 +493,7 @@ public partial class PlayerView : UserControl
             return;
 
         _hasPlaybackStarted = true;
+        _playbackUiTimer.Stop();
         _bufferingWatchdogCts?.Cancel();
         _playbackSession.TryTransition(_playbackSession.Generation, PlaybackSessionState.Playing);
         _viewModel.IsBuffering = false;
@@ -683,6 +687,7 @@ public partial class PlayerView : UserControl
             Log($"PlayCurrentStream start. Url={FormatUrlForLog(streamUrl)}");
             _hasPlaybackStarted = false;
             _viewModel.IsBuffering = true;
+            _playbackUiTimer.Start();
             ShowOverlay();
             _activeStreamUrl = streamUrl;
             _fallbackStreamUrls = _viewModel.FallbackStreamUrls;
@@ -792,6 +797,7 @@ public partial class PlayerView : UserControl
         _playbackSession.TryTransition(_playbackSession.Generation, PlaybackSessionState.Recovering);
         _hasPlaybackStarted = false;
         _viewModel.IsBuffering = true;
+        _playbackUiTimer.Start();
         ShowOverlay();
         _fallbackAttempted = false;
         Log($"Trying alternate stream URL {_fallbackStreamIndex}/{_fallbackStreamUrls.Count}: {FormatUrlForLog(fallbackUrl)}");
@@ -840,6 +846,7 @@ public partial class PlayerView : UserControl
             _bufferingWatchdogCts?.Cancel();
             Log($"MediaPlayer event: Playing. audioTracks={_mediaPlayer?.AudioTrackCount}, audioTrack={_mediaPlayer?.AudioTrack}, volume={_mediaPlayer?.Volume}, muted={_mediaPlayer?.Mute}");
             _hasPlaybackStarted = true;
+            _playbackUiTimer.Stop();
             _playbackSession.TryTransition(_playbackSession.Generation, PlaybackSessionState.Playing);
             _viewModel.IsBuffering = false;
             ShowOverlay();
@@ -864,6 +871,7 @@ public partial class PlayerView : UserControl
 
             _bufferingWatchdogCts?.Cancel();
             _hasPlaybackStarted = false;
+            _playbackUiTimer.Stop();
             _playbackSession.TryTransition(_playbackSession.Generation, PlaybackSessionState.Error);
             _viewModel.IsBuffering = false;
             ShowOverlay();
@@ -885,6 +893,7 @@ public partial class PlayerView : UserControl
             _bufferingWatchdogCts?.Cancel();
             Log("MediaPlayer event: EndReached");
             _hasPlaybackStarted = false;
+            _playbackUiTimer.Stop();
             _viewModel.IsBuffering = false;
             ShowOverlay();
             _playbackSession.TryTransition(_playbackSession.Generation, PlaybackSessionState.Ended);
