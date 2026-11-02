@@ -484,7 +484,7 @@ public partial class PlayerView : UserControl
             return;
         }
 
-        if (_hasPlaybackStarted)
+        if (_playbackUi.CanAutoHideOverlay)
             HideOverlay();
     }
 
@@ -511,13 +511,13 @@ public partial class PlayerView : UserControl
         _overlayVisible = true;
         OverlayPanel.IsVisible = true;
         _overlayTimer.Stop();
-        if (_hasPlaybackStarted)
+        if (_playbackUi.CanAutoHideOverlay)
             _overlayTimer.Start();
     }
 
     private void HideOverlay()
     {
-        if (!_hasPlaybackStarted)
+        if (!_playbackUi.CanAutoHideOverlay)
         {
             ShowOverlay();
             return;
