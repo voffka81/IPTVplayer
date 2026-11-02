@@ -1,0 +1,28 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0-android</TargetFramework>
+    <OutputType>Exe</OutputType>
+    <RootNamespace>TV_Player.Maui</RootNamespace>
+    <UseMaui>true</UseMaui>
+    <SingleProject>true</SingleProject>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <ApplicationTitle>IPTV Player</ApplicationTitle>
+    <ApplicationId>com.voffka81.iptvplayer</ApplicationId>
+    <ApplicationDisplayVersion>2.0.0</ApplicationDisplayVersion>
+    <ApplicationVersion>2</ApplicationVersion>
+    <AndroidMinSdkVersion>23</AndroidMinSdkVersion>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.0" />
+    <PackageReference Include="LibVLCSharp" Version="3.9.6" />
+    <PackageReference Include="LibVLCSharp.MAUI" Version="3.9.6" />
+    <PackageReference Include="Microsoft.Maui.Controls" Version="10.0.110" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
+    <PackageReference Include="System.Reactive" Version="6.0.2" />
+    <PackageReference Include="VideoLAN.LibVLC.Android" Version="3.6.5" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\TV Player Core\TV Player Core.csproj" />
+  </ItemGroup>
+</Project>

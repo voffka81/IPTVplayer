@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="TV_Player.Maui.GroupPage"
+             Title="Группы">
+  <Grid RowDefinitions="Auto,*" RowSpacing="12">
+    <Entry x:Name="SearchEntry" Placeholder="Поиск групп" TextChanged="OnSearchChanged" />
+    <CollectionView x:Name="GroupsView" Grid.Row="1" SelectionMode="None">
+      <CollectionView.ItemsLayout><GridItemsLayout x:Name="GroupGridLayout" Orientation="Vertical" Span="2" HorizontalItemSpacing="12" VerticalItemSpacing="12" /></CollectionView.ItemsLayout>
+      <CollectionView.ItemTemplate>
+        <DataTemplate>
+          <Button HeightRequest="108" Clicked="OnGroupClicked">
+            <VerticalStackLayout Spacing="4" VerticalOptions="Center">
+              <Label Text="{Binding Name}" FontSize="18" HorizontalTextAlignment="Center" />
+              <Label Text="{Binding Count}" FontSize="13" TextColor="#91C9FF" HorizontalTextAlignment="Center" />
+            </VerticalStackLayout>
+          </Button>
+        </DataTemplate>
+      </CollectionView.ItemTemplate>
+    </CollectionView>
+  </Grid>
+</ContentPage>

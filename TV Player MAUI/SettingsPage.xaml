@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="TV_Player.Maui.SettingsPage"
+             Title="Настройки">
+  <ScrollView>
+    <VerticalStackLayout Spacing="14" Padding="4,10">
+      <Label Text="Плейлисты" FontSize="22" FontAttributes="Bold" />
+      <Entry x:Name="NameEntry" Placeholder="Название плейлиста" />
+      <Entry x:Name="UrlEntry" Placeholder="Ссылка M3U (HTTP или HTTPS)" Keyboard="Url" />
+      <Button Text="Добавить плейлист" Clicked="OnAddClicked" />
+      <Label x:Name="StatusLabel" TextColor="#8DD2FF" />
+      <CollectionView x:Name="PlaylistView" HeightRequest="400" SelectionMode="None">
+        <CollectionView.ItemTemplate>
+          <DataTemplate>
+            <Grid ColumnDefinitions="*,Auto" Padding="8" BackgroundColor="#162130">
+              <VerticalStackLayout>
+                <Label Text="{Binding Name}" FontAttributes="Bold" />
+                <Label Text="{Binding Url}" FontSize="12" TextColor="#91A6BF" LineBreakMode="TailTruncation" />
+              </VerticalStackLayout>
+              <Button Grid.Column="1" Text="Удалить" Clicked="OnDeleteClicked" />
+            </Grid>
+          </DataTemplate>
+        </CollectionView.ItemTemplate>
+      </CollectionView>
+      <Button Text="Сохранить" Clicked="OnSaveClicked" />
+    </VerticalStackLayout>
+  </ScrollView>
+</ContentPage>

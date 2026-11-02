@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="TV_Player.Maui.ChannelPage"
+             Title="Каналы">
+  <Grid RowDefinitions="Auto,*" RowSpacing="12">
+    <Entry x:Name="SearchEntry" Placeholder="Поиск каналов" TextChanged="OnSearchChanged" />
+    <CollectionView x:Name="ChannelsView" Grid.Row="1" SelectionMode="None">
+      <CollectionView.ItemsLayout><GridItemsLayout x:Name="ChannelGridLayout" Orientation="Vertical" Span="3" HorizontalItemSpacing="10" VerticalItemSpacing="12" /></CollectionView.ItemsLayout>
+      <CollectionView.ItemTemplate>
+        <DataTemplate>
+          <Button HeightRequest="142" Padding="8" Clicked="OnChannelClicked">
+            <Grid RowDefinitions="*,Auto" RowSpacing="6">
+              <Image Source="{Binding Logo}" HeightRequest="82" WidthRequest="100" Aspect="AspectFit" />
+              <Label Grid.Row="1" Text="{Binding Name}" FontSize="15" LineBreakMode="WordWrap" MaxLines="2" HorizontalTextAlignment="Center" VerticalTextAlignment="Center" />
+            </Grid>
+          </Button>
+        </DataTemplate>
+      </CollectionView.ItemTemplate>
+    </CollectionView>
+  </Grid>
+</ContentPage>

@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="TV_Player.Maui.PlaylistPage"
+             Title="IPTV Player">
+  <Grid RowDefinitions="Auto,*" RowSpacing="14">
+    <Grid ColumnDefinitions="*,Auto,Auto" Padding="4,8">
+      <Label Text="IPTV Player" FontSize="25" FontAttributes="Bold" VerticalOptions="Center" />
+      <Label x:Name="ClockLabel" Grid.Column="1" FontSize="18" VerticalOptions="Center" Margin="0,0,8,0" />
+      <Button Grid.Column="2" Text="⚙" WidthRequest="48" HeightRequest="48" Padding="0" Clicked="OnSettingsClicked" />
+    </Grid>
+    <CollectionView x:Name="SourcesView" Grid.Row="1" ItemsSource="{Binding Sources}" SelectionMode="None">
+      <CollectionView.ItemsLayout><GridItemsLayout Orientation="Vertical" Span="2" HorizontalItemSpacing="12" VerticalItemSpacing="12" /></CollectionView.ItemsLayout>
+      <CollectionView.ItemTemplate>
+        <DataTemplate>
+          <Button Text="{Binding Name}" HeightRequest="108" FontSize="19" Clicked="OnSourceClicked" />
+        </DataTemplate>
+      </CollectionView.ItemTemplate>
+    </CollectionView>
+  </Grid>
+</ContentPage>
