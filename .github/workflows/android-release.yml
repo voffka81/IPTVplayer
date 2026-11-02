@@ -134,8 +134,12 @@ jobs:
         run: |
           set -euo pipefail
           if gh release view "$RELEASE_TAG" >/dev/null 2>&1; then
-            echo "Release $RELEASE_TAG already exists; refusing to replace a published release." >&2
-            exit 1
+            existing_is_draft=$(gh release view "$RELEASE_TAG" --json isDraft --jq .isDraft)
+            if [[ "$existing_is_draft" != "true" ]]; then
+              echo "Release $RELEASE_TAG is already published; refusing to replace it." >&2
+              exit 1
+            fi
+            gh release delete "$RELEASE_TAG" --yes --cleanup-tag
           fi
           gh release create "$RELEASE_TAG" \
             "artifacts/release/IPTVplayer-android-${RELEASE_VERSION}.apk" \

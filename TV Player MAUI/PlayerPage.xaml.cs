@@ -113,6 +113,7 @@ public partial class PlayerPage : ContentPage
     protected override void OnAppearing()
     {
         base.OnAppearing();
+        PrivacyOverlay.IsVisible = false;
 #if ANDROID
         MainActivity.AppPausing += OnApplicationPausing;
         MainActivity.AppResumed += OnApplicationResumed;
@@ -305,11 +306,28 @@ public partial class PlayerPage : ContentPage
         }
     }
 
-    private void OnPickerClicked(object sender, EventArgs e)
+    private async void OnPickerClicked(object sender, EventArgs e)
     {
         ChannelPicker.IsVisible = !ChannelPicker.IsVisible;
         ProgramGuideList.IsVisible = false;
         ShowPlayerUi();
+        if (ChannelPicker.IsVisible)
+            await ScrollSelectedChannelIntoViewAsync();
+    }
+
+    private async Task ScrollSelectedChannelIntoViewAsync()
+    {
+        for (var attempt = 0; attempt < 8 && ChannelPicker.ContentSize.Width <= ChannelPicker.Width; attempt++)
+            await Task.Delay(50);
+        var selectedTile = _channelPickerTiles
+            .Where(item => IsSameChannel(item.Channel, _selectedChannel))
+            .Select(item => item.Tile)
+            .FirstOrDefault();
+        if (selectedTile == null || ChannelPicker.Width <= 0) return;
+
+        var maxOffset = Math.Max(0, ChannelPicker.ContentSize.Width - ChannelPicker.Width);
+        var offset = Math.Clamp(selectedTile.X + selectedTile.Width / 2 - ChannelPicker.Width / 2, 0, maxOffset);
+        await ChannelPicker.ScrollToAsync(offset, 0, animated: false);
     }
 
     private void OnGuideInfoTapped(object? sender, TappedEventArgs e)
@@ -496,29 +514,44 @@ public partial class PlayerPage : ContentPage
 
     private void OnApplicationPausing()
     {
-        _wasPlayingBeforeAppSwitch = _currentMedia != null && _mediaPlayer != null &&
-            _mediaPlayer.State is not (VLCState.Stopped or VLCState.Ended or VLCState.Error);
+        _wasPlayingBeforeAppSwitch = _currentMedia != null && _mediaPlayer?.State is VLCState.Playing or VLCState.Buffering;
+        if (_wasPlayingBeforeAppSwitch)
+            _mediaPlayer?.Pause();
         PrivacyOverlay.IsVisible = true;
     }
 
     private void OnApplicationResumed()
     {
-        PrivacyOverlay.IsVisible = false;
-        if (!_wasPlayingBeforeAppSwitch || _isClosing) return;
+        if (!_wasPlayingBeforeAppSwitch || _isClosing)
+        {
+            PrivacyOverlay.IsVisible = false;
+            return;
+        }
         _wasPlayingBeforeAppSwitch = false;
         _ = ResumePlaybackAfterAppSwitchAsync();
     }
 
     private async Task ResumePlaybackAfterAppSwitchAsync()
     {
-        await Task.Delay(250);
+        await Task.Delay(200);
         if (_isClosing || _mediaPlayer == null || _currentMedia == null) return;
+
+        if (VideoPlayer.VideoView is { } videoView)
+        {
+            videoView.MediaPlayer = null;
+            videoView.MediaPlayer = _mediaPlayer;
+        }
+
         if (_mediaPlayer.State is VLCState.Stopped or VLCState.Ended or VLCState.Error)
             _mediaPlayer.Play(_currentMedia);
         else if (_mediaPlayer.State == VLCState.Paused)
             _mediaPlayer.Play();
-        await Task.Delay(150);
-        await MainThread.InvokeOnMainThreadAsync(RefreshVideoSurfaceSize);
+        await Task.Delay(250);
+        await MainThread.InvokeOnMainThreadAsync(() =>
+        {
+            RefreshVideoSurfaceSize();
+            PrivacyOverlay.IsVisible = false;
+        });
     }
 
     private void DisposePlayback()
