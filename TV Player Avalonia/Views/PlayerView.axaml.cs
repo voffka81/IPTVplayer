@@ -15,6 +15,7 @@ using System.Runtime.InteropServices;
 using TV_Player.AvaloniaApp.Services;
 using TV_Player.AvaloniaApp.ViewModels;
 using TV_Player.Input;
+using TV_Player.Playback;
 
 namespace TV_Player.AvaloniaApp.Views;
 
@@ -24,6 +25,7 @@ public partial class PlayerView : UserControl
     private readonly DispatcherTimer _overlayTimer = new() { Interval = TimeSpan.FromSeconds(5) };
     private bool _overlayVisible = true;
     private bool _hasPlaybackStarted;
+    private readonly PlaybackSession _playbackSession = new();
     private LibVLC? _libVlc;
     private MediaPlayer? _mediaPlayer;
     private Media? _currentMedia;
@@ -241,6 +243,7 @@ public partial class PlayerView : UserControl
     private void OnDetachedFromVisualTree(object? sender, Avalonia.VisualTreeAttachmentEventArgs e)
     {
         _attachmentGeneration++;
+        _playbackSession.Reset();
         _initializing = false;
         _clockTimer.Stop();
         _overlayTimer.Stop();
@@ -658,6 +661,7 @@ public partial class PlayerView : UserControl
         try
         {
             var streamUrl = _viewModel.StreamUrl.Trim();
+            _playbackSession.Begin(streamUrl);
             Log($"PlayCurrentStream start. Url={FormatUrlForLog(streamUrl)}");
             _hasPlaybackStarted = false;
             ShowOverlay();
@@ -671,6 +675,7 @@ public partial class PlayerView : UserControl
             _currentMedia = null;
 
             _viewModel.SetPlaybackStatus(string.Empty);
+            _playbackSession.TryTransition(_playbackSession.Generation, PlaybackSessionState.Buffering);
             StartBufferingWatchdog();
 
             var started = StartPlayback(streamUrl, fallback: false);
@@ -833,6 +838,7 @@ public partial class PlayerView : UserControl
 
         var fallbackUrl = _fallbackStreamUrls[_fallbackStreamIndex++];
         _activeStreamUrl = fallbackUrl;
+        _playbackSession.TryTransition(_playbackSession.Generation, PlaybackSessionState.Recovering);
         _hasPlaybackStarted = false;
         ShowOverlay();
         _fallbackAttempted = false;
@@ -876,6 +882,7 @@ public partial class PlayerView : UserControl
             _bufferingWatchdogCts?.Cancel();
             Log($"MediaPlayer event: Playing. audioTracks={_mediaPlayer?.AudioTrackCount}, audioTrack={_mediaPlayer?.AudioTrack}, volume={_mediaPlayer?.Volume}, muted={_mediaPlayer?.Mute}");
             _hasPlaybackStarted = true;
+            _playbackSession.TryTransition(_playbackSession.Generation, PlaybackSessionState.Playing);
             _viewModel.IsBuffering = false;
             ShowOverlay();
             _viewModel.SetPlaybackStatus(string.Empty);
@@ -895,6 +902,7 @@ public partial class PlayerView : UserControl
 
             _bufferingWatchdogCts?.Cancel();
             _hasPlaybackStarted = false;
+            _playbackSession.TryTransition(_playbackSession.Generation, PlaybackSessionState.Error);
             _viewModel.IsBuffering = false;
             ShowOverlay();
             _viewModel.SetPlaybackStatus("Playback error. The stream may be unavailable or unsupported.");
@@ -913,6 +921,7 @@ public partial class PlayerView : UserControl
             _hasPlaybackStarted = false;
             _viewModel.IsBuffering = false;
             ShowOverlay();
+            _playbackSession.TryTransition(_playbackSession.Generation, PlaybackSessionState.Ended);
             _viewModel.SetPlaybackStatus("Stream ended.");
         });
     }
