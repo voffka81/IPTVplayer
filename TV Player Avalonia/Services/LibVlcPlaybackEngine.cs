@@ -31,6 +31,13 @@ public sealed class LibVlcPlaybackEngine : IPlaybackEngine
     public event EventHandler<PlaybackErrorEventArgs>? ErrorOccurred;
 
     public Task PlayAsync(StreamSource source, CancellationToken cancellationToken = default)
+        => PlayInternalAsync(source, fallback: false, cancellationToken);
+
+    /// <summary>Retry with compatibility options for problematic IPTV streams.</summary>
+    public Task PlayFallbackAsync(StreamSource source, CancellationToken cancellationToken = default)
+        => PlayInternalAsync(source, fallback: true, cancellationToken);
+
+    private Task PlayInternalAsync(StreamSource source, bool fallback, CancellationToken cancellationToken)
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
         ArgumentNullException.ThrowIfNull(source);
@@ -41,6 +48,14 @@ public sealed class LibVlcPlaybackEngine : IPlaybackEngine
         {
             SetState(PlaybackState.Opening);
             _media = BuildMedia(_libVlc, source.Url, source.Headers);
+            if (fallback)
+            {
+                _media.AddOption(":demux=any");
+                _media.AddOption(":hls-segment-threads=4");
+                _media.AddOption(":http-continuous=true");
+            }
+            _player.Mute = false;
+            _player.Volume = 100;
             if (!_player.Play(_media))
                 throw new InvalidOperationException("LibVLC failed to start playback.");
             SetState(PlaybackState.Playing);
