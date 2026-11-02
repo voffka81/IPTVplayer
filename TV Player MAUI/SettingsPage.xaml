@@ -23,6 +23,24 @@
           </DataTemplate>
         </CollectionView.ItemTemplate>
       </CollectionView>
+      <Label Text="Провайдеры" FontSize="22" FontAttributes="Bold" />
+      <Picker x:Name="ProviderPicker" Title="Выберите провайдера" ItemDisplayBinding="{Binding Name}" SelectedIndexChanged="OnProviderSelected" />
+      <Entry x:Name="ProviderNameEntry" Placeholder="Название источника" />
+      <VerticalStackLayout x:Name="ProviderSettingsLayout" Spacing="8" />
+      <Button Text="Добавить источник провайдера" Clicked="OnAddProviderSourceClicked" />
+      <CollectionView x:Name="ProviderSourceView" HeightRequest="280" SelectionMode="None">
+        <CollectionView.ItemTemplate>
+          <DataTemplate>
+            <Grid ColumnDefinitions="*,Auto" Padding="8" BackgroundColor="#162130">
+              <VerticalStackLayout>
+                <Label Text="{Binding Name}" FontAttributes="Bold" />
+                <Label Text="{Binding PluginId}" FontSize="12" TextColor="#91A6BF" />
+              </VerticalStackLayout>
+              <Button Grid.Column="1" Text="Удалить" Clicked="OnProviderSourceDeleteClicked" />
+            </Grid>
+          </DataTemplate>
+        </CollectionView.ItemTemplate>
+      </CollectionView>
       <Button Text="Сохранить" Clicked="OnSaveClicked" />
     </VerticalStackLayout>
   </ScrollView>

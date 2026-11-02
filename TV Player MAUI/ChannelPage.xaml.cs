@@ -27,7 +27,9 @@ public partial class ChannelPage : ContentPage
         _channelsSubscription = _session.CurrentSource!.AllPrograms.Subscribe(channels => MainThread.BeginInvokeOnMainThread(() =>
         {
             _allChannels.Clear();
-            _allChannels.AddRange(channels.Where(channel => channel.GroupTitle == _groupName && !string.IsNullOrWhiteSpace(channel.Url)));
+            _allChannels.AddRange(channels.Where(channel => channel.GroupTitle == _groupName &&
+                (!string.IsNullOrWhiteSpace(channel.Url) ||
+                 (!string.IsNullOrWhiteSpace(channel.ProviderId) && !string.IsNullOrWhiteSpace(channel.ChannelId)))));
             ApplyFilter();
         }));
     }
@@ -47,6 +49,6 @@ public partial class ChannelPage : ContentPage
     private async void OnChannelTapped(object sender, TappedEventArgs e)
     {
         if ((sender as BindableObject)?.BindingContext is ChannelTile { Channel: not null } tile)
-            await Navigation.PushAsync(new PlayerPage(tile.Channel, _allChannels));
+            await Navigation.PushAsync(new PlayerPage(tile.Channel, _allChannels, _session.CurrentSource!));
     }
 }

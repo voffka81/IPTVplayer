@@ -25,6 +25,15 @@ public sealed class ChannelProviderRegistry : IDisposable
             throw new InvalidOperationException($"Provider '{provider.Id}' is already registered.");
     }
 
+    public void RegisterPlugin(IChannelProviderPlugin plugin)
+    {
+        ArgumentNullException.ThrowIfNull(plugin);
+        if (string.IsNullOrWhiteSpace(plugin.Id) || string.IsNullOrWhiteSpace(plugin.Name))
+            throw new ArgumentException("Plugin ID and name are required.", nameof(plugin));
+        if (!_plugins.TryAdd(plugin.Id, plugin))
+            throw new InvalidOperationException($"Plugin '{plugin.Id}' is already registered.");
+    }
+
     public bool TryGet(string providerId, out IChannelProvider? provider) =>
         _providers.TryGetValue(providerId, out provider);
 

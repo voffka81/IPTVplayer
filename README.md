@@ -9,7 +9,7 @@ IPTV player with a shared .NET core and separate user interfaces.
 - **TV Player Core** — M3U parsing, channel models, playlist loading, EPG, and provider abstractions.
 - **TV Player Plugin.Abstractions** — contracts used by provider plugins.
 
-The Android client currently supports M3U playlists. Existing desktop provider plugins are dynamically loaded DLLs and are not loaded by the Android client.
+The Android client supports M3U playlists and includes the Viks.TV and Klubnichka.live providers in the APK. Additional desktop provider DLLs are not dynamically loaded on Android; providers need to be referenced and compiled into the Android app.
 
 ## Android development
 

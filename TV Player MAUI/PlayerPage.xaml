@@ -12,7 +12,10 @@
       <Label x:Name="ClockLabel" Grid.Column="2" FontSize="17" VerticalTextAlignment="Center" Margin="8,0" />
       <Button Grid.Column="3" Text="☷" Padding="0" Clicked="OnPickerClicked" />
     </Grid>
-    <vlc:MediaPlayerElement x:Name="VideoPlayer" Grid.Row="1" />
+    <vlc:MediaPlayerElement x:Name="VideoPlayer"
+                            Grid.Row="1"
+                            EnableRendererDiscovery="False"
+                            Loaded="OnPlayerLoaded" />
     <Grid Grid.Row="2" RowDefinitions="Auto,Auto" BackgroundColor="#E609101B" Padding="12,8">
       <Label x:Name="StatusLabel" FontSize="14" TextColor="#8DD2FF" />
       <ScrollView x:Name="ChannelPicker" Grid.Row="1" Orientation="Horizontal" IsVisible="False" HeightRequest="92">

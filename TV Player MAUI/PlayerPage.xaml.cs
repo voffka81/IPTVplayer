@@ -8,10 +8,12 @@ public partial class PlayerPage : ContentPage
     private LibVLC? _libVlc;
     private MediaPlayer? _mediaPlayer;
     private Media? _currentMedia;
+    private readonly ProgramsData _sourceData;
 
-    public PlayerPage(M3UInfo channel, IReadOnlyList<M3UInfo> channels)
+    public PlayerPage(M3UInfo channel, IReadOnlyList<M3UInfo> channels, ProgramsData sourceData)
     {
         InitializeComponent();
+        _sourceData = sourceData;
         ChannelTitle.Text = channel.Name;
         ClockLabel.Text = DateTime.Now.ToString("HH:mm");
         foreach (var item in channels)
@@ -23,11 +25,42 @@ public partial class PlayerPage : ContentPage
         PlayChannel(channel);
     }
 
-    private void PlayChannel(M3UInfo channel)
+    protected override void OnAppearing()
     {
-        if (string.IsNullOrWhiteSpace(channel.Url))
+        base.OnAppearing();
+        HideLibVlcControls();
+    }
+
+    private void OnPlayerLoaded(object? sender, EventArgs e) => HideLibVlcControls();
+
+    private void HideLibVlcControls()
+    {
+        if (VideoPlayer.PlaybackControls != null)
+            VideoPlayer.PlaybackControls.IsVisible = false;
+    }
+
+    private async void PlayChannel(M3UInfo channel)
+    {
+        var streamUrl = channel.Url;
+        if (string.IsNullOrWhiteSpace(streamUrl) &&
+            channel.ProviderId == _sourceData.Provider.Id &&
+            !string.IsNullOrWhiteSpace(channel.ChannelId))
         {
-            StatusLabel.Text = "Для этого источника Android-плеер пока не может разрешить адрес канала.";
+            StatusLabel.Text = "Получение потока…";
+            try
+            {
+                var resolved = await _sourceData.Provider.ResolveStreamAsync(channel.ChannelId);
+                streamUrl = resolved.PrimaryUrl;
+            }
+            catch (Exception ex)
+            {
+                StatusLabel.Text = $"Не удалось получить поток: {ex.Message}";
+                return;
+            }
+        }
+        if (string.IsNullOrWhiteSpace(streamUrl))
+        {
+            StatusLabel.Text = "Для этого канала нет ссылки на поток.";
             return;
         }
         ChannelTitle.Text = channel.Name;
@@ -37,7 +70,7 @@ public partial class PlayerPage : ContentPage
         VideoPlayer.LibVLC = _libVlc;
         VideoPlayer.MediaPlayer = _mediaPlayer;
         _currentMedia?.Dispose();
-        _currentMedia = CreateMedia(channel.Url);
+        _currentMedia = CreateMedia(streamUrl);
         _mediaPlayer.Play(_currentMedia);
         StatusLabel.Text = string.Empty;
     }
