@@ -106,7 +106,7 @@ jobs:
             --framework net10.0-android
             --verbosity normal
             --property:AndroidPackageFormat=apk
-            --property:ApplicationVersion="$GITHUB_RUN_NUMBER"
+            --property:ApplicationVersion="$GITHUB_RUN_ID"
             --output artifacts/android
             --property:AndroidKeyStore=true
             --property:AndroidSigningKeyStore="$RUNNER_TEMP/iptv-release.jks"

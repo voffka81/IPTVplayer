@@ -1,0 +1,144 @@
+name: Android release
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build-release-apk:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Set up .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Read Android app version
+        id: version
+        shell: bash
+        run: |
+          version=$(python - <<'PY'
+          import re
+          import xml.etree.ElementTree as ET
+
+          project = ET.parse("TV Player MAUI/TV Player MAUI.csproj").getroot()
+          version = next((node.text or "").strip()
+                         for node in project.iter("ApplicationDisplayVersion")
+                         if (node.text or "").strip())
+          if not re.fullmatch(r"\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?", version):
+              raise SystemExit(f"Invalid Android display version: {version!r}")
+          print(version)
+          PY
+          )
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "tag=android-v$version" >> "$GITHUB_OUTPUT"
+
+      - name: Install Android .NET workload
+        run: dotnet workload restore "TV Player MAUI/TV Player MAUI.csproj"
+
+      - name: Prepare Android signing key
+        env:
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          : "${ANDROID_KEYSTORE_BASE64:?Set repository secret ANDROID_KEYSTORE_BASE64}"
+          : "${ANDROID_KEYSTORE_PASSWORD:?Set repository secret ANDROID_KEYSTORE_PASSWORD}"
+          : "${ANDROID_KEY_PASSWORD:?Set repository secret ANDROID_KEY_PASSWORD}"
+          printf '%s' "$ANDROID_KEYSTORE_BASE64" | base64 --decode > "$RUNNER_TEMP/iptv-release.p12"
+          test -s "$RUNNER_TEMP/iptv-release.p12"
+          signing_alias=$(keytool -list -v \
+            -keystore "$RUNNER_TEMP/iptv-release.p12" \
+            -storetype PKCS12 \
+            -storepass "$ANDROID_KEYSTORE_PASSWORD" \
+            | awk -F ': ' '/^Alias name:/{print $2; exit}')
+          if [[ -z "$signing_alias" ]]; then
+            echo "No key alias found in the PKCS12 keystore." >&2
+            exit 1
+          fi
+          keytool -importkeystore -noprompt \
+            -srckeystore "$RUNNER_TEMP/iptv-release.p12" \
+            -srcstoretype PKCS12 \
+            -srcstorepass "$ANDROID_KEYSTORE_PASSWORD" \
+            -srcalias "$signing_alias" \
+            -srckeypass "$ANDROID_KEY_PASSWORD" \
+            -destkeystore "$RUNNER_TEMP/iptv-release.jks" \
+            -deststoretype JKS \
+            -deststorepass "$ANDROID_KEYSTORE_PASSWORD" \
+            -destkeypass "$ANDROID_KEY_PASSWORD" \
+            -destalias "$signing_alias"
+          keytool -list \
+            -keystore "$RUNNER_TEMP/iptv-release.jks" \
+            -storetype JKS \
+            -storepass "$ANDROID_KEYSTORE_PASSWORD" \
+            -alias "$signing_alias"
+          echo "ANDROID_SIGNING_ALIAS=$signing_alias" >> "$GITHUB_ENV"
+
+      - name: Publish signed Android APK
+        env:
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          : "${ANDROID_SIGNING_ALIAS:?Signing alias was not discovered from keystore}"
+          dotnet publish "TV Player MAUI/TV Player MAUI.csproj" \
+            --configuration Release \
+            --framework net10.0-android \
+            --verbosity normal \
+            --property:AndroidPackageFormat=apk \
+            --property:ApplicationVersion="$GITHUB_RUN_ID" \
+            --output artifacts/android \
+            --property:AndroidKeyStore=true \
+            --property:AndroidSigningKeyStore="$RUNNER_TEMP/iptv-release.jks" \
+            --property:AndroidSigningKeyAlias="$ANDROID_SIGNING_ALIAS" \
+            --property:AndroidSigningStorePass="$ANDROID_KEYSTORE_PASSWORD" \
+            --property:AndroidSigningKeyPass="$ANDROID_KEY_PASSWORD" \
+            --property:AndroidApkSignerAdditionalArguments=--ks-type\ JKS
+
+      - name: Normalize APK filename
+        env:
+          RELEASE_VERSION: ${{ steps.version.outputs.version }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          mapfile -t apks < <(find artifacts/android -maxdepth 1 -type f -name '*-Signed.apk')
+          if [[ ${#apks[@]} -ne 1 ]]; then
+            printf 'Expected one signed APK, found %s\n' "${#apks[@]}"
+            find artifacts/android -maxdepth 1 -type f -print
+            exit 1
+          fi
+          mkdir -p artifacts/release
+          mv "${apks[0]}" "artifacts/release/IPTVplayer-android-${RELEASE_VERSION}.apk"
+
+      - name: Create draft Android release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_VERSION: ${{ steps.version.outputs.version }}
+          RELEASE_TAG: ${{ steps.version.outputs.tag }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          if gh release view "$RELEASE_TAG" >/dev/null 2>&1; then
+            echo "Release $RELEASE_TAG already exists; refusing to replace a published release." >&2
+            exit 1
+          fi
+          gh release create "$RELEASE_TAG" \
+            "artifacts/release/IPTVplayer-android-${RELEASE_VERSION}.apk" \
+            --target "$GITHUB_SHA" \
+            --title "IPTV Player for Android ${RELEASE_VERSION}" \
+            --generate-notes \
+            --draft

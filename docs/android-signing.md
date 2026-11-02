@@ -21,8 +21,14 @@ Settings → Secrets and variables → Actions. Never commit the keystore or its
 passwords. CI reads the key alias directly from the keystore.
 
 CI assigns each APK a larger Android version code from the GitHub Actions run
-number. `ApplicationDisplayVersion` in `TV Player MAUI.csproj` is the version
-shown to users. Local builds use the project `ApplicationVersion` value.
+ID so a newer build can be installed over an earlier CI build.
+`ApplicationDisplayVersion` in `TV Player MAUI.csproj` is the version shown to
+users. Local builds use the project `ApplicationVersion` value.
+
+To prepare an Android release, run the **Android release** workflow from the
+Actions tab. It reads `ApplicationDisplayVersion`, builds a signed APK, and
+creates a draft release tagged `android-v<version>`. Review the APK and generated
+notes, then publish the draft from the Releases page.
 
 The APK that was already installed before a persistent keystore was configured
 cannot be updated with the new key. Remove that test install once, then install
