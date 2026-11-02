@@ -33,17 +33,7 @@ public partial class PlayerPage : ContentPage
 
     private View CreateChannelPickerTile(M3UInfo channel)
     {
-        var logoFallback = new Label
-        {
-            Text = string.IsNullOrWhiteSpace(channel.Name) ? "TV" : channel.Name[..Math.Min(channel.Name.Length, 2)].ToUpperInvariant(),
-            FontSize = 20,
-            FontAttributes = FontAttributes.Bold,
-            TextColor = Color.FromArgb("#8DD2FF"),
-            HorizontalTextAlignment = TextAlignment.Center,
-            VerticalTextAlignment = TextAlignment.Center
-        };
         var logoContainer = new Grid { HeightRequest = 44, WidthRequest = 76 };
-        logoContainer.Children.Add(logoFallback);
 
         if (Uri.TryCreate(channel.Logo, UriKind.Absolute, out var logoUri) &&
             (logoUri.Scheme == Uri.UriSchemeHttp || logoUri.Scheme == Uri.UriSchemeHttps))
