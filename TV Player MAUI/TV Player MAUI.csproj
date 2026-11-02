@@ -9,10 +9,15 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <ApplicationTitle>IPTV Player</ApplicationTitle>
     <ApplicationId>com.voffka81.iptvplayer</ApplicationId>
-    <ApplicationDisplayVersion>2.0.0</ApplicationDisplayVersion>
-    <ApplicationVersion>2</ApplicationVersion>
+    <ApplicationDisplayVersion>2.0.1</ApplicationDisplayVersion>
+    <ApplicationVersion>3</ApplicationVersion>
     <AndroidMinSdkVersion>23</AndroidMinSdkVersion>
   </PropertyGroup>
+  <ItemGroup>
+    <MauiIcon Include="Resources\AppIcon\appicon.svg"
+              ForegroundFile="Resources\AppIcon\appiconfg.svg"
+              Color="#081321" />
+  </ItemGroup>
   <ItemGroup>
     <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.0" />
     <PackageReference Include="LibVLCSharp" Version="3.9.7.1" />

@@ -1,5 +1,8 @@
 using LibVLCSharp.Shared;
 using TV_Player;
+#if ANDROID
+using Microsoft.Maui.ApplicationModel;
+#endif
 
 namespace TV_Player.Maui;
 
@@ -34,6 +37,10 @@ public partial class PlayerPage : ContentPage
     protected override void OnAppearing()
     {
         base.OnAppearing();
+#if ANDROID
+        if (Platform.CurrentActivity is MainActivity activity)
+            activity.SetImmersiveMode(true);
+#endif
         HideLibVlcControls();
         ShowPlayerUi();
     }
@@ -191,6 +198,10 @@ public partial class PlayerPage : ContentPage
     {
         base.OnDisappearing();
         _hideUiToken?.Cancel();
+#if ANDROID
+        if (Platform.CurrentActivity is MainActivity activity)
+            activity.SetImmersiveMode(false);
+#endif
     }
 
     private void DisposePlayback()

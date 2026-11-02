@@ -45,12 +45,33 @@ jobs:
         run: dotnet workload restore "TV Player MAUI/TV Player MAUI.csproj"
 
       - name: Publish APK
-        run: >-
-          dotnet publish "TV Player MAUI/TV Player MAUI.csproj"
-          --configuration Release
-          --framework net10.0-android
-          --property:AndroidPackageFormat=apk
-          --output artifacts/android
+        env:
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        shell: bash
+        run: |
+          publish_args=(
+            "TV Player MAUI/TV Player MAUI.csproj"
+            --configuration Release
+            --framework net10.0-android
+            --property:AndroidPackageFormat=apk
+            --output artifacts/android
+          )
+
+          if [[ -n "$ANDROID_KEYSTORE_BASE64" ]]; then
+            echo "$ANDROID_KEYSTORE_BASE64" | base64 --decode > "$RUNNER_TEMP/iptv-release.keystore"
+            publish_args+=(
+              --property:AndroidKeyStore=true
+              --property:AndroidSigningKeyStore="$RUNNER_TEMP/iptv-release.keystore"
+              --property:AndroidSigningKeyAlias="$ANDROID_KEY_ALIAS"
+              --property:AndroidSigningStorePass="$ANDROID_KEYSTORE_PASSWORD"
+              --property:AndroidSigningKeyPass="$ANDROID_KEY_PASSWORD"
+            )
+          fi
+
+          dotnet publish "${publish_args[@]}"
 
       - name: Normalize APK filename
         shell: bash
