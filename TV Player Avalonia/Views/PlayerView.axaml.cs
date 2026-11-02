@@ -23,6 +23,7 @@ public partial class PlayerView : UserControl
 {
     private readonly DispatcherTimer _clockTimer = new() { Interval = TimeSpan.FromSeconds(10) };
     private readonly DispatcherTimer _overlayTimer = new() { Interval = TimeSpan.FromSeconds(5) };
+    private readonly DispatcherTimer _playbackUiTimer = new() { Interval = TimeSpan.FromMilliseconds(250) };
     private bool _overlayVisible = true;
     private bool _hasPlaybackStarted;
     private readonly PlaybackSession _playbackSession = new();
@@ -109,6 +110,7 @@ public partial class PlayerView : UserControl
         MasterVolumePanel.IsVisible = OperatingSystem.IsWindows();
         PlayerClock.Text = DateTime.Now.ToString("HH:mm");
         _clockTimer.Tick += (_, _) => PlayerClock.Text = DateTime.Now.ToString("HH:mm");
+        _playbackUiTimer.Tick += (_, _) => ReconcilePlayingUi();
         SizeChanged += OnPlayerSizeChanged;
         UpdateResponsiveControls(Bounds.Size);
         _overlayTimer.Tick += OnOverlayTimerTick;
@@ -276,6 +278,7 @@ public partial class PlayerView : UserControl
             Log("VideoView.MediaPlayer detached before disposal");
         }
 
+        _playbackUiTimer.Stop();
         _playbackEngine?.DisposeAsync().AsTask().GetAwaiter().GetResult();
         _playbackEngine = null;
         _bufferingWatchdogCts?.Cancel();
@@ -472,6 +475,7 @@ public partial class PlayerView : UserControl
 
     private void OnOverlayTimerTick(object? sender, System.EventArgs e)
     {
+        ReconcilePlayingUi();
         if (_viewModel?.ChannelPickerVisible == true)
         {
             _overlayTimer.Stop();
@@ -481,6 +485,24 @@ public partial class PlayerView : UserControl
 
         if (_hasPlaybackStarted)
             HideOverlay();
+    }
+
+    private void ReconcilePlayingUi()
+    {
+        if (_viewModel == null || _mediaPlayer?.IsPlaying != true || _hasPlaybackStarted)
+            return;
+
+        _hasPlaybackStarted = true;
+        _playbackUiTimer.Stop();
+        _bufferingWatchdogCts?.Cancel();
+        _playbackSession.TryTransition(_playbackSession.Generation, PlaybackSessionState.Playing);
+        _viewModel.IsBuffering = false;
+        _viewModel.SetPlaybackStatus(string.Empty);
+        if (_overlayVisible)
+        {
+            _overlayTimer.Stop();
+            _overlayTimer.Start();
+        }
     }
 
     private void ShowOverlay()
@@ -664,6 +686,8 @@ public partial class PlayerView : UserControl
             _playbackSession.Begin(streamUrl);
             Log($"PlayCurrentStream start. Url={FormatUrlForLog(streamUrl)}");
             _hasPlaybackStarted = false;
+            _viewModel.IsBuffering = true;
+            _playbackUiTimer.Start();
             ShowOverlay();
             _activeStreamUrl = streamUrl;
             _fallbackStreamUrls = _viewModel.FallbackStreamUrls;
@@ -737,7 +761,11 @@ public partial class PlayerView : UserControl
             Dispatcher.UIThread.Post(() =>
             {
                 if (token.IsCancellationRequested || !PlaybackCallbackGuard.IsCurrent(generation, _playbackSession.Generation, player, _mediaPlayer) || _mediaPlayer == null || _viewModel == null ||
-                    string.IsNullOrWhiteSpace(_activeStreamUrl) || _mediaPlayer.IsPlaying)
+                    string.IsNullOrWhiteSpace(_activeStreamUrl))
+                    return;
+
+                ReconcilePlayingUi();
+                if (_mediaPlayer.IsPlaying)
                     return;
 
                 if (TryStartNextStreamFallback())
@@ -768,6 +796,8 @@ public partial class PlayerView : UserControl
         _activeStreamUrl = fallbackUrl;
         _playbackSession.TryTransition(_playbackSession.Generation, PlaybackSessionState.Recovering);
         _hasPlaybackStarted = false;
+        _viewModel.IsBuffering = true;
+        _playbackUiTimer.Start();
         ShowOverlay();
         _fallbackAttempted = false;
         Log($"Trying alternate stream URL {_fallbackStreamIndex}/{_fallbackStreamUrls.Count}: {FormatUrlForLog(fallbackUrl)}");
@@ -796,6 +826,7 @@ public partial class PlayerView : UserControl
         {
             if (!PlaybackCallbackGuard.IsCurrent(generation, _playbackSession.Generation, player, _mediaPlayer))
                 return;
+            ReconcilePlayingUi();
             if (_viewModel != null && !_hasPlaybackStarted)
                 _viewModel.IsBuffering = e.Cache < 100;
         });
@@ -815,6 +846,7 @@ public partial class PlayerView : UserControl
             _bufferingWatchdogCts?.Cancel();
             Log($"MediaPlayer event: Playing. audioTracks={_mediaPlayer?.AudioTrackCount}, audioTrack={_mediaPlayer?.AudioTrack}, volume={_mediaPlayer?.Volume}, muted={_mediaPlayer?.Mute}");
             _hasPlaybackStarted = true;
+            _playbackUiTimer.Stop();
             _playbackSession.TryTransition(_playbackSession.Generation, PlaybackSessionState.Playing);
             _viewModel.IsBuffering = false;
             ShowOverlay();
@@ -839,6 +871,7 @@ public partial class PlayerView : UserControl
 
             _bufferingWatchdogCts?.Cancel();
             _hasPlaybackStarted = false;
+            _playbackUiTimer.Stop();
             _playbackSession.TryTransition(_playbackSession.Generation, PlaybackSessionState.Error);
             _viewModel.IsBuffering = false;
             ShowOverlay();
@@ -860,6 +893,7 @@ public partial class PlayerView : UserControl
             _bufferingWatchdogCts?.Cancel();
             Log("MediaPlayer event: EndReached");
             _hasPlaybackStarted = false;
+            _playbackUiTimer.Stop();
             _viewModel.IsBuffering = false;
             ShowOverlay();
             _playbackSession.TryTransition(_playbackSession.Generation, PlaybackSessionState.Ended);
@@ -878,7 +912,6 @@ public partial class PlayerView : UserControl
         {
             if (!PlaybackCallbackGuard.IsCurrent(generation, _playbackSession.Generation, player, _mediaPlayer))
                 return;
-            _bufferingWatchdogCts?.Cancel();
             Log("MediaPlayer event: Stopped");
             // Stop is expected while switching channels; avoid a persistent toast.
         });
