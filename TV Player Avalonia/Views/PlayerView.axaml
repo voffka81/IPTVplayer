@@ -56,7 +56,7 @@
       </Border>
 
       <StackPanel Grid.Row="2" VerticalAlignment="Bottom">
-        <playerControls:PlayerChannelPicker x:Name="ChannelPickerControl" />
+        <playerControls:PlayerChannelPicker x:Name="ChannelPickerControl" DataContext="{Binding ChannelPicker}" />
 
       <Grid x:Name="PlayerBottomBar" Background="#E609101B">
         <Grid.ColumnDefinitions>
