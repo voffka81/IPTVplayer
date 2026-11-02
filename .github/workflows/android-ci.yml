@@ -57,12 +57,16 @@ jobs:
           : "${ANDROID_KEYSTORE_PASSWORD:?Set repository secret ANDROID_KEYSTORE_PASSWORD}"
           : "${ANDROID_KEY_ALIAS:?Set repository secret ANDROID_KEY_ALIAS}"
           : "${ANDROID_KEY_PASSWORD:?Set repository secret ANDROID_KEY_PASSWORD}"
+          echo "Decoding Android keystore secret..."
           printf '%s' "$ANDROID_KEYSTORE_BASE64" | base64 --decode > "$RUNNER_TEMP/iptv-release.p12"
+          test -s "$RUNNER_TEMP/iptv-release.p12"
+          echo "Checking PKCS12 keystore password and alias..."
           keytool -list \
             -keystore "$RUNNER_TEMP/iptv-release.p12" \
             -storetype PKCS12 \
             -storepass "$ANDROID_KEYSTORE_PASSWORD" \
-            -alias "$ANDROID_KEY_ALIAS" >/dev/null
+            -alias "$ANDROID_KEY_ALIAS"
+          echo "Importing signing key into JKS for Android APK signer..."
           keytool -importkeystore -noprompt \
             -srckeystore "$RUNNER_TEMP/iptv-release.p12" \
             -srcstoretype PKCS12 \
@@ -73,12 +77,13 @@ jobs:
             -deststoretype JKS \
             -deststorepass "$ANDROID_KEYSTORE_PASSWORD" \
             -destkeypass "$ANDROID_KEY_PASSWORD" \
-            -destalias "$ANDROID_KEY_ALIAS" >/dev/null
+            -destalias "$ANDROID_KEY_ALIAS"
+          echo "Verifying imported JKS alias..."
           keytool -list \
             -keystore "$RUNNER_TEMP/iptv-release.jks" \
             -storetype JKS \
             -storepass "$ANDROID_KEYSTORE_PASSWORD" \
-            -alias "$ANDROID_KEY_ALIAS" >/dev/null
+            -alias "$ANDROID_KEY_ALIAS"
           echo "Private key and alias imported and verified for APK signing."
 
       - name: Publish APK
