@@ -1,6 +1,7 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vlc="clr-namespace:LibVLCSharp.Avalonia;assembly=LibVLCSharp.Avalonia"
+             xmlns:playerControls="clr-namespace:TV_Player.AvaloniaApp.Views.Controls"
              xmlns:asyncImageLoader="clr-namespace:AsyncImageLoader;assembly=AsyncImageLoader.Avalonia"
              x:Class="TV_Player.AvaloniaApp.Views.PlayerView">
   <UserControl.Styles>
@@ -202,14 +203,7 @@
           </StackPanel>
         </Button>
 
-        <StackPanel Grid.Column="1"
-                    Spacing="6"
-                    HorizontalAlignment="Center"
-                    VerticalAlignment="Center"
-                    IsVisible="{Binding IsBuffering}">
-          <TextBlock Text="Буферизация…" FontSize="15" Foreground="#F5F8FF" HorizontalAlignment="Center" />
-          <ProgressBar Width="180" Height="8" IsIndeterminate="True" Foreground="#8DD2FF" />
-        </StackPanel>
+        <playerControls:PlayerBufferingIndicator Grid.Column="1" IsVisible="{Binding IsBuffering}" />
 
         <StackPanel Grid.Column="2"
                     Orientation="Horizontal"
@@ -247,16 +241,7 @@
       </StackPanel>
     </Grid>
 
-    <Border Background="#D9141F30"
-            BorderThickness="0"
-            CornerRadius="12"
-            Padding="18,12"
-            HorizontalAlignment="Center"
-            VerticalAlignment="Center"
-            Margin="20"
-            IsVisible="{Binding HasPlaybackStatus}">
-      <TextBlock Text="{Binding PlaybackStatus}" Foreground="White" TextWrapping="Wrap" MaxWidth="420" />
-    </Border>
+    <playerControls:PlayerPlaybackStatus />
       </Grid>
     </vlc:VideoView>
   </Grid>
