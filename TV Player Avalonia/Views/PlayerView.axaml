@@ -135,7 +135,7 @@
           </Button>
         </StackPanel>
 
-        <playerControls:PlayerProgramBar x:Name="ProgramBar" Grid.Column="1" />
+        <playerControls:PlayerProgramBar x:Name="ProgramBar" Grid.Column="1" DataContext="{Binding ProgramBar}" />
 
         <playerControls:PlayerBufferingIndicator Grid.Column="1" IsVisible="{Binding IsBuffering}" />
 
