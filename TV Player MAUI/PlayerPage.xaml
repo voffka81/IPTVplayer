@@ -24,9 +24,21 @@
         </BoxView.GestureRecognizers>
       </BoxView>
     </Grid>
-    <Grid x:Name="PlayerBottomBar" Grid.Row="2" RowDefinitions="Auto,Auto" BackgroundColor="#E609101B" Padding="12,8">
-      <Label x:Name="StatusLabel" FontSize="14" TextColor="#8DD2FF" />
-      <ScrollView x:Name="ChannelPicker" Grid.Row="1" Orientation="Horizontal" IsVisible="False" HeightRequest="92">
+    <Grid x:Name="PlayerBottomBar" Grid.Row="2" RowDefinitions="Auto,Auto,Auto,Auto" BackgroundColor="#E609101B" Padding="12,8">
+      <Grid x:Name="ProgramInfoPanel" IsVisible="False" RowDefinitions="Auto,Auto" ColumnDefinitions="Auto,*,Auto" Padding="4,2,4,8">
+        <Grid.GestureRecognizers>
+          <TapGestureRecognizer Tapped="OnGuideInfoTapped" />
+        </Grid.GestureRecognizers>
+        <Label x:Name="ProgramTitleLabel" Grid.ColumnSpan="2" FontSize="16" LineBreakMode="TailTruncation" />
+        <Label x:Name="ProgramStartLabel" Grid.Row="1" FontSize="12" TextColor="#8DD2FF" VerticalTextAlignment="Center" Margin="0,0,8,0" />
+        <ProgressBar x:Name="ProgramProgress" Grid.Row="1" Grid.Column="1" Progress="0" ProgressColor="#55B9FF" VerticalOptions="Center" />
+        <Label x:Name="ProgramEndLabel" Grid.Row="1" Grid.Column="2" FontSize="12" TextColor="#8DD2FF" HorizontalOptions="End" VerticalTextAlignment="Center" Margin="8,0,0,0" />
+      </Grid>
+      <Label x:Name="StatusLabel" Grid.Row="1" FontSize="14" TextColor="#8DD2FF" />
+      <ScrollView x:Name="ProgramGuideList" Grid.Row="2" Orientation="Horizontal" IsVisible="False" HeightRequest="84">
+        <HorizontalStackLayout x:Name="ProgramGuideItems" Spacing="8" />
+      </ScrollView>
+      <ScrollView x:Name="ChannelPicker" Grid.Row="3" Orientation="Horizontal" IsVisible="False" HeightRequest="92">
         <HorizontalStackLayout x:Name="ChannelPickerItems" Spacing="8" />
       </ScrollView>
     </Grid>
