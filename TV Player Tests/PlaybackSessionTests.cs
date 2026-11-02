@@ -10,7 +10,7 @@ public class PlaybackSessionTests
     {
         using var session = new PlaybackSession();
         var id = session.Begin(" https://example.test/live.m3u8 ");
-        Assert.Equal(PlaybackState.Resolving, session.State);
+        Assert.Equal(PlaybackSessionState.Resolving, session.State);
         Assert.Equal("https://example.test/live.m3u8", session.StreamUrl);
         Assert.Equal(id, session.Generation);
     }
@@ -21,10 +21,10 @@ public class PlaybackSessionTests
         using var session = new PlaybackSession();
         var old = session.Begin("first");
         var current = session.Begin("second");
-        Assert.False(session.TryTransition(old, PlaybackState.Playing));
-        Assert.True(session.TryTransition(current, PlaybackState.Buffering));
-        Assert.True(session.TryTransition(current, PlaybackState.Playing));
-        Assert.Equal(PlaybackState.Playing, session.State);
+        Assert.False(session.TryTransition(old, PlaybackSessionState.Playing));
+        Assert.True(session.TryTransition(current, PlaybackSessionState.Buffering));
+        Assert.True(session.TryTransition(current, PlaybackSessionState.Playing));
+        Assert.Equal(PlaybackSessionState.Playing, session.State);
     }
 
     [Fact]
@@ -32,11 +32,11 @@ public class PlaybackSessionTests
     {
         using var session = new PlaybackSession();
         var id = session.Begin("stream");
-        Assert.True(session.TryTransition(id, PlaybackState.Buffering));
-        Assert.True(session.TryTransition(id, PlaybackState.Recovering));
-        Assert.True(session.TryTransition(id, PlaybackState.Playing));
-        Assert.True(session.TryTransition(id, PlaybackState.Error));
-        Assert.False(session.TryTransition(id, PlaybackState.Playing));
+        Assert.True(session.TryTransition(id, PlaybackSessionState.Buffering));
+        Assert.True(session.TryTransition(id, PlaybackSessionState.Recovering));
+        Assert.True(session.TryTransition(id, PlaybackSessionState.Playing));
+        Assert.True(session.TryTransition(id, PlaybackSessionState.Error));
+        Assert.False(session.TryTransition(id, PlaybackSessionState.Playing));
     }
 
     [Fact]
@@ -44,9 +44,9 @@ public class PlaybackSessionTests
     {
         using var session = new PlaybackSession();
         var id = session.Begin("stream");
-        Assert.False(session.TryTransition(id, PlaybackState.Ended));
-        Assert.False(session.TryTransition(id, PlaybackState.Idle));
-        Assert.Equal(PlaybackState.Resolving, session.State);
+        Assert.False(session.TryTransition(id, PlaybackSessionState.Ended));
+        Assert.False(session.TryTransition(id, PlaybackSessionState.Idle));
+        Assert.Equal(PlaybackSessionState.Resolving, session.State);
     }
 
     [Fact]
@@ -55,9 +55,9 @@ public class PlaybackSessionTests
         using var session = new PlaybackSession();
         var id = session.Begin("stream");
         session.Reset();
-        Assert.Equal(PlaybackState.Idle, session.State);
+        Assert.Equal(PlaybackSessionState.Idle, session.State);
         Assert.Null(session.StreamUrl);
-        Assert.False(session.TryTransition(id, PlaybackState.Playing));
+        Assert.False(session.TryTransition(id, PlaybackSessionState.Playing));
     }
 
     [Fact]
@@ -67,8 +67,8 @@ public class PlaybackSessionTests
         var id = session.Begin("stream");
         session.Dispose();
         session.Dispose();
-        Assert.Equal(PlaybackState.Disposed, session.State);
-        Assert.False(session.TryTransition(id, PlaybackState.Playing));
+        Assert.Equal(PlaybackSessionState.Disposed, session.State);
+        Assert.False(session.TryTransition(id, PlaybackSessionState.Playing));
         Assert.Throws<ObjectDisposedException>(() => session.Begin("next"));
     }
 
@@ -76,12 +76,12 @@ public class PlaybackSessionTests
     public void StateChanged_EmitsOnlyRealTransitions()
     {
         using var session = new PlaybackSession();
-        var events = new List<PlaybackState>();
+        var events = new List<PlaybackSessionState>();
         session.StateChanged += events.Add;
         var id = session.Begin("stream");
-        session.TryTransition(id, PlaybackState.Buffering);
-        session.TryTransition(id, PlaybackState.Buffering);
-        session.TryTransition(id, PlaybackState.Playing);
-        Assert.Equal(new[] { PlaybackState.Resolving, PlaybackState.Buffering, PlaybackState.Playing }, events);
+        session.TryTransition(id, PlaybackSessionState.Buffering);
+        session.TryTransition(id, PlaybackSessionState.Buffering);
+        session.TryTransition(id, PlaybackSessionState.Playing);
+        Assert.Equal(new[] { PlaybackSessionState.Resolving, PlaybackSessionState.Buffering, PlaybackSessionState.Playing }, events);
     }
 }
