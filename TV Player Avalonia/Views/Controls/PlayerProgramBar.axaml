@@ -62,7 +62,6 @@
                        HorizontalAlignment="Stretch"
                        VerticalAlignment="Center"
                        TextAlignment="Center"
-                       HorizontalAlignment="Stretch"
                        TextTrimming="CharacterEllipsis" />
             <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center">
               <TextBlock FontSize="13" Foreground="#F5F5F5" Text="{Binding StartProgram}" VerticalAlignment="Center" />
