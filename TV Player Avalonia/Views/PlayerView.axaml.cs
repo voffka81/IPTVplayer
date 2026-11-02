@@ -25,7 +25,8 @@ public partial class PlayerView : UserControl
     private readonly DispatcherTimer _overlayTimer = new() { Interval = TimeSpan.FromSeconds(5) };
     private readonly DispatcherTimer _playbackUiTimer = new() { Interval = TimeSpan.FromMilliseconds(250) };
     private bool _overlayVisible = true;
-    private bool _hasPlaybackStarted;
+    private readonly PlaybackUiState _playbackUi = new();
+    private bool _hasPlaybackStarted => _playbackUi.HasStarted;
     private readonly PlaybackSession _playbackSession = new();
     private LibVLC? _libVlc;
     private MediaPlayer? _mediaPlayer;
@@ -289,7 +290,7 @@ public partial class PlayerView : UserControl
         _mediaPlayer = null;
         _libVlc = null;
         _activeStreamUrl = null;
-        _hasPlaybackStarted = false;
+        _playbackUi.End();
         _fallbackAttempted = false;
         _initialized = false;
     }
@@ -483,7 +484,7 @@ public partial class PlayerView : UserControl
             return;
         }
 
-        if (_hasPlaybackStarted)
+        if (_playbackUi.CanAutoHideOverlay)
             HideOverlay();
     }
 
@@ -492,11 +493,11 @@ public partial class PlayerView : UserControl
         if (_viewModel == null || _mediaPlayer?.IsPlaying != true || _hasPlaybackStarted)
             return;
 
-        _hasPlaybackStarted = true;
+        _playbackUi.Playing();
         _playbackUiTimer.Stop();
         _bufferingWatchdogCts?.Cancel();
         _playbackSession.TryTransition(_playbackSession.Generation, PlaybackSessionState.Playing);
-        _viewModel.IsBuffering = false;
+        _viewModel.IsBuffering = _playbackUi.IsBuffering;
         _viewModel.SetPlaybackStatus(string.Empty);
         if (_overlayVisible)
         {
@@ -510,13 +511,13 @@ public partial class PlayerView : UserControl
         _overlayVisible = true;
         OverlayPanel.IsVisible = true;
         _overlayTimer.Stop();
-        if (_hasPlaybackStarted)
+        if (_playbackUi.CanAutoHideOverlay)
             _overlayTimer.Start();
     }
 
     private void HideOverlay()
     {
-        if (!_hasPlaybackStarted)
+        if (!_playbackUi.CanAutoHideOverlay)
         {
             ShowOverlay();
             return;
@@ -685,8 +686,8 @@ public partial class PlayerView : UserControl
             var streamUrl = _viewModel.StreamUrl.Trim();
             _playbackSession.Begin(streamUrl);
             Log($"PlayCurrentStream start. Url={FormatUrlForLog(streamUrl)}");
-            _hasPlaybackStarted = false;
-            _viewModel.IsBuffering = true;
+            _playbackUi.Begin();
+            _viewModel.IsBuffering = _playbackUi.IsBuffering;
             _playbackUiTimer.Start();
             ShowOverlay();
             _activeStreamUrl = streamUrl;
@@ -795,8 +796,8 @@ public partial class PlayerView : UserControl
         var fallbackUrl = _fallbackStreamUrls[_fallbackStreamIndex++];
         _activeStreamUrl = fallbackUrl;
         _playbackSession.TryTransition(_playbackSession.Generation, PlaybackSessionState.Recovering);
-        _hasPlaybackStarted = false;
-        _viewModel.IsBuffering = true;
+        _playbackUi.Begin();
+        _viewModel.IsBuffering = _playbackUi.IsBuffering;
         _playbackUiTimer.Start();
         ShowOverlay();
         _fallbackAttempted = false;
@@ -827,8 +828,11 @@ public partial class PlayerView : UserControl
             if (!PlaybackCallbackGuard.IsCurrent(generation, _playbackSession.Generation, player, _mediaPlayer))
                 return;
             ReconcilePlayingUi();
-            if (_viewModel != null && !_hasPlaybackStarted)
-                _viewModel.IsBuffering = e.Cache < 100;
+            if (_viewModel != null)
+            {
+                _playbackUi.Buffering(e.Cache);
+                _viewModel.IsBuffering = _playbackUi.IsBuffering;
+            }
         });
     }
 
@@ -845,10 +849,10 @@ public partial class PlayerView : UserControl
                 return;
             _bufferingWatchdogCts?.Cancel();
             Log($"MediaPlayer event: Playing. audioTracks={_mediaPlayer?.AudioTrackCount}, audioTrack={_mediaPlayer?.AudioTrack}, volume={_mediaPlayer?.Volume}, muted={_mediaPlayer?.Mute}");
-            _hasPlaybackStarted = true;
+            _playbackUi.Playing();
             _playbackUiTimer.Stop();
             _playbackSession.TryTransition(_playbackSession.Generation, PlaybackSessionState.Playing);
-            _viewModel.IsBuffering = false;
+            _viewModel.IsBuffering = _playbackUi.IsBuffering;
             ShowOverlay();
             _viewModel.SetPlaybackStatus(string.Empty);
         });
@@ -870,10 +874,10 @@ public partial class PlayerView : UserControl
                 return;
 
             _bufferingWatchdogCts?.Cancel();
-            _hasPlaybackStarted = false;
+            _playbackUi.End();
             _playbackUiTimer.Stop();
             _playbackSession.TryTransition(_playbackSession.Generation, PlaybackSessionState.Error);
-            _viewModel.IsBuffering = false;
+            _viewModel.IsBuffering = _playbackUi.IsBuffering;
             ShowOverlay();
             _viewModel.SetPlaybackStatus("Playback error. The stream may be unavailable or unsupported.");
         });
@@ -892,9 +896,9 @@ public partial class PlayerView : UserControl
                 return;
             _bufferingWatchdogCts?.Cancel();
             Log("MediaPlayer event: EndReached");
-            _hasPlaybackStarted = false;
+            _playbackUi.End();
             _playbackUiTimer.Stop();
-            _viewModel.IsBuffering = false;
+            _viewModel.IsBuffering = _playbackUi.IsBuffering;
             ShowOverlay();
             _playbackSession.TryTransition(_playbackSession.Generation, PlaybackSessionState.Ended);
             _viewModel.SetPlaybackStatus("Stream ended.");
