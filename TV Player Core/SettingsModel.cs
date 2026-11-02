@@ -99,7 +99,8 @@ namespace TV_Player.ViewModels
             StartFromLastScreen = loadedData.StartFromLastScreen;
             StartFullScreen = loadedData.StartFullScreen;
             HiddenGroups = loadedData.HiddenGroups;
-            PlaybackEngine = loadedData.PlaybackEngine == "mpv" ? "mpv" : "vlc";
+            // VLC is the only backend currently connected to the video surfaces.
+            PlaybackEngine = "vlc";
         }
     }
 }

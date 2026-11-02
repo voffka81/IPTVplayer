@@ -29,15 +29,6 @@ public class SettingsViewModel : TV_Player.ObservableViewModelBase
         set => SetProperty(ref _playlists, value);
     }
 
-    public string[] PlaybackEngines { get; } = ["vlc", "mpv"];
-
-    private string _selectedPlaybackEngine = "vlc";
-    public string SelectedPlaybackEngine
-    {
-        get => _selectedPlaybackEngine;
-        set => SetProperty(ref _selectedPlaybackEngine, value);
-    }
-
     private bool _startFullScreen;
     public bool StartFullScreen
     {
@@ -154,7 +145,6 @@ public class SettingsViewModel : TV_Player.ObservableViewModelBase
         ShowPluginsSectionCommand = new RelayCommand(() => SelectedSettingsSection = "plugins");
         ShowPlaybackSectionCommand = new RelayCommand(() => SelectedSettingsSection = "playback");
 
-        SelectedPlaybackEngine = SettingsModel.PlaybackEngine == "mpv" ? "mpv" : "vlc";
         StartFullScreen = SettingsModel.StartFullScreen;
         StartLastScreen = SettingsModel.StartFromLastScreen;
         var savedPlaylists = SettingsModel.Playlists ?? new Dictionary<string, string>();
@@ -427,7 +417,8 @@ public class SettingsViewModel : TV_Player.ObservableViewModelBase
         if (!canSaveProviderSources)
             PluginSourceError = "Provider source names must be non-empty and unique across all sources.";
 
-        SettingsModel.PlaybackEngine = SelectedPlaybackEngine == "mpv" ? "mpv" : "vlc";
+        // VLC is the only engine connected to the Avalonia video surface.
+        SettingsModel.PlaybackEngine = "vlc";
         SettingsModel.StartFullScreen = StartFullScreen;
         SettingsModel.StartFromLastScreen = StartLastScreen;
         if (canSavePlaylists)
