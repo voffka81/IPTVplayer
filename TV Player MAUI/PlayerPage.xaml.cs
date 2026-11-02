@@ -9,6 +9,8 @@ public partial class PlayerPage : ContentPage
     private MediaPlayer? _mediaPlayer;
     private Media? _currentMedia;
     private readonly ProgramsData _sourceData;
+    private CancellationTokenSource? _hideUiToken;
+    private bool _isClosing;
 
     public PlayerPage(M3UInfo channel, IReadOnlyList<M3UInfo> channels, ProgramsData sourceData)
     {
@@ -19,7 +21,11 @@ public partial class PlayerPage : ContentPage
         foreach (var item in channels)
         {
             var button = new Button { Text = item.Name, WidthRequest = 112, HeightRequest = 76, FontSize = 12, LineBreakMode = LineBreakMode.TailTruncation };
-            button.Clicked += (_, _) => PlayChannel(item);
+            button.Clicked += (_, _) =>
+            {
+                ChannelPicker.IsVisible = false;
+                PlayChannel(item);
+            };
             ChannelPickerItems.Children.Add(button);
         }
         PlayChannel(channel);
@@ -29,6 +35,7 @@ public partial class PlayerPage : ContentPage
     {
         base.OnAppearing();
         HideLibVlcControls();
+        ShowPlayerUi();
     }
 
     private void OnPlayerLoaded(object? sender, EventArgs e) => HideLibVlcControls();
@@ -73,6 +80,7 @@ public partial class PlayerPage : ContentPage
         _currentMedia = CreateMedia(streamUrl);
         _mediaPlayer.Play(_currentMedia);
         StatusLabel.Text = string.Empty;
+        ShowPlayerUi();
     }
 
     private Media CreateMedia(string rawUrl)
@@ -110,12 +118,83 @@ public partial class PlayerPage : ContentPage
         return media;
     }
 
-    private async void OnBackClicked(object sender, EventArgs e) => await Navigation.PopAsync();
-    private void OnPickerClicked(object sender, EventArgs e) => ChannelPicker.IsVisible = !ChannelPicker.IsVisible;
+    private async void OnBackClicked(object sender, EventArgs e) => await LeavePlayerAsync();
+
+    protected override bool OnBackButtonPressed()
+    {
+        _ = LeavePlayerAsync();
+        return true;
+    }
+
+    private async Task LeavePlayerAsync()
+    {
+        if (_isClosing) return;
+        _isClosing = true;
+        _hideUiToken?.Cancel();
+
+        if (Navigation.NavigationStack.Count > 1)
+            await Navigation.PopAsync();
+
+        DisposePlayback();
+    }
+
+    private void OnVideoTapped(object? sender, TappedEventArgs e)
+    {
+        if (PlayerTopBar.IsVisible || PlayerBottomBar.IsVisible)
+        {
+            _hideUiToken?.Cancel();
+            ChannelPicker.IsVisible = false;
+            PlayerTopBar.IsVisible = false;
+            PlayerBottomBar.IsVisible = false;
+        }
+        else
+        {
+            ShowPlayerUi();
+        }
+    }
+
+    private void OnPickerClicked(object sender, EventArgs e)
+    {
+        ChannelPicker.IsVisible = !ChannelPicker.IsVisible;
+        ShowPlayerUi();
+    }
+
+    private void ShowPlayerUi()
+    {
+        _hideUiToken?.Cancel();
+        _hideUiToken?.Dispose();
+        _hideUiToken = new CancellationTokenSource();
+        PlayerTopBar.IsVisible = true;
+        PlayerBottomBar.IsVisible = true;
+        var token = _hideUiToken.Token;
+        _ = HidePlayerUiAfterDelayAsync(token);
+    }
+
+    private async Task HidePlayerUiAfterDelayAsync(CancellationToken token)
+    {
+        try
+        {
+            await Task.Delay(TimeSpan.FromSeconds(4), token);
+            await MainThread.InvokeOnMainThreadAsync(() =>
+            {
+                if (!token.IsCancellationRequested && !ChannelPicker.IsVisible)
+                {
+                    PlayerTopBar.IsVisible = false;
+                    PlayerBottomBar.IsVisible = false;
+                }
+            });
+        }
+        catch (OperationCanceledException) { }
+    }
 
     protected override void OnDisappearing()
     {
         base.OnDisappearing();
+        _hideUiToken?.Cancel();
+    }
+
+    private void DisposePlayback()
+    {
         _mediaPlayer?.Stop();
         _currentMedia?.Dispose();
         _mediaPlayer?.Dispose();
