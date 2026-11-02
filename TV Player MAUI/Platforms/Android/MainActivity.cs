@@ -65,7 +65,7 @@ public class MainActivity : MauiAppCompatActivity
             _pixelCopyListener = null;
             RunOnUiThread(() =>
             {
-                if (!_isBackgrounded || result != PixelCopyResult.Success || IsFinishing || IsDestroyed ||
+                if (!_isBackgrounded || (PixelCopyResult)result != PixelCopyResult.Success || IsFinishing || IsDestroyed ||
                     !OperatingSystem.IsAndroidVersionAtLeast(31))
                 {
                     bitmap.Recycle();
@@ -150,11 +150,11 @@ public class MainActivity : MauiAppCompatActivity
 
     private sealed class PixelCopyFinishedListener : Java.Lang.Object, PixelCopy.IOnPixelCopyFinishedListener
     {
-        private readonly Action<PixelCopyResult> _onFinished;
+        private readonly Action<int> _onFinished;
 
-        public PixelCopyFinishedListener(Action<PixelCopyResult> onFinished) => _onFinished = onFinished;
+        public PixelCopyFinishedListener(Action<int> onFinished) => _onFinished = onFinished;
 
-        public void OnPixelCopyFinished(PixelCopyResult copyResult) => _onFinished(copyResult);
+        public void OnPixelCopyFinished(int copyResult) => _onFinished(copyResult);
     }
 
     public void SetImmersiveMode(bool enabled)
