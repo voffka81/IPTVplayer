@@ -486,16 +486,29 @@ public partial class PlayerView : UserControl
             HideOverlay();
     }
 
+    // Keep UI state, session state, and timeout cleanup in sync for terminal
+    // playback events and successful playback. Called only on the UI thread.
+    private void ApplyPlaybackState(PlaybackSessionState state)
+    {
+        _bufferingWatchdog.Cancel();
+        _playbackUiTimer.Stop();
+
+        if (state == PlaybackSessionState.Playing)
+            _playbackUi.Playing();
+        else
+            _playbackUi.End();
+
+        _playbackSession.TryTransition(_playbackSession.Generation, state);
+        if (_viewModel != null)
+            _viewModel.IsBuffering = _playbackUi.IsBuffering;
+    }
+
     private void ReconcilePlayingUi()
     {
         if (_viewModel == null || _mediaPlayer?.IsPlaying != true || _hasPlaybackStarted)
             return;
 
-        _playbackUi.Playing();
-        _playbackUiTimer.Stop();
-        _bufferingWatchdog.Cancel();
-        _playbackSession.TryTransition(_playbackSession.Generation, PlaybackSessionState.Playing);
-        _viewModel.IsBuffering = _playbackUi.IsBuffering;
+        ApplyPlaybackState(PlaybackSessionState.Playing);
         _viewModel.SetPlaybackStatus(string.Empty);
         if (_overlayVisible)
         {
@@ -833,12 +846,8 @@ public partial class PlayerView : UserControl
     {
         DispatchPlaybackCallback(sender, () =>
         {
-            _bufferingWatchdog.Cancel();
             Log($"MediaPlayer event: Playing. audioTracks={_mediaPlayer?.AudioTrackCount}, audioTrack={_mediaPlayer?.AudioTrack}, volume={_mediaPlayer?.Volume}, muted={_mediaPlayer?.Mute}");
-            _playbackUi.Playing();
-            _playbackUiTimer.Stop();
-            _playbackSession.TryTransition(_playbackSession.Generation, PlaybackSessionState.Playing);
-            _viewModel.IsBuffering = _playbackUi.IsBuffering;
+            ApplyPlaybackState(PlaybackSessionState.Playing);
             ShowOverlay();
             _viewModel.SetPlaybackStatus(string.Empty);
         });
@@ -853,10 +862,7 @@ public partial class PlayerView : UserControl
                 return;
 
             _bufferingWatchdog.Cancel();
-            _playbackUi.End();
-            _playbackUiTimer.Stop();
-            _playbackSession.TryTransition(_playbackSession.Generation, PlaybackSessionState.Error);
-            _viewModel.IsBuffering = _playbackUi.IsBuffering;
+            ApplyPlaybackState(PlaybackSessionState.Error);
             ShowOverlay();
             _viewModel.SetPlaybackStatus("Playback error. The stream may be unavailable or unsupported.");
         });
@@ -866,13 +872,9 @@ public partial class PlayerView : UserControl
     {
         DispatchPlaybackCallback(sender, () =>
         {
-            _bufferingWatchdog.Cancel();
             Log("MediaPlayer event: EndReached");
-            _playbackUi.End();
-            _playbackUiTimer.Stop();
-            _viewModel.IsBuffering = _playbackUi.IsBuffering;
+            ApplyPlaybackState(PlaybackSessionState.Ended);
             ShowOverlay();
-            _playbackSession.TryTransition(_playbackSession.Generation, PlaybackSessionState.Ended);
             _viewModel.SetPlaybackStatus("Stream ended.");
         });
     }
