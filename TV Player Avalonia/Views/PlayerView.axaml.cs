@@ -716,6 +716,8 @@ public partial class PlayerView : UserControl
         _bufferingWatchdogCts?.Dispose();
         _bufferingWatchdogCts = new CancellationTokenSource();
         var token = _bufferingWatchdogCts.Token;
+        var generation = _playbackSession.Generation;
+        var player = _mediaPlayer;
         Log("Buffering watchdog started (12s)");
 
         _ = Task.Run(async () =>
@@ -734,7 +736,8 @@ public partial class PlayerView : UserControl
 
             Dispatcher.UIThread.Post(() =>
             {
-                if (token.IsCancellationRequested || _mediaPlayer == null || _viewModel == null ||
+                if (token.IsCancellationRequested || generation != _playbackSession.Generation ||
+                    !ReferenceEquals(player, _mediaPlayer) || _mediaPlayer == null || _viewModel == null ||
                     string.IsNullOrWhiteSpace(_activeStreamUrl) || _mediaPlayer.IsPlaying)
                     return;
 
@@ -788,8 +791,12 @@ public partial class PlayerView : UserControl
             Log($"MediaPlayer buffering: {e.Cache:0}%");
         }
 
+        var generation = _playbackSession.Generation;
+        var player = sender;
         Dispatcher.UIThread.Post(() =>
         {
+            if (generation != _playbackSession.Generation || !ReferenceEquals(player, _mediaPlayer))
+                return;
             if (_viewModel != null && !_hasPlaybackStarted)
                 _viewModel.IsBuffering = e.Cache < 100;
         });
@@ -800,8 +807,12 @@ public partial class PlayerView : UserControl
         if (_viewModel == null)
             return;
 
+        var generation = _playbackSession.Generation;
+        var player = sender;
         Dispatcher.UIThread.Post(() =>
         {
+            if (generation != _playbackSession.Generation || !ReferenceEquals(player, _mediaPlayer))
+                return;
             _bufferingWatchdogCts?.Cancel();
             Log($"MediaPlayer event: Playing. audioTracks={_mediaPlayer?.AudioTrackCount}, audioTrack={_mediaPlayer?.AudioTrack}, volume={_mediaPlayer?.Volume}, muted={_mediaPlayer?.Mute}");
             _hasPlaybackStarted = true;
@@ -817,8 +828,12 @@ public partial class PlayerView : UserControl
         if (_viewModel == null)
             return;
 
+        var generation = _playbackSession.Generation;
+        var player = sender;
         Dispatcher.UIThread.Post(() =>
         {
+            if (generation != _playbackSession.Generation || !ReferenceEquals(player, _mediaPlayer))
+                return;
             Log("MediaPlayer event: EncounteredError");
             if (TryStartNextStreamFallback())
                 return;
@@ -837,8 +852,12 @@ public partial class PlayerView : UserControl
         if (_viewModel == null)
             return;
 
+        var generation = _playbackSession.Generation;
+        var player = sender;
         Dispatcher.UIThread.Post(() =>
         {
+            if (generation != _playbackSession.Generation || !ReferenceEquals(player, _mediaPlayer))
+                return;
             _bufferingWatchdogCts?.Cancel();
             Log("MediaPlayer event: EndReached");
             _hasPlaybackStarted = false;
@@ -854,8 +873,12 @@ public partial class PlayerView : UserControl
         if (_viewModel == null)
             return;
 
+        var generation = _playbackSession.Generation;
+        var player = sender;
         Dispatcher.UIThread.Post(() =>
         {
+            if (generation != _playbackSession.Generation || !ReferenceEquals(player, _mediaPlayer))
+                return;
             _bufferingWatchdogCts?.Cancel();
             Log("MediaPlayer event: Stopped");
             // Stop is expected while switching channels; avoid a persistent toast.
