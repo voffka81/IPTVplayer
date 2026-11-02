@@ -529,6 +529,25 @@ public partial class PlayerView : UserControl
             ShowOverlay();
     }
 
+    private void OnProgramGuidePointerWheelChanged(object? sender, PointerWheelEventArgs e)
+    {
+        if (sender is not ScrollViewer scrollViewer)
+            return;
+
+        var maxOffset = Math.Max(0, scrollViewer.Extent.Width - scrollViewer.Viewport.Width);
+        if (maxOffset <= 0)
+            return;
+
+        var delta = Math.Abs(e.Delta.X) > 0 ? e.Delta.X : e.Delta.Y;
+        if (delta == 0)
+            return;
+
+        scrollViewer.Offset = new Vector(
+            Math.Clamp(scrollViewer.Offset.X - delta * 110, 0, maxOffset),
+            scrollViewer.Offset.Y);
+        e.Handled = true;
+    }
+
     private void OnChannelPickerPointerWheelChanged(object? sender, PointerWheelEventArgs e)
     {
         var scrollViewer = ChannelPickerList.GetVisualDescendants().OfType<ScrollViewer>().FirstOrDefault();
