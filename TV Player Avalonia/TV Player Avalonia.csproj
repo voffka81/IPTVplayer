@@ -50,4 +50,18 @@
           SkipUnchangedFiles="true" />
   </Target>
 
+  <Target Name="CopyProviderPluginsToPublish" AfterTargets="Publish">
+    <PropertyGroup>
+      <_ProviderPluginOutput>$(MSBuildThisFileDirectory)..\Examples\HtmlPageStreamsPlugin\bin\$(Configuration)\net10.0</_ProviderPluginOutput>
+      <_ProviderPublishPluginDestination>$(PublishDir)Plugins\HtmlPageStreamsPlugin</_ProviderPublishPluginDestination>
+    </PropertyGroup>
+    <MakeDir Directories="$(_ProviderPublishPluginDestination)" />
+    <ItemGroup>
+      <_ProviderPublishPluginFiles Include="$(_ProviderPluginOutput)\**\*" />
+    </ItemGroup>
+    <Copy SourceFiles="@(_ProviderPublishPluginFiles)"
+          DestinationFiles="@(_ProviderPublishPluginFiles->'$(_ProviderPublishPluginDestination)\%(RecursiveDir)%(Filename)%(Extension)')"
+          SkipUnchangedFiles="true" />
+  </Target>
+
 </Project>

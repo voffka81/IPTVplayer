@@ -1,0 +1,44 @@
+name: Publish Windows release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  publish-windows:
+    runs-on: windows-latest
+    steps:
+      - name: Check out tagged source
+        uses: actions/checkout@v4
+
+      - name: Set up .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Run unit tests
+        run: dotnet test "TV Player Tests/TV Player Tests.csproj" --configuration Release
+
+      - name: Publish self-contained Windows x64 app
+        run: >-
+          dotnet publish "TV Player Avalonia/TV Player Avalonia.csproj"
+          --configuration Release
+          --runtime win-x64
+          --self-contained true
+          --output publish
+
+      - name: Package release archive
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Path artifacts -Force | Out-Null
+          $archive = "artifacts/IPTVplayer-$env:GITHUB_REF_NAME-win-x64.zip"
+          Compress-Archive -Path "publish\*" -DestinationPath $archive -CompressionLevel Optimal
+
+      - name: Create GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release create "$env:GITHUB_REF_NAME" "artifacts/IPTVplayer-$env:GITHUB_REF_NAME-win-x64.zip" --generate-notes
