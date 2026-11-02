@@ -37,3 +37,14 @@
 - No shared XAML via brittle transpilation or conditional markup.
 - No DI container introduced solely for ceremony; favor explicit constructor injection.
 - No claim of 'zero memory leaks' without profiling and repeated-run evidence.
+
+## Testing policy (required for every refactor PR)
+- Write behavioral characterization tests before extracting logic from an existing view; preserve observable behavior unless the PR explicitly fixes a bug.
+- Every extracted shared controller/model must have unit tests for success, failure, cancellation, disposal, and repeated use where applicable.
+- Use deterministic fakes for clocks, HTTP, provider resolution and playback engines; no network, wall-clock delays or VLC native dependency in unit tests.
+- Add integration tests for M3U/XMLTV, EPG caching, provider fallback and bounded downloads using local fixtures or an in-process HTTP server.
+- Add headless Avalonia tests for bindings, focus and overlay visibility; Android UI smoke tests remain a separate device/emulator gate.
+- Every bug fix includes a regression test demonstrating the previously failing scenario.
+- CI must run the full cross-platform shared suite; Android build must run on shared changes, with manual Ally/gamepad and Android touch verification before release.
+- Track coverage per new shared module as a diagnostic, not a substitute for scenario assertions; avoid arbitrary repository-wide percentage targets.
+- A PR is not considered complete when required tests fail or have not run; document any unautomated device checks.
