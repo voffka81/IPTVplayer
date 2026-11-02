@@ -9,7 +9,6 @@
     <RootNamespace>TV_Player</RootNamespace>
     <AssemblyName>TV Player Avalonia</AssemblyName>
     <AvaloniaUseCompiledBindingsByDefault>false</AvaloniaUseCompiledBindingsByDefault>
-    <EnableDevelopmentPlugins Condition="'$(EnableDevelopmentPlugins)' == '' and '$(Configuration)' == 'Debug'">true</EnableDevelopmentPlugins>
   </PropertyGroup>
 
   <ItemGroup>
@@ -30,25 +29,24 @@
   <ItemGroup>
     <ProjectReference Include="..\TV Player Core\TV Player Core.csproj" />
     <ProjectReference Include="..\Examples\HtmlPageStreamsPlugin\HtmlPageStreamsPlugin.csproj"
-                      ReferenceOutputAssembly="false"
-                      Condition="'$(EnableDevelopmentPlugins)' == 'true'" />
+                      ReferenceOutputAssembly="false" />
   </ItemGroup>
 
   <ItemGroup>
     <AvaloniaResource Include="Assets\**\*" />
   </ItemGroup>
 
-  <Target Name="CopyDevelopmentPlugins" AfterTargets="ResolveProjectReferences" Condition="'$(EnableDevelopmentPlugins)' == 'true'">
+  <Target Name="CopyProviderPlugins" AfterTargets="ResolveProjectReferences">
     <PropertyGroup>
-      <_DevelopmentPluginOutput>$(MSBuildThisFileDirectory)..\Examples\HtmlPageStreamsPlugin\bin\$(Configuration)\net10.0</_DevelopmentPluginOutput>
-      <_DevelopmentPluginDestination>$(OutDir)Plugins\HtmlPageStreamsPlugin</_DevelopmentPluginDestination>
+      <_ProviderPluginOutput>$(MSBuildThisFileDirectory)..\Examples\HtmlPageStreamsPlugin\bin\$(Configuration)\net10.0</_ProviderPluginOutput>
+      <_ProviderPluginDestination>$(OutDir)Plugins\HtmlPageStreamsPlugin</_ProviderPluginDestination>
     </PropertyGroup>
-    <MakeDir Directories="$(_DevelopmentPluginDestination)" />
+    <MakeDir Directories="$(_ProviderPluginDestination)" />
     <ItemGroup>
-      <_DevelopmentPluginFiles Include="$(_DevelopmentPluginOutput)\**\*" />
+      <_ProviderPluginFiles Include="$(_ProviderPluginOutput)\**\*" />
     </ItemGroup>
-    <Copy SourceFiles="@(_DevelopmentPluginFiles)"
-          DestinationFiles="@(_DevelopmentPluginFiles->'$(_DevelopmentPluginDestination)\%(RecursiveDir)%(Filename)%(Extension)')"
+    <Copy SourceFiles="@(_ProviderPluginFiles)"
+          DestinationFiles="@(_ProviderPluginFiles->'$(_ProviderPluginDestination)\%(RecursiveDir)%(Filename)%(Extension)')"
           SkipUnchangedFiles="true" />
   </Target>
 
