@@ -28,7 +28,7 @@ public partial class PlayerView : UserControl
     private readonly PlaybackSession _playbackSession = new();
     private LibVLC? _libVlc;
     private MediaPlayer? _mediaPlayer;
-    private Media? _currentMedia;
+    private LibVlcPlaybackEngine? _playbackEngine;
     private PlayerViewModel? _viewModel;
     private bool _initialized;
     private bool _initializing;
@@ -211,6 +211,7 @@ public partial class PlayerView : UserControl
 
                 _mediaPlayer = mediaPlayer;
                 _libVlc = libVlc;
+                _playbackEngine = new LibVlcPlaybackEngine(libVlc, mediaPlayer);
                 _mediaPlayer!.Buffering += OnMediaPlayerBuffering;
                 _mediaPlayer.Playing += OnMediaPlayerPlaying;
                 _mediaPlayer.EncounteredError += OnMediaPlayerEncounteredError;
@@ -275,14 +276,13 @@ public partial class PlayerView : UserControl
             Log("VideoView.MediaPlayer detached before disposal");
         }
 
-        _mediaPlayer?.Stop();
+        _playbackEngine?.DisposeAsync().AsTask().GetAwaiter().GetResult();
+        _playbackEngine = null;
         _bufferingWatchdogCts?.Cancel();
         _bufferingWatchdogCts?.Dispose();
-        _currentMedia?.Dispose();
         _mediaPlayer?.Dispose();
         DisposeMasterVolume();
         _bufferingWatchdogCts = null;
-        _currentMedia = null;
         _mediaPlayer = null;
         _libVlc = null;
         _activeStreamUrl = null;
@@ -670,9 +670,7 @@ public partial class PlayerView : UserControl
             _fallbackStreamIndex = 0;
             _fallbackAttempted = false;
 
-            _mediaPlayer.Stop();
-            _currentMedia?.Dispose();
-            _currentMedia = null;
+            _playbackEngine?.StopAsync().GetAwaiter().GetResult();
 
             _viewModel.SetPlaybackStatus(string.Empty);
             _playbackSession.TryTransition(_playbackSession.Generation, PlaybackSessionState.Buffering);
@@ -692,96 +690,26 @@ public partial class PlayerView : UserControl
         }
     }
 
-    private static Media BuildMediaFromStreamUrl(LibVLC libVlc, string rawStreamUrl)
-    {
-        // Common IPTV format: http://.../stream.m3u8|user-agent=...&referer=...
-        var splitIndex = rawStreamUrl.IndexOf('|');
-        if (splitIndex <= 0)
-        {
-            return new Media(libVlc, rawStreamUrl, FromType.FromLocation);
-        }
-
-        var baseUrl = rawStreamUrl[..splitIndex].Trim();
-        var optionsSegment = rawStreamUrl[(splitIndex + 1)..].Trim();
-        var media = new Media(libVlc, baseUrl, FromType.FromLocation);
-
-        if (string.IsNullOrWhiteSpace(optionsSegment))
-        {
-            return media;
-        }
-
-        var pairs = optionsSegment.Split('&', System.StringSplitOptions.RemoveEmptyEntries | System.StringSplitOptions.TrimEntries);
-        foreach (var pair in pairs)
-        {
-            var equalsIndex = pair.IndexOf('=');
-            if (equalsIndex <= 0 || equalsIndex == pair.Length - 1)
-            {
-                continue;
-            }
-
-            var key = pair[..equalsIndex].Trim().ToLowerInvariant();
-            var value = HttpUtility.UrlDecode(pair[(equalsIndex + 1)..].Trim());
-            if (string.IsNullOrWhiteSpace(value))
-            {
-                continue;
-            }
-
-            switch (key)
-            {
-                case "user-agent":
-                case "http-user-agent":
-                    media.AddOption($":http-user-agent={value}");
-                    break;
-                case "referer":
-                case "referrer":
-                case "http-referrer":
-                case "http-referer":
-                    media.AddOption($":http-referrer={value}");
-                    break;
-                case "origin":
-                    media.AddOption($":http-header=Origin={value}");
-                    break;
-                case "cookie":
-                case "cookies":
-                    media.AddOption($":http-header=Cookie={value}");
-                    break;
-            }
-        }
-
-        return media;
-    }
-
     private bool StartPlayback(string streamUrl, bool fallback)
     {
-        if (_mediaPlayer == null || _libVlc == null)
+        if (_playbackEngine == null)
             return false;
 
-        _mediaPlayer.Mute = false;
-        _mediaPlayer.Volume = 100;
         Log($"StartPlayback called. fallback={fallback}, url={FormatUrlForLog(streamUrl)}");
-
-        _currentMedia?.Dispose();
-        _currentMedia = BuildMediaFromStreamUrl(_libVlc, streamUrl);
-        _currentMedia.AddOption(":network-caching=1500");
-        _currentMedia.AddOption(":live-caching=1500");
-        _currentMedia.AddOption(":http-reconnect=true");
-        _currentMedia.AddOption(":codec=avcodec");
-        if (OperatingSystem.IsMacOS())
+        try
         {
-            _currentMedia.AddOption(":avcodec-hw=none");
+            var source = new StreamSource(streamUrl);
+            if (fallback)
+                _playbackEngine.PlayFallbackAsync(source).GetAwaiter().GetResult();
+            else
+                _playbackEngine.PlayAsync(source).GetAwaiter().GetResult();
+            return true;
         }
-
-        if (fallback)
+        catch (Exception ex)
         {
-            _currentMedia.AddOption(":demux=any");
-            _currentMedia.AddOption(":hls-segment-threads=4");
-            _currentMedia.AddOption(":http-continuous=true");
-            Log("Fallback options applied: demux=any, hls-segment-threads=4, http-continuous=true");
+            Log($"StartPlayback failed: {ex}");
+            return false;
         }
-
-        var started = _mediaPlayer.Play(_currentMedia);
-        Log($"MediaPlayer.Play returned: {started}");
-        return started;
     }
 
     private void StartBufferingWatchdog()
@@ -844,9 +772,7 @@ public partial class PlayerView : UserControl
         _fallbackAttempted = false;
         Log($"Trying alternate stream URL {_fallbackStreamIndex}/{_fallbackStreamUrls.Count}: {FormatUrlForLog(fallbackUrl)}");
 
-        _mediaPlayer.Stop();
-        _currentMedia?.Dispose();
-        _currentMedia = null;
+        _playbackEngine?.StopAsync().GetAwaiter().GetResult();
         _viewModel.SetPlaybackStatus("Trying alternate stream…");
         StartBufferingWatchdog();
 
