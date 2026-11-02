@@ -1,0 +1,72 @@
+name: Android APK build
+
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/android-ci.yml'
+      - 'TV Player MAUI/**'
+      - 'TV Player Core/**'
+      - 'TV Player Plugin.Abstractions/**'
+      - 'global.json'
+      - 'NuGet.Config'
+  push:
+    branches: [master]
+    paths:
+      - '.github/workflows/android-ci.yml'
+      - 'TV Player MAUI/**'
+      - 'TV Player Core/**'
+      - 'TV Player Plugin.Abstractions/**'
+      - 'global.json'
+      - 'NuGet.Config'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build-android:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Set up .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Install Android .NET workload
+        run: dotnet workload restore "TV Player MAUI/TV Player MAUI.csproj"
+
+      - name: Publish APK
+        run: >-
+          dotnet publish "TV Player MAUI/TV Player MAUI.csproj"
+          --configuration Release
+          --framework net10.0-android
+          --property:AndroidPackageFormat=apk
+          --output artifacts/android
+
+      - name: Normalize APK filename
+        shell: bash
+        run: |
+          mapfile -t apks < <(find artifacts/android -maxdepth 1 -type f -name '*.apk')
+          if [[ ${#apks[@]} -ne 1 ]]; then
+            printf 'Expected one APK, found %s\n' "${#apks[@]}"
+            find artifacts/android -maxdepth 1 -type f -print
+            exit 1
+          fi
+          mv "${apks[0]}" artifacts/IPTVplayer-android.apk
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: IPTVplayer-android-apk
+          path: artifacts/IPTVplayer-android.apk
+          if-no-files-found: error
+          retention-days: 30

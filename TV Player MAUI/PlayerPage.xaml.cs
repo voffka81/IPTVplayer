@@ -1,5 +1,5 @@
 using LibVLCSharp.Shared;
-using TV_Player.Maui.Services;
+using TV_Player;
 
 namespace TV_Player.Maui;
 
@@ -34,6 +34,7 @@ public partial class PlayerPage : ContentPage
         StatusLabel.Text = "Подключение…";
         _libVlc ??= new LibVLC(enableDebugLogs: false);
         _mediaPlayer ??= new MediaPlayer(_libVlc);
+        VideoPlayer.LibVLC = _libVlc;
         VideoPlayer.MediaPlayer = _mediaPlayer;
         _currentMedia?.Dispose();
         _currentMedia = CreateMedia(channel.Url);
