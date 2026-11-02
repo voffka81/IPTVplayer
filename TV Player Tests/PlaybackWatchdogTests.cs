@@ -35,7 +35,8 @@ public sealed class PlaybackWatchdogTests
         var first = 0;
         var second = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
         watchdog.Arm(_ => Interlocked.Increment(ref first));
-        await Task.Delay(20);
+        // Rearm immediately: wall-clock delays can overshoot under CI load,
+        // letting the first timer fire before cancellation is requested.
         watchdog.Arm(_ => second.TrySetResult());
         await second.Task.WaitAsync(TimeSpan.FromSeconds(3));
         Assert.Equal(0, first);
