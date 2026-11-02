@@ -675,7 +675,7 @@ public partial class PlayerView : UserControl
             _currentMedia = null;
 
             _viewModel.SetPlaybackStatus(string.Empty);
-            _playbackSession.TryTransition(_playbackSession.Generation, PlaybackState.Buffering);
+            _playbackSession.TryTransition(_playbackSession.Generation, PlaybackSessionState.Buffering);
             StartBufferingWatchdog();
 
             var started = StartPlayback(streamUrl, fallback: false);
@@ -838,7 +838,7 @@ public partial class PlayerView : UserControl
 
         var fallbackUrl = _fallbackStreamUrls[_fallbackStreamIndex++];
         _activeStreamUrl = fallbackUrl;
-        _playbackSession.TryTransition(_playbackSession.Generation, PlaybackState.Recovering);
+        _playbackSession.TryTransition(_playbackSession.Generation, PlaybackSessionState.Recovering);
         _hasPlaybackStarted = false;
         ShowOverlay();
         _fallbackAttempted = false;
@@ -882,7 +882,7 @@ public partial class PlayerView : UserControl
             _bufferingWatchdogCts?.Cancel();
             Log($"MediaPlayer event: Playing. audioTracks={_mediaPlayer?.AudioTrackCount}, audioTrack={_mediaPlayer?.AudioTrack}, volume={_mediaPlayer?.Volume}, muted={_mediaPlayer?.Mute}");
             _hasPlaybackStarted = true;
-            _playbackSession.TryTransition(_playbackSession.Generation, PlaybackState.Playing);
+            _playbackSession.TryTransition(_playbackSession.Generation, PlaybackSessionState.Playing);
             _viewModel.IsBuffering = false;
             ShowOverlay();
             _viewModel.SetPlaybackStatus(string.Empty);
@@ -902,7 +902,7 @@ public partial class PlayerView : UserControl
 
             _bufferingWatchdogCts?.Cancel();
             _hasPlaybackStarted = false;
-            _playbackSession.TryTransition(_playbackSession.Generation, PlaybackState.Error);
+            _playbackSession.TryTransition(_playbackSession.Generation, PlaybackSessionState.Error);
             _viewModel.IsBuffering = false;
             ShowOverlay();
             _viewModel.SetPlaybackStatus("Playback error. The stream may be unavailable or unsupported.");
@@ -921,7 +921,7 @@ public partial class PlayerView : UserControl
             _hasPlaybackStarted = false;
             _viewModel.IsBuffering = false;
             ShowOverlay();
-            _playbackSession.TryTransition(_playbackSession.Generation, PlaybackState.Ended);
+            _playbackSession.TryTransition(_playbackSession.Generation, PlaybackSessionState.Ended);
             _viewModel.SetPlaybackStatus("Stream ended.");
         });
     }
