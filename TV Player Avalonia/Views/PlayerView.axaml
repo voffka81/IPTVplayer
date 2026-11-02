@@ -54,55 +54,6 @@
       </Grid>
       </Border>
 
-      <!-- Bottom EPG carousel, matching the Android player layout. -->
-      <Border Grid.Row="1"
-              x:Name="GuidePanel"
-              VerticalAlignment="Bottom"
-              HorizontalAlignment="Stretch"
-              Margin="18,0,18,10"
-              Padding="12,10"
-              Background="#E6101928"
-              BorderBrush="#304761"
-              BorderThickness="1"
-              CornerRadius="12"
-              IsVisible="{Binding ProgramGuideVisible}">
-        <StackPanel Spacing="8">
-          <TextBlock Text="ПРОГРАММА ПЕРЕДАЧ" Foreground="#91A6BF" FontSize="12" FontWeight="SemiBold" />
-          <ScrollViewer x:Name="ProgramGuideScroll"
-                        HorizontalScrollBarVisibility="Auto"
-                        VerticalScrollBarVisibility="Disabled"
-                        PointerWheelChanged="OnProgramGuidePointerWheelChanged">
-            <ItemsControl ItemsSource="{Binding Programs}">
-              <ItemsControl.ItemsPanel>
-                <ItemsPanelTemplate>
-                  <StackPanel Orientation="Horizontal" Spacing="8" />
-                </ItemsPanelTemplate>
-              </ItemsControl.ItemsPanel>
-              <ItemsControl.ItemTemplate>
-                <DataTemplate>
-                  <Border Width="220" MinHeight="92" Padding="12,10"
-                          Background="#162130" BorderBrush="#304054"
-                          BorderThickness="1" CornerRadius="12">
-                    <StackPanel Spacing="6">
-                      <TextBlock Text="{Binding Title}" TextWrapping="Wrap"
-                                 MaxHeight="48" FontSize="15" FontWeight="SemiBold"
-                                 Foreground="White" />
-                      <StackPanel Orientation="Horizontal" Spacing="8">
-                        <TextBlock Text="{Binding StartTime, StringFormat='{}{0:HH:mm}'}"
-                                   FontSize="12" Foreground="#8DD2FF" />
-                        <TextBlock Text="–" FontSize="12" Foreground="#8DD2FF" />
-                        <TextBlock Text="{Binding EndTime, StringFormat='{}{0:HH:mm}'}"
-                                   FontSize="12" Foreground="#8DD2FF" />
-                      </StackPanel>
-                    </StackPanel>
-                  </Border>
-                </DataTemplate>
-              </ItemsControl.ItemTemplate>
-            </ItemsControl>
-          </ScrollViewer>
-        </StackPanel>
-      </Border>
-
       <StackPanel Grid.Row="2" VerticalAlignment="Bottom">
         <Border Background="#E6101928"
                 BorderBrush="#304761"
@@ -183,9 +134,54 @@
           </Button>
         </StackPanel>
 
+      <!-- Bottom EPG carousel, matching the Android player layout. -->
+      <Border Grid.Column="1"
+              VerticalAlignment="Center"
+              HorizontalAlignment="Stretch"
+              Padding="4,6"
+              Background="Transparent"
+              BorderThickness="0"
+              IsVisible="{Binding ProgramGuideVisible}">
+        <StackPanel Spacing="4">
+          <ScrollViewer x:Name="ProgramGuideScroll"
+                        HorizontalScrollBarVisibility="Auto"
+                        VerticalScrollBarVisibility="Disabled"
+                        PointerWheelChanged="OnProgramGuidePointerWheelChanged">
+            <ItemsControl ItemsSource="{Binding Programs}">
+              <ItemsControl.ItemsPanel>
+                <ItemsPanelTemplate>
+                  <StackPanel Orientation="Horizontal" Spacing="8" />
+                </ItemsPanelTemplate>
+              </ItemsControl.ItemsPanel>
+              <ItemsControl.ItemTemplate>
+                <DataTemplate>
+                  <Border Width="200" MinHeight="72" Padding="10,6"
+                          Background="#162130" BorderBrush="#304054"
+                          BorderThickness="1" CornerRadius="12">
+                    <StackPanel Spacing="6">
+                      <TextBlock Text="{Binding Title}" TextWrapping="Wrap"
+                                 MaxHeight="48" FontSize="14" FontWeight="SemiBold"
+                                 Foreground="White" />
+                      <StackPanel Orientation="Horizontal" Spacing="8">
+                        <TextBlock Text="{Binding StartTime, StringFormat='{}{0:HH:mm}'}"
+                                   FontSize="12" Foreground="#8DD2FF" />
+                        <TextBlock Text="–" FontSize="12" Foreground="#8DD2FF" />
+                        <TextBlock Text="{Binding EndTime, StringFormat='{}{0:HH:mm}'}"
+                                   FontSize="12" Foreground="#8DD2FF" />
+                      </StackPanel>
+                    </StackPanel>
+                  </Border>
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+          </ScrollViewer>
+        </StackPanel>
+      </Border>
+
+
         <Button Grid.Column="1"
                 Classes="toolbar-flat"
-                IsVisible="{Binding ShowProgramInfo}"
+                IsVisible="{Binding ShowCurrentProgramInBar}"
                 Command="{Binding ShowProgramListCommand}">
           <StackPanel Spacing="3" HorizontalAlignment="Center">
             <TextBlock FontSize="18"
