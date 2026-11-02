@@ -1,12 +1,10 @@
 namespace TV_Player.Playback;
 
-/// <summary>
-/// Cancelable, one-shot timeout used while waiting for a stream to start.
-/// Each Arm replaces the previous timeout; callbacks are never invoked after cancellation.
-/// </summary>
+/// <summary>Cancelable one-shot timeout; rearming invalidates the previous stream timeout.</summary>
 public sealed class PlaybackWatchdog : IDisposable
 {
     private readonly TimeSpan _timeout;
+    private readonly object _gate = new();
     private CancellationTokenSource? _pending;
     private bool _disposed;
 
@@ -20,15 +18,22 @@ public sealed class PlaybackWatchdog : IDisposable
     public void Arm(Action<CancellationToken> onTimeout)
     {
         ArgumentNullException.ThrowIfNull(onTimeout);
-        ObjectDisposedException.ThrowIf(_disposed, this);
-        Cancel();
-        var pending = new CancellationTokenSource();
-        _pending = pending;
-        _ = WaitAsync(pending.Token, onTimeout);
+        CancellationTokenSource? previous;
+        CancellationTokenSource current;
+        lock (_gate)
+        {
+            ObjectDisposedException.ThrowIf(_disposed, this);
+            previous = _pending;
+            current = new CancellationTokenSource();
+            _pending = current;
+        }
+        previous?.Cancel();
+        _ = WaitAsync(current, onTimeout);
     }
 
-    private async Task WaitAsync(CancellationToken token, Action<CancellationToken> onTimeout)
+    private async Task WaitAsync(CancellationTokenSource pending, Action<CancellationToken> onTimeout)
     {
+        var token = pending.Token;
         try
         {
             await Task.Delay(_timeout, token).ConfigureAwait(false);
@@ -38,16 +43,35 @@ public sealed class PlaybackWatchdog : IDisposable
         catch (OperationCanceledException) when (token.IsCancellationRequested)
         {
         }
+        finally
+        {
+            lock (_gate)
+            {
+                if (ReferenceEquals(_pending, pending))
+                    _pending = null;
+            }
+            pending.Dispose();
+        }
     }
 
-    public void Cancel() => _pending?.Cancel();
+    public void Cancel()
+    {
+        CancellationTokenSource? pending;
+        lock (_gate)
+        {
+            pending = _pending;
+            _pending = null;
+        }
+        pending?.Cancel();
+    }
 
     public void Dispose()
     {
-        if (_disposed) return;
-        _disposed = true;
+        lock (_gate)
+        {
+            if (_disposed) return;
+            _disposed = true;
+        }
         Cancel();
-        _pending?.Dispose();
-        _pending = null;
     }
 }
