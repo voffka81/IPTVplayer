@@ -302,6 +302,17 @@ public class PlayerViewModel : TV_Player.ObservableViewModelBase, IDisposable
         UpdateUi();
     }
 
+    public void SwitchChannel(int direction)
+    {
+        if (_programs.Count < 2 || direction == 0)
+            return;
+
+        var nextIndex = (_currentProgramIndex + Math.Sign(direction) + _programs.Count) % _programs.Count;
+        _currentProgramIndex = nextIndex;
+        _currentProgram = _programs[nextIndex];
+        UpdateUi();
+    }
+
     private void ShowProgramList()
     {
         ProgramGuideVisible = !ProgramGuideVisible;
