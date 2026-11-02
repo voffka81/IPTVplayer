@@ -135,7 +135,7 @@
         </StackPanel>
 
       <!-- Bottom EPG carousel, matching the Android player layout. -->
-      <Border Grid.Column="1"
+      <Border x:Name="GuidePanel" Grid.Column="1"
               VerticalAlignment="Center"
               HorizontalAlignment="Stretch"
               Padding="4,6"
