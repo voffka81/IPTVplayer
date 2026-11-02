@@ -17,12 +17,16 @@ public partial class PlayerPage : ContentPage
     private CancellationTokenSource? _playbackRequestToken;
     private System.Threading.Timer? _guideRefreshTimer;
     private bool _isClosing;
+    private bool _wasPlayingBeforeAppSwitch;
+    private M3UInfo? _selectedChannel;
+    private readonly List<(M3UInfo Channel, Border Tile)> _channelPickerTiles = new();
 
     public PlayerPage(M3UInfo channel, IReadOnlyList<M3UInfo> channels, ProgramsData sourceData)
     {
         InitializeComponent();
         PlayerLayout.SizeChanged += (_, _) => RefreshVideoSurfaceSize();
         _sourceData = sourceData;
+        _selectedChannel = channel;
         ChannelTitle.Text = channel.Name;
         ClockLabel.Text = DateTime.Now.ToString("HH:mm");
         foreach (var item in channels)
@@ -80,6 +84,8 @@ public partial class PlayerPage : ContentPage
             StrokeShape = new Microsoft.Maui.Controls.Shapes.RoundRectangle { CornerRadius = 10 },
             Content = new Grid { Children = { content } }
         };
+        _channelPickerTiles.Add((channel, tile));
+        UpdateChannelPickerSelection();
         var button = new Button
         {
             BackgroundColor = Colors.Transparent,
@@ -94,8 +100,12 @@ public partial class PlayerPage : ContentPage
             ChannelPicker.IsVisible = false;
             PlayChannel(channel);
         };
-        button.Focused += (_, _) => tile.Stroke = Color.FromArgb("#55B9FF");
-        button.Unfocused += (_, _) => tile.Stroke = Color.FromArgb("#304054");
+        button.Focused += (_, _) =>
+        {
+            tile.Stroke = Color.FromArgb("#7BD0FF");
+            tile.StrokeThickness = 2;
+        };
+        button.Unfocused += (_, _) => UpdateChannelPickerSelection();
         ((Grid)tile.Content).Children.Add(button);
         return tile;
     }
@@ -104,6 +114,8 @@ public partial class PlayerPage : ContentPage
     {
         base.OnAppearing();
 #if ANDROID
+        MainActivity.AppPausing += OnApplicationPausing;
+        MainActivity.AppResumed += OnApplicationResumed;
         try
         {
             if (Platform.CurrentActivity is MainActivity activity)
@@ -157,6 +169,9 @@ public partial class PlayerPage : ContentPage
     private async void PlayChannel(M3UInfo channel)
     {
         if (_isClosing) return;
+
+        _selectedChannel = channel;
+        UpdateChannelPickerSelection();
 
         _playbackRequestToken?.Cancel();
         _playbackRequestToken?.Dispose();
@@ -437,6 +452,10 @@ public partial class PlayerPage : ContentPage
     protected override void OnDisappearing()
     {
         base.OnDisappearing();
+#if ANDROID
+        MainActivity.AppPausing -= OnApplicationPausing;
+        MainActivity.AppResumed -= OnApplicationResumed;
+#endif
         _hideUiToken?.Cancel();
         _guideLoadToken?.Cancel();
         _guideRefreshTimer?.Dispose();
@@ -451,6 +470,55 @@ public partial class PlayerPage : ContentPage
             System.Diagnostics.Debug.WriteLine($"Failed to restore system bars: {ex.Message}");
         }
 #endif
+    }
+
+    private void UpdateChannelPickerSelection()
+    {
+        foreach (var (channel, tile) in _channelPickerTiles)
+        {
+            var isSelected = IsSameChannel(channel, _selectedChannel);
+            tile.BackgroundColor = Color.FromArgb(isSelected ? "#1A4263" : "#162130");
+            tile.Stroke = Color.FromArgb(isSelected ? "#55B9FF" : "#304054");
+            tile.StrokeThickness = isSelected ? 2 : 1;
+        }
+    }
+
+    private static bool IsSameChannel(M3UInfo channel, M3UInfo? selected)
+    {
+        if (selected == null) return false;
+        if (ReferenceEquals(channel, selected)) return true;
+        if (!string.IsNullOrWhiteSpace(channel.ChannelId) && !string.IsNullOrWhiteSpace(selected.ChannelId))
+            return string.Equals(channel.ProviderId, selected.ProviderId, StringComparison.OrdinalIgnoreCase) &&
+                   string.Equals(channel.ChannelId, selected.ChannelId, StringComparison.OrdinalIgnoreCase);
+        return string.Equals(channel.Url, selected.Url, StringComparison.OrdinalIgnoreCase) &&
+               string.Equals(channel.Name, selected.Name, StringComparison.OrdinalIgnoreCase);
+    }
+
+    private void OnApplicationPausing()
+    {
+        _wasPlayingBeforeAppSwitch = _currentMedia != null && _mediaPlayer != null &&
+            _mediaPlayer.State is not (VLCState.Stopped or VLCState.Ended or VLCState.Error);
+        PrivacyOverlay.IsVisible = true;
+    }
+
+    private void OnApplicationResumed()
+    {
+        PrivacyOverlay.IsVisible = false;
+        if (!_wasPlayingBeforeAppSwitch || _isClosing) return;
+        _wasPlayingBeforeAppSwitch = false;
+        _ = ResumePlaybackAfterAppSwitchAsync();
+    }
+
+    private async Task ResumePlaybackAfterAppSwitchAsync()
+    {
+        await Task.Delay(250);
+        if (_isClosing || _mediaPlayer == null || _currentMedia == null) return;
+        if (_mediaPlayer.State is VLCState.Stopped or VLCState.Ended or VLCState.Error)
+            _mediaPlayer.Play(_currentMedia);
+        else if (_mediaPlayer.State == VLCState.Paused)
+            _mediaPlayer.Play();
+        await Task.Delay(150);
+        await MainThread.InvokeOnMainThreadAsync(RefreshVideoSurfaceSize);
     }
 
     private void DisposePlayback()

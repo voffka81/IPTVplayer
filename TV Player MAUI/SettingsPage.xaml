@@ -10,7 +10,7 @@
       <Entry x:Name="UrlEntry" Placeholder="Ссылка M3U (HTTP или HTTPS)" Keyboard="Url" />
       <Button Text="Добавить плейлист" Clicked="OnAddClicked" />
       <Label x:Name="StatusLabel" TextColor="#8DD2FF" />
-      <CollectionView x:Name="PlaylistView" HeightRequest="400" SelectionMode="None">
+      <CollectionView x:Name="PlaylistView" IsVisible="False" HeightRequest="0" SelectionMode="None">
         <CollectionView.ItemTemplate>
           <DataTemplate>
             <Grid ColumnDefinitions="*,Auto" Padding="8" BackgroundColor="#162130">

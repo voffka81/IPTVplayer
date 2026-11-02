@@ -10,6 +10,35 @@ public class MainActivity : MauiAppCompatActivity
 {
     private SystemUiFlags? _previousSystemUiFlags;
 
+    public static event Action? AppPausing;
+    public static event Action? AppResumed;
+
+    protected override void OnPause()
+    {
+        AppPausing?.Invoke();
+        SetPrivacyBlur(true);
+        base.OnPause();
+    }
+
+    protected override void OnResume()
+    {
+        base.OnResume();
+        SetPrivacyBlur(false);
+        AppResumed?.Invoke();
+    }
+
+    private void SetPrivacyBlur(bool enabled)
+    {
+        if (!OperatingSystem.IsAndroidVersionAtLeast(31)) return;
+
+        var decorView = Window?.DecorView;
+        if (decorView == null) return;
+
+        decorView.SetRenderEffect(enabled
+            ? Android.Graphics.RenderEffect.CreateBlurEffect(18f, 18f, Android.Graphics.Shader.TileMode.Clamp)
+            : null);
+    }
+
     public void SetImmersiveMode(bool enabled)
     {
         if (OperatingSystem.IsAndroidVersionAtLeast(30))

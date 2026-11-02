@@ -42,5 +42,6 @@
         <HorizontalStackLayout x:Name="ChannelPickerItems" Spacing="8" />
       </ScrollView>
     </Grid>
+    <BoxView x:Name="PrivacyOverlay" Grid.Row="0" Grid.Column="0" IsVisible="False" InputTransparent="True" BackgroundColor="#D909101B" />
   </Grid>
 </ContentPage>

@@ -18,7 +18,7 @@ public partial class SettingsPage : ContentPage
         _session = session;
         _items = SettingsModel.Playlists.Select(pair => new PlaylistItem(pair.Key, pair.Value)).ToList();
         _providerSources = SettingsModel.ProviderSources.Select(CloneSource).ToList();
-        PlaylistView.ItemsSource = _items;
+        RefreshPlaylistView();
         ProviderSourceView.ItemsSource = _providerSources;
         ProviderPicker.ItemsSource = _session.ProviderPlugins.OrderBy(plugin => plugin.Name).ToList();
     }
@@ -40,8 +40,7 @@ public partial class SettingsPage : ContentPage
             return;
         }
         _items.Add(new PlaylistItem(name, url!));
-        PlaylistView.ItemsSource = null;
-        PlaylistView.ItemsSource = _items;
+        RefreshPlaylistView();
         NameEntry.Text = UrlEntry.Text = string.Empty;
         StatusLabel.Text = "Добавлено. Нажмите «Сохранить».";
     }
@@ -50,8 +49,15 @@ public partial class SettingsPage : ContentPage
     {
         if ((sender as Button)?.BindingContext is not PlaylistItem item) return;
         _items.Remove(item);
+        RefreshPlaylistView();
+    }
+
+    private void RefreshPlaylistView()
+    {
         PlaylistView.ItemsSource = null;
         PlaylistView.ItemsSource = _items;
+        PlaylistView.IsVisible = _items.Count > 0;
+        PlaylistView.HeightRequest = _items.Count == 0 ? 0 : Math.Min(280, _items.Count * 64);
     }
 
     private void OnProviderSelected(object? sender, EventArgs e)
