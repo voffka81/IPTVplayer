@@ -1,6 +1,5 @@
 using Android.App;
 using Android.Content.PM;
-using Android.OS;
 using Android.Views;
 using Microsoft.Maui;
 
@@ -13,7 +12,7 @@ public class MainActivity : MauiAppCompatActivity
 
     public void SetImmersiveMode(bool enabled)
     {
-        if (Build.VERSION.SdkInt >= BuildVersionCodes.R)
+        if (OperatingSystem.IsAndroidVersionAtLeast(30))
         {
             var controller = Window?.InsetsController;
             if (controller is null) return;
@@ -22,7 +21,7 @@ public class MainActivity : MauiAppCompatActivity
             if (enabled)
             {
                 controller.Hide(systemBars);
-                controller.SystemBarsBehavior = WindowInsetsControllerBehavior.ShowTransientBarsBySwipe;
+                controller.SystemBarsBehavior = (int)WindowInsetsControllerBehavior.ShowTransientBarsBySwipe;
             }
             else
             {
