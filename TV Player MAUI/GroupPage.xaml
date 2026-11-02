@@ -10,10 +10,12 @@
       <CollectionView.ItemTemplate>
         <DataTemplate>
           <Button HeightRequest="108" Clicked="OnGroupClicked">
-            <VerticalStackLayout Spacing="4" VerticalOptions="Center">
-              <Label Text="{Binding Name}" FontSize="18" HorizontalTextAlignment="Center" />
-              <Label Text="{Binding Count}" FontSize="13" TextColor="#91C9FF" HorizontalTextAlignment="Center" />
-            </VerticalStackLayout>
+            <Button.Content>
+              <VerticalStackLayout Spacing="4" VerticalOptions="Center">
+                <Label Text="{Binding Name}" FontSize="18" HorizontalTextAlignment="Center" />
+                <Label Text="{Binding Count}" FontSize="13" TextColor="#91C9FF" HorizontalTextAlignment="Center" />
+              </VerticalStackLayout>
+            </Button.Content>
           </Button>
         </DataTemplate>
       </CollectionView.ItemTemplate>
