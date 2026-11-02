@@ -93,6 +93,7 @@ public class PlayerViewModel : TV_Player.ObservableViewModelBase, IDisposable
         {
             if (SetProperty(ref _isProgramInfoVisible, value))
                 RaisePropertyChanged(nameof(ShowProgramInfo));
+                RaisePropertyChanged(nameof(ShowCurrentProgramInBar));
         }
     }
 
@@ -108,12 +109,17 @@ public class PlayerViewModel : TV_Player.ObservableViewModelBase, IDisposable
     }
 
     public bool ShowProgramInfo => IsProgramInfoVisible && !IsBuffering;
+    public bool ShowCurrentProgramInBar => ShowProgramInfo && !ProgramGuideVisible;
 
     private bool _programGuideVisible;
     public bool ProgramGuideVisible
     {
         get => _programGuideVisible;
-        set => SetProperty(ref _programGuideVisible, value);
+        set
+        {
+            if (SetProperty(ref _programGuideVisible, value))
+                RaisePropertyChanged(nameof(ShowCurrentProgramInBar));
+        }
     }
 
     private string _streamUrl = string.Empty;
