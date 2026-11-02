@@ -595,11 +595,11 @@ public partial class PlayerView : UserControl
     {
         if (_viewModel == null || _viewModel.ChannelPicker.ChannelPickerItems.Count == 0)
             return;
-        var items = _viewModel.ChannelPickerItems;
+        var items = _viewModel.ChannelPicker.ChannelPickerItems;
         var current = _viewModel.ChannelPicker.SelectedChannelPickerItem;
         var index = current == null ? 0 : items.IndexOf(current);
         var next = Math.Clamp(index + direction, 0, items.Count - 1);
-        _viewModel.SelectedChannelPickerItem = items[next];
+        _viewModel.ChannelPicker.SelectedChannelPickerItem = items[next];
         ChannelPickerControl.ScrollIntoView(items[next]);
     }
 
