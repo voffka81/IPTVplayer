@@ -291,7 +291,7 @@ public partial class PlayerPage : ContentPage
             BackgroundColor = Color.FromArgb("#162130"),
             Stroke = Color.FromArgb("#304054"),
             StrokeThickness = 1,
-            StrokeShape = new Microsoft.Maui.Controls.RoundRectangle { CornerRadius = 10 },
+            StrokeShape = new Microsoft.Maui.Controls.Shapes.RoundRectangle { CornerRadius = 10 },
             Padding = new Thickness(10, 6),
             Content = new VerticalStackLayout { Spacing = 2, Children = { timeLabel, titleLabel } }
         };
