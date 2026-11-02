@@ -162,7 +162,13 @@
                 IsVisible="{Binding ShowProgramInfo}"
                 Command="{Binding ShowProgramListCommand}">
           <StackPanel Spacing="3" HorizontalAlignment="Center">
-            <TextBlock FontSize="18" Foreground="White" Text="{Binding ProgramGuideText}" HorizontalAlignment="Center" VerticalAlignment="Center" />
+            <TextBlock FontSize="18"
+                       Foreground="White"
+                       Text="{Binding ProgramGuideText}"
+                       HorizontalAlignment="Stretch"
+                       VerticalAlignment="Center"
+                       TextAlignment="Center"
+                       TextTrimming="CharacterEllipsis" />
             <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center">
               <TextBlock FontSize="13" Foreground="#F5F5F5" Text="{Binding StartProgram}" VerticalAlignment="Center" />
               <ProgressBar x:Name="GuideProgress" Height="8" Foreground="#8DD2FF" Value="{Binding DurationValue}" Maximum="100" Width="240" VerticalAlignment="Center" />
@@ -178,6 +184,39 @@
                     IsVisible="{Binding IsBuffering}">
           <TextBlock Text="Буферизация…" FontSize="15" Foreground="#F5F8FF" HorizontalAlignment="Center" />
           <ProgressBar Width="180" Height="8" IsIndeterminate="True" Foreground="#8DD2FF" />
+        </StackPanel>
+
+        <StackPanel Grid.Column="2"
+                    Orientation="Horizontal"
+                    Spacing="6"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center">
+          <StackPanel x:Name="MasterVolumePanel"
+                      Orientation="Horizontal"
+                      Spacing="4"
+                      VerticalAlignment="Center">
+            <Button x:Name="MasterVolumeMuteButton"
+                    Width="36"
+                    Height="36"
+                    Classes="toolbar-flat"
+                    Content="🔊"
+                    ToolTip.Tip="Отключить или включить звук Windows"
+                    Click="OnMasterVolumeMuteButtonClick" />
+            <Slider x:Name="MasterVolumeSlider"
+                    Minimum="0"
+                    Maximum="100"
+                    Width="60"
+                    IsEnabled="False"
+                    ToolTip.Tip="Общая громкость Windows"
+                    ValueChanged="OnMasterVolumeSliderValueChanged" />
+            <TextBlock x:Name="MasterVolumeLabel"
+                       Width="36"
+                       Text="--"
+                       Foreground="#F5F8FF"
+                       FontSize="12"
+                       VerticalAlignment="Center"
+                       TextAlignment="Right" />
+          </StackPanel>
         </StackPanel>
       </Grid>
       </StackPanel>

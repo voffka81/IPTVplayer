@@ -10,6 +10,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\TV Player Plugin.Abstractions\TV Player Plugin.Abstractions.csproj" />
-    <PackageReference Include="AngleSharp" Version="1.3.0" />
+    <PackageReference Include="AngleSharp" Version="1.5.0" />
   </ItemGroup>
 </Project>

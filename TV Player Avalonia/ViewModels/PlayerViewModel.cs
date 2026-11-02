@@ -294,12 +294,22 @@ public class PlayerViewModel : TV_Player.ObservableViewModelBase, IDisposable
         if (index < 0)
             return;
 
-        ChannelPickerVisible = false;
         if (index == _currentProgramIndex)
             return;
 
         _currentProgramIndex = index;
         _currentProgram = _programs[index];
+        UpdateUi();
+    }
+
+    public void SwitchChannel(int direction)
+    {
+        if (_programs.Count < 2 || direction == 0)
+            return;
+
+        var nextIndex = (_currentProgramIndex + Math.Sign(direction) + _programs.Count) % _programs.Count;
+        _currentProgramIndex = nextIndex;
+        _currentProgram = _programs[nextIndex];
         UpdateUi();
     }
 

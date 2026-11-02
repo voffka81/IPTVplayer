@@ -66,6 +66,9 @@ public class TVPlayerViewModel : IDisposable
 
         foreach (var source in SettingsModel.ProviderSources ?? new List<ProviderSourceConfiguration>())
         {
+            if (!source.Enabled)
+                continue;
+
             try
             {
                 if (PlayListsData.ContainsKey(source.Name))

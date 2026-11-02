@@ -3,12 +3,16 @@ using Avalonia;
 using Avalonia.Input;
 using Avalonia.VisualTree;
 using Avalonia.Threading;
+using Avalonia.Controls.Primitives;
 using LibVLCSharp.Shared;
+using NAudio.CoreAudioApi;
 using System.Diagnostics;
 using System.ComponentModel;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Web;
+using System.Runtime.InteropServices;
+using TV_Player.AvaloniaApp.Services;
 using TV_Player.AvaloniaApp.ViewModels;
 
 namespace TV_Player.AvaloniaApp.Views;
@@ -24,20 +28,88 @@ public partial class PlayerView : UserControl
     private Media? _currentMedia;
     private PlayerViewModel? _viewModel;
     private bool _initialized;
+    private bool _initializing;
+    private int _attachmentGeneration;
     private CancellationTokenSource? _bufferingWatchdogCts;
     private string? _activeStreamUrl;
     private IReadOnlyList<string> _fallbackStreamUrls = Array.Empty<string>();
     private int _fallbackStreamIndex;
     private bool _fallbackAttempted;
+    private MMDeviceEnumerator? _audioDeviceEnumerator;
+    private MMDevice? _masterAudioDevice;
+    private int _systemVolumeBeforeMute = 100;
+    private bool _updatingMasterVolume;
+    private readonly DispatcherTimer _gamepadTimer = new() { Interval = TimeSpan.FromMilliseconds(100) };
+    private ushort _previousGamepadButtons;
+    private IntPtr _keyboardHook;
+    private LowLevelKeyboardProc? _keyboardHookProc;
+
+    private delegate IntPtr LowLevelKeyboardProc(int code, IntPtr wParam, IntPtr lParam);
+
+    [StructLayout(LayoutKind.Sequential)]
+    private struct LowLevelKeyboardData
+    {
+        public uint VirtualKey;
+        public uint ScanCode;
+        public uint Flags;
+        public uint Time;
+        public IntPtr ExtraInfo;
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    private struct XInputGamepad
+    {
+        public ushort Buttons;
+        public byte LeftTrigger;
+        public byte RightTrigger;
+        public short ThumbLX;
+        public short ThumbLY;
+        public short ThumbRX;
+        public short ThumbRY;
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    private struct XInputState
+    {
+        public uint PacketNumber;
+        public XInputGamepad Gamepad;
+    }
+
+    [DllImport("xinput1_4.dll", EntryPoint = "XInputGetState")]
+    private static extern uint XInputGetState(uint userIndex, out XInputState state);
+
+    private const int WhKeyboardLowLevel = 13;
+    private const int WmKeyDown = 0x0100;
+    private const int WmSysKeyDown = 0x0104;
+    private const uint VkLeft = 0x25;
+    private const uint VkRight = 0x27;
+
+    [DllImport("user32.dll", SetLastError = true)]
+    private static extern IntPtr SetWindowsHookEx(int hookType, LowLevelKeyboardProc callback, IntPtr module, uint threadId);
+
+    [DllImport("user32.dll", SetLastError = true)]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static extern bool UnhookWindowsHookEx(IntPtr hook);
+
+    [DllImport("user32.dll")]
+    private static extern IntPtr CallNextHookEx(IntPtr hook, int code, IntPtr wParam, IntPtr lParam);
+
+    [DllImport("user32.dll")]
+    private static extern IntPtr GetForegroundWindow();
+
+    [DllImport("user32.dll", SetLastError = true)]
+    private static extern uint GetWindowThreadProcessId(IntPtr window, out uint processId);
 
     public PlayerView()
     {
         InitializeComponent();
+        MasterVolumePanel.IsVisible = OperatingSystem.IsWindows();
         PlayerClock.Text = DateTime.Now.ToString("HH:mm");
         _clockTimer.Tick += (_, _) => PlayerClock.Text = DateTime.Now.ToString("HH:mm");
         SizeChanged += OnPlayerSizeChanged;
         UpdateResponsiveControls(Bounds.Size);
         _overlayTimer.Tick += OnOverlayTimerTick;
+        _gamepadTimer.Tick += OnGamepadTimerTick;
         Log("PlayerView ctor");
         DataContextChanged += OnDataContextChanged;
         AttachedToVisualTree += OnAttachedToVisualTree;
@@ -78,60 +150,100 @@ public partial class PlayerView : UserControl
                 column.Width = new GridLength(topColumnWidth);
         }
 
-        PlayerBottomBar.ColumnDefinitions[0].Width = new GridLength(Math.Max(buttonSize + 32 * scale, 112 * scale));
-        PlayerBottomBar.ColumnDefinitions[2].Width = PlayerBottomBar.ColumnDefinitions[0].Width;
+        var leftColumnWidth = Math.Max(buttonSize + 32 * scale, 112 * scale);
+        var masterVolumeSliderWidth = Math.Clamp(size.Width * 0.07, 40, 70);
+        var rightColumnWidth = Math.Max(160, masterVolumeSliderWidth + 84);
+        PlayerBottomBar.ColumnDefinitions[0].Width = new GridLength(leftColumnWidth);
+        PlayerBottomBar.ColumnDefinitions[2].Width = new GridLength(rightColumnWidth);
+        var centerColumnWidth = Math.Max(0, size.Width - leftColumnWidth - rightColumnWidth);
+        GuideProgress.Width = Math.Clamp(centerColumnWidth * 0.42, 40, 360);
+        MasterVolumeSlider.Width = masterVolumeSliderWidth;
         GuidePanel.Width = Math.Min(size.Width * 0.45, 360 * scale);
-        GuideProgress.Width = Math.Clamp(size.Width * 0.25, 100, 360);
     }
 
     private void OnAttachedToVisualTree(object? sender, Avalonia.VisualTreeAttachmentEventArgs e)
     {
-        if (_initialized)
+        if (_initialized || _initializing)
             return;
 
         _clockTimer.Start();
+        if (OperatingSystem.IsWindows())
+        {
+            _gamepadTimer.Start();
+            InstallKeyboardHook();
+        }
         ShowOverlay();
+        InitializeMasterVolume();
         Log("Attach to visual tree -> initializing VLC");
+        _initializing = true;
+        _ = InitializeVlcAsync(++_attachmentGeneration);
+    }
+
+    private async Task InitializeVlcAsync(int generation)
+    {
+        LibVLC? libVlc = null;
+        MediaPlayer? mediaPlayer = null;
         try
         {
-            Log("Core.Initialize() start");
-            Core.Initialize();
-            Log("Core.Initialize() completed");
-
-            _libVlc = new LibVLC(enableDebugLogs: true);
-            Log("LibVLC instance created");
-
-            _mediaPlayer = new MediaPlayer(_libVlc)
+            libVlc = await LibVlcRuntime.InitializeAsync();
+            mediaPlayer = await Task.Run(() =>
             {
-                // Software decode is more reliable for mixed IPTV codecs on macOS.
-                EnableHardwareDecoding = !OperatingSystem.IsMacOS()
-            };
-            Log($"MediaPlayer created. HW decoding enabled: {_mediaPlayer.EnableHardwareDecoding}");
+                return new MediaPlayer(libVlc)
+                {
+                    // Software decode is more reliable for mixed IPTV codecs on macOS.
+                    EnableHardwareDecoding = !OperatingSystem.IsMacOS(),
+                    Volume = 100,
+                    Mute = false
+                };
+            });
 
-            _mediaPlayer.Buffering += OnMediaPlayerBuffering;
-            _mediaPlayer.Playing += OnMediaPlayerPlaying;
-            _mediaPlayer.EncounteredError += OnMediaPlayerEncounteredError;
-            _mediaPlayer.EndReached += OnMediaPlayerEndReached;
-            _mediaPlayer.Stopped += OnMediaPlayerStopped;
+            await Dispatcher.UIThread.InvokeAsync(() =>
+            {
+                if (generation != _attachmentGeneration)
+                {
+                    mediaPlayer?.Dispose();
+                    return;
+                }
 
-            var videoView = this.FindControl<LibVLCSharp.Avalonia.VideoView>("VideoView")
-                ?? throw new InvalidOperationException("VideoView control was not found in PlayerView.");
-            videoView.MediaPlayer = _mediaPlayer;
-            _initialized = true;
-            Log("VideoView.MediaPlayer assigned");
-            PlayCurrentStream();
+                _mediaPlayer = mediaPlayer;
+                _libVlc = libVlc;
+                _mediaPlayer!.Buffering += OnMediaPlayerBuffering;
+                _mediaPlayer.Playing += OnMediaPlayerPlaying;
+                _mediaPlayer.EncounteredError += OnMediaPlayerEncounteredError;
+                _mediaPlayer.EndReached += OnMediaPlayerEndReached;
+                _mediaPlayer.Stopped += OnMediaPlayerStopped;
+
+                var videoView = this.FindControl<LibVLCSharp.Avalonia.VideoView>("VideoView")
+                    ?? throw new InvalidOperationException("VideoView control was not found in PlayerView.");
+                videoView.MediaPlayer = _mediaPlayer;
+                _initialized = true;
+                _initializing = false;
+                Log("LibVLC and MediaPlayer initialized; VideoView assigned");
+                PlayCurrentStream();
+            });
         }
         catch (System.Exception ex)
         {
-            Log($"VLC initialization failed: {ex}");
-            _viewModel?.SetPlaybackStatus($"VLC init failed: {ex.Message}");
+            mediaPlayer?.Dispose();
+            await Dispatcher.UIThread.InvokeAsync(() =>
+            {
+                if (generation != _attachmentGeneration)
+                    return;
+                _initializing = false;
+                Log($"VLC initialization failed: {ex}");
+                _viewModel?.SetPlaybackStatus($"VLC init failed: {ex.Message}");
+            });
         }
     }
 
     private void OnDetachedFromVisualTree(object? sender, Avalonia.VisualTreeAttachmentEventArgs e)
     {
+        _attachmentGeneration++;
+        _initializing = false;
         _clockTimer.Stop();
         _overlayTimer.Stop();
+        _gamepadTimer.Stop();
+        RemoveKeyboardHook();
         Log("Detach from visual tree -> disposing player resources");
         if (_viewModel != null)
         {
@@ -163,7 +275,7 @@ public partial class PlayerView : UserControl
         _bufferingWatchdogCts?.Dispose();
         _currentMedia?.Dispose();
         _mediaPlayer?.Dispose();
-        _libVlc?.Dispose();
+        DisposeMasterVolume();
         _bufferingWatchdogCts = null;
         _currentMedia = null;
         _mediaPlayer = null;
@@ -172,6 +284,184 @@ public partial class PlayerView : UserControl
         _hasPlaybackStarted = false;
         _fallbackAttempted = false;
         _initialized = false;
+    }
+
+    private void OnGamepadTimerTick(object? sender, EventArgs e)
+    {
+        XInputState state = default;
+        try
+        {
+            if (XInputGetState(0, out state) != 0)
+            {
+                _previousGamepadButtons = 0;
+                return;
+            }
+        }
+        catch (DllNotFoundException)
+        {
+            _previousGamepadButtons = 0;
+            _gamepadTimer.Stop();
+            return;
+        }
+
+        const ushort dpadLeft = 0x0004;
+        const ushort dpadRight = 0x0008;
+        var pressed = (ushort)(state.Gamepad.Buttons & (dpadLeft | dpadRight));
+        var newlyPressed = (ushort)(pressed & ~_previousGamepadButtons);
+        _previousGamepadButtons = pressed;
+
+        if (_viewModel == null || newlyPressed == 0)
+            return;
+
+        _viewModel.SwitchChannel((newlyPressed & dpadRight) != 0 ? 1 : -1);
+        ShowOverlay();
+    }
+
+    private void InstallKeyboardHook()
+    {
+        _keyboardHookProc = OnLowLevelKeyboard;
+        _keyboardHook = SetWindowsHookEx(WhKeyboardLowLevel, _keyboardHookProc, IntPtr.Zero, 0);
+        if (_keyboardHook == IntPtr.Zero)
+            Log($"Could not install low-level keyboard hook: {Marshal.GetLastWin32Error()}");
+    }
+
+    private void RemoveKeyboardHook()
+    {
+        if (_keyboardHook != IntPtr.Zero)
+            UnhookWindowsHookEx(_keyboardHook);
+        _keyboardHook = IntPtr.Zero;
+        _keyboardHookProc = null;
+    }
+
+    private IntPtr OnLowLevelKeyboard(int code, IntPtr wParam, IntPtr lParam)
+    {
+        if (code >= 0 && _viewModel != null &&
+            (wParam.ToInt32() == WmKeyDown || wParam.ToInt32() == WmSysKeyDown))
+        {
+            var foreground = GetForegroundWindow();
+            GetWindowThreadProcessId(foreground, out var foregroundProcessId);
+            if (foregroundProcessId == (uint)Environment.ProcessId)
+            {
+                var key = Marshal.PtrToStructure<LowLevelKeyboardData>(lParam).VirtualKey;
+                if (key == VkLeft || key == VkRight)
+                {
+                    Dispatcher.UIThread.Post(() =>
+                    {
+                        if (_viewModel != null)
+                            _viewModel.SwitchChannel(key == VkRight ? 1 : -1);
+                    });
+                    return new IntPtr(1);
+                }
+            }
+        }
+
+        return CallNextHookEx(_keyboardHook, code, wParam, lParam);
+    }
+
+    private void InitializeMasterVolume()
+    {
+        if (!OperatingSystem.IsWindows())
+            return;
+
+        try
+        {
+            _audioDeviceEnumerator = new MMDeviceEnumerator();
+            _masterAudioDevice = _audioDeviceEnumerator.GetDefaultAudioEndpoint(DataFlow.Render, Role.Multimedia);
+            var endpointVolume = _masterAudioDevice.AudioEndpointVolume;
+            var volume = Math.Clamp((int)Math.Round(endpointVolume.MasterVolumeLevelScalar * 100), 0, 100);
+            _systemVolumeBeforeMute = volume > 0 ? volume : 100;
+
+            _updatingMasterVolume = true;
+            MasterVolumeSlider.Value = volume;
+            MasterVolumeSlider.IsEnabled = true;
+            MasterVolumeMuteButton.IsEnabled = true;
+            UpdateMasterVolumeControls(volume, endpointVolume.Mute);
+            _updatingMasterVolume = false;
+            Log($"Windows master volume initialized: {volume}%, muted={endpointVolume.Mute}");
+        }
+        catch (Exception ex)
+        {
+            _updatingMasterVolume = false;
+            DisableMasterVolume(ex);
+        }
+    }
+
+    private void OnMasterVolumeSliderValueChanged(object? sender, RangeBaseValueChangedEventArgs e)
+    {
+        if (_updatingMasterVolume || _masterAudioDevice == null)
+            return;
+
+        var volume = Math.Clamp((int)Math.Round(e.NewValue), 0, 100);
+        try
+        {
+            var endpointVolume = _masterAudioDevice.AudioEndpointVolume;
+            endpointVolume.MasterVolumeLevelScalar = volume / 100f;
+            if (volume > 0)
+            {
+                _systemVolumeBeforeMute = volume;
+                endpointVolume.Mute = false;
+            }
+
+            UpdateMasterVolumeControls(volume, endpointVolume.Mute);
+        }
+        catch (Exception ex)
+        {
+            DisableMasterVolume(ex);
+        }
+    }
+
+    private void OnMasterVolumeMuteButtonClick(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+    {
+        if (_masterAudioDevice == null)
+            return;
+
+        try
+        {
+            var endpointVolume = _masterAudioDevice.AudioEndpointVolume;
+            var volume = Math.Clamp((int)Math.Round(endpointVolume.MasterVolumeLevelScalar * 100), 0, 100);
+            if (endpointVolume.Mute || volume == 0)
+            {
+                endpointVolume.Mute = false;
+                volume = Math.Clamp(_systemVolumeBeforeMute, 1, 100);
+                MasterVolumeSlider.Value = volume;
+                endpointVolume.MasterVolumeLevelScalar = volume / 100f;
+            }
+            else
+            {
+                _systemVolumeBeforeMute = volume;
+                endpointVolume.Mute = true;
+            }
+
+            UpdateMasterVolumeControls(volume, endpointVolume.Mute);
+        }
+        catch (Exception ex)
+        {
+            DisableMasterVolume(ex);
+        }
+    }
+
+    private void UpdateMasterVolumeControls(int volume, bool isMuted)
+    {
+        MasterVolumeLabel.Text = $"{volume}%";
+        MasterVolumeMuteButton.Content = isMuted || volume == 0 ? "🔇" : "🔊";
+    }
+
+    private void DisableMasterVolume(Exception exception)
+    {
+        Log($"Windows master volume unavailable: {exception}");
+        _viewModel?.SetPlaybackStatus($"Windows master volume unavailable: {exception.Message}");
+        MasterVolumeSlider.IsEnabled = false;
+        MasterVolumeMuteButton.IsEnabled = false;
+        MasterVolumeLabel.Text = "N/A";
+        DisposeMasterVolume();
+    }
+
+    private void DisposeMasterVolume()
+    {
+        _masterAudioDevice?.Dispose();
+        _audioDeviceEnumerator?.Dispose();
+        _masterAudioDevice = null;
+        _audioDeviceEnumerator = null;
     }
 
     private void OnOverlayTimerTick(object? sender, System.EventArgs e)
@@ -225,7 +515,7 @@ public partial class PlayerView : UserControl
         {
             for (Avalonia.Visual? current = source; current != null && current != OverlayPanel; current = current.GetVisualParent())
             {
-                if (current is Button || current is ScrollViewer)
+                if (current == PlayerBottomBar || current is Button || current is ScrollViewer)
                 {
                     ShowOverlay();
                     return;
@@ -394,6 +684,8 @@ public partial class PlayerView : UserControl
         if (_mediaPlayer == null || _libVlc == null)
             return false;
 
+        _mediaPlayer.Mute = false;
+        _mediaPlayer.Volume = 100;
         Log($"StartPlayback called. fallback={fallback}, url={FormatUrlForLog(streamUrl)}");
 
         _currentMedia?.Dispose();
@@ -515,7 +807,7 @@ public partial class PlayerView : UserControl
         Dispatcher.UIThread.Post(() =>
         {
             _bufferingWatchdogCts?.Cancel();
-            Log("MediaPlayer event: Playing");
+            Log($"MediaPlayer event: Playing. audioTracks={_mediaPlayer?.AudioTrackCount}, audioTrack={_mediaPlayer?.AudioTrack}, volume={_mediaPlayer?.Volume}, muted={_mediaPlayer?.Mute}");
             _hasPlaybackStarted = true;
             _viewModel.IsBuffering = false;
             ShowOverlay();

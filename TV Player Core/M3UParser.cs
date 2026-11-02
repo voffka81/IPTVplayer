@@ -148,80 +148,100 @@ namespace TV_Player
 
         public static async Task<ProgramGuide> ParseEpg(string groupName, string channelId, IReadOnlyCollection<string> channelNames, string? guideKey = null)
         {
-            XmlReaderSettings settings = new XmlReaderSettings();
-            settings.IgnoreWhitespace = true;
-            settings.IgnoreComments = true;
-            settings.DtdProcessing = DtdProcessing.Prohibit;
-            settings.XmlResolver = null;
-            settings.Async = true;
-
             var suffix = string.IsNullOrWhiteSpace(guideKey) ? string.Empty : "_" + guideKey;
-            var fileName = groupName + "_guide" + suffix + ".xml";
-            string programDataPath = GetWritableAppDataFolder();
-            string filePath = Path.Combine(programDataPath, "TVPlayer", fileName);
-
+            var filePath = Path.Combine(GetWritableAppDataFolder(), "TVPlayer", groupName + "_guide" + suffix + ".xml");
             if (!File.Exists(filePath))
-            {
-                System.Diagnostics.Debug.WriteLine($"EPG file not found: {filePath}");
                 return null;
-            }
+
+            var settings = new XmlReaderSettings
+            {
+                IgnoreWhitespace = true,
+                IgnoreComments = true,
+                DtdProcessing = DtdProcessing.Prohibit,
+                XmlResolver = null,
+                Async = true
+            };
 
             try
             {
-                using var reader = XmlReader.Create(filePath, settings);
-                var document = await XDocument.LoadAsync(reader, LoadOptions.None, CancellationToken.None);
-                var channels = document.Root?.Elements("channel") ?? Enumerable.Empty<XElement>();
                 var requestedNames = channelNames
-                    .Where(value => !string.IsNullOrWhiteSpace(value))
+                    .Where(name => !string.IsNullOrWhiteSpace(name))
                     .Select(NormalizeChannelName)
-                    .Where(value => value.Length > 0)
                     .ToHashSet(StringComparer.OrdinalIgnoreCase);
 
-                var matchedChannel = channels.FirstOrDefault(item =>
-                    string.Equals((string?)item.Attribute("id"), channelId, StringComparison.Ordinal));
-                matchedChannel ??= channels.FirstOrDefault(item => item.Elements("display-name")
-                    .Any(displayName => requestedNames.Contains(NormalizeChannelName(displayName.Value))));
-                if (matchedChannel == null)
-                    return null;
+                // XMLTV typically lists channels before programmes. Resolve the channel
+                // in one streaming pass, retaining only programmes until the match is known.
+                string? matchedId = null;
+                string displayName = string.Empty;
+                string? fallbackId = null;
+                string fallbackName = string.Empty;
+                var programmesById = new Dictionary<string, List<ProgramInfo>>(StringComparer.Ordinal);
 
-                var matchedId = (string?)matchedChannel.Attribute("id") ?? string.Empty;
-                var channel = new ProgramGuide
+                using var reader = XmlReader.Create(filePath, settings);
+                while (await reader.ReadAsync())
                 {
-                    Id = matchedId,
-                    DisplayName = matchedChannel.Elements("display-name").FirstOrDefault()?.Value ?? string.Empty
-                };
-
-                foreach (var item in document.Root?.Elements("programme") ?? Enumerable.Empty<XElement>())
-                {
-                    if (!string.Equals((string?)item.Attribute("channel"), matchedId, StringComparison.Ordinal) ||
-                        !TryParseXmlTvTimestamp((string?)item.Attribute("start"), out var startTime) ||
-                        !TryParseXmlTvTimestamp((string?)item.Attribute("stop"), out var endTime))
+                    if (reader.NodeType != XmlNodeType.Element)
                         continue;
 
-                    channel.Programs.Add(new ProgramInfo
+                    if (reader.Name == "channel")
                     {
-                        StartTime = startTime,
-                        EndTime = endTime,
-                        Title = item.Elements("title").FirstOrDefault()?.Value ?? string.Empty
-                    });
+                        var id = reader.GetAttribute("id") ?? string.Empty;
+                        using var subtree = reader.ReadSubtree();
+                        var element = await XElement.LoadAsync(subtree, LoadOptions.None, CancellationToken.None);
+                        var name = element.Elements("display-name").FirstOrDefault()?.Value ?? string.Empty;
+                        if (string.Equals(id, channelId, StringComparison.Ordinal))
+                        {
+                            matchedId = id;
+                            displayName = name;
+                        }
+                        else if (fallbackId == null && element.Elements("display-name")
+                            .Any(item => requestedNames.Contains(NormalizeChannelName(item.Value))))
+                        {
+                            fallbackId = id;
+                            fallbackName = name;
+                        }
+                    }
+                    else if (reader.Name == "programme")
+                    {
+                        var id = reader.GetAttribute("channel") ?? string.Empty;
+                        if (id != channelId && id != fallbackId)
+                            continue;
+                        if (!TryParseXmlTvTimestamp(reader.GetAttribute("start"), out var start) ||
+                            !TryParseXmlTvTimestamp(reader.GetAttribute("stop"), out var stop))
+                            continue;
+
+                        using var subtree = reader.ReadSubtree();
+                        var element = await XElement.LoadAsync(subtree, LoadOptions.None, CancellationToken.None);
+                        if (!programmesById.TryGetValue(id, out var programmes))
+                            programmesById[id] = programmes = new List<ProgramInfo>();
+                        programmes.Add(new ProgramInfo
+                        {
+                            StartTime = start,
+                            EndTime = stop,
+                            Title = element.Elements("title").FirstOrDefault()?.Value ?? string.Empty
+                        });
+                    }
                 }
 
-                channel.Programs = channel.Programs.OrderBy(program => program.StartTime).ToList();
-                return channel;
+                matchedId ??= fallbackId;
+                if (matchedId == null)
+                    return null;
+                if (matchedId == fallbackId && displayName.Length == 0)
+                    displayName = fallbackName;
+
+                var result = new ProgramGuide { Id = matchedId, DisplayName = displayName };
+                if (programmesById.TryGetValue(matchedId, out var selected))
+                    result.Programs = selected.OrderBy(item => item.StartTime).ToList();
+                return result;
             }
             catch (XmlException ex)
             {
                 System.Diagnostics.Debug.WriteLine($"XML parsing error in EPG file: {ex.Message}");
             }
-            catch (FileNotFoundException ex)
-            {
-                System.Diagnostics.Debug.WriteLine($"EPG file not found: {ex.Message}");
-            }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"Unexpected error parsing EPG: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"Error parsing EPG: {ex.Message}");
             }
-
             return null;
         }
 

@@ -1,10 +1,10 @@
-﻿using System.Windows;
+using System.Windows;
 using TV_Player.ViewModels;
 
 namespace TV_Player
 {
     /// <summary>
-    /// Interaction logic for App.xaml
+    /// depricated project Interaction logic for App.xaml 
     /// </summary>
     public partial class App : Application
     {
