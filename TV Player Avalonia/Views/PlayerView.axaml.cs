@@ -736,8 +736,7 @@ public partial class PlayerView : UserControl
 
             Dispatcher.UIThread.Post(() =>
             {
-                if (token.IsCancellationRequested || generation != _playbackSession.Generation ||
-                    !ReferenceEquals(player, _mediaPlayer) || _mediaPlayer == null || _viewModel == null ||
+                if (token.IsCancellationRequested || !PlaybackCallbackGuard.IsCurrent(generation, _playbackSession.Generation, player, _mediaPlayer) || _mediaPlayer == null || _viewModel == null ||
                     string.IsNullOrWhiteSpace(_activeStreamUrl) || _mediaPlayer.IsPlaying)
                     return;
 
@@ -795,7 +794,7 @@ public partial class PlayerView : UserControl
         var player = sender;
         Dispatcher.UIThread.Post(() =>
         {
-            if (generation != _playbackSession.Generation || !ReferenceEquals(player, _mediaPlayer))
+            if (!PlaybackCallbackGuard.IsCurrent(generation, _playbackSession.Generation, player, _mediaPlayer))
                 return;
             if (_viewModel != null && !_hasPlaybackStarted)
                 _viewModel.IsBuffering = e.Cache < 100;
@@ -811,7 +810,7 @@ public partial class PlayerView : UserControl
         var player = sender;
         Dispatcher.UIThread.Post(() =>
         {
-            if (generation != _playbackSession.Generation || !ReferenceEquals(player, _mediaPlayer))
+            if (!PlaybackCallbackGuard.IsCurrent(generation, _playbackSession.Generation, player, _mediaPlayer))
                 return;
             _bufferingWatchdogCts?.Cancel();
             Log($"MediaPlayer event: Playing. audioTracks={_mediaPlayer?.AudioTrackCount}, audioTrack={_mediaPlayer?.AudioTrack}, volume={_mediaPlayer?.Volume}, muted={_mediaPlayer?.Mute}");
@@ -832,7 +831,7 @@ public partial class PlayerView : UserControl
         var player = sender;
         Dispatcher.UIThread.Post(() =>
         {
-            if (generation != _playbackSession.Generation || !ReferenceEquals(player, _mediaPlayer))
+            if (!PlaybackCallbackGuard.IsCurrent(generation, _playbackSession.Generation, player, _mediaPlayer))
                 return;
             Log("MediaPlayer event: EncounteredError");
             if (TryStartNextStreamFallback())
@@ -856,7 +855,7 @@ public partial class PlayerView : UserControl
         var player = sender;
         Dispatcher.UIThread.Post(() =>
         {
-            if (generation != _playbackSession.Generation || !ReferenceEquals(player, _mediaPlayer))
+            if (!PlaybackCallbackGuard.IsCurrent(generation, _playbackSession.Generation, player, _mediaPlayer))
                 return;
             _bufferingWatchdogCts?.Cancel();
             Log("MediaPlayer event: EndReached");
@@ -877,7 +876,7 @@ public partial class PlayerView : UserControl
         var player = sender;
         Dispatcher.UIThread.Post(() =>
         {
-            if (generation != _playbackSession.Generation || !ReferenceEquals(player, _mediaPlayer))
+            if (!PlaybackCallbackGuard.IsCurrent(generation, _playbackSession.Generation, player, _mediaPlayer))
                 return;
             _bufferingWatchdogCts?.Cancel();
             Log("MediaPlayer event: Stopped");
