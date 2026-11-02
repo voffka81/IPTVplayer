@@ -600,29 +600,10 @@ public partial class PlayerView : UserControl
         var index = current == null ? 0 : items.IndexOf(current);
         var next = Math.Clamp(index + direction, 0, items.Count - 1);
         _viewModel.SelectedChannelPickerItem = items[next];
-        ChannelPickerList.ScrollIntoView(items[next]);
+        ChannelPickerControl.ScrollIntoView(items[next]);
     }
 
     private void ScrollProgramGuide(int direction) => ProgramBar.ScrollGuide(direction);
-
-    private void OnChannelPickerPointerWheelChanged(object? sender, PointerWheelEventArgs e)
-    {
-        var scrollViewer = ChannelPickerList.GetVisualDescendants().OfType<ScrollViewer>().FirstOrDefault();
-        if (scrollViewer == null)
-            return;
-
-        var maxOffset = Math.Max(0, scrollViewer.Extent.Width - scrollViewer.Viewport.Width);
-        if (maxOffset <= 0)
-            return;
-
-        var wheelDelta = Math.Abs(e.Delta.X) > 0 ? e.Delta.X : e.Delta.Y;
-        if (wheelDelta == 0)
-            return;
-
-        var nextOffset = Math.Clamp(scrollViewer.Offset.X - wheelDelta * 110, 0, maxOffset);
-        scrollViewer.Offset = new Vector(nextOffset, scrollViewer.Offset.Y);
-        e.Handled = true;
-    }
 
     private void OnDataContextChanged(object? sender, System.EventArgs e)
     {
