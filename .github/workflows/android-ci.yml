@@ -9,15 +9,6 @@ on:
       - 'TV Player Plugin.Abstractions/**'
       - 'global.json'
       - 'NuGet.Config'
-  push:
-    branches: [master]
-    paths:
-      - '.github/workflows/android-ci.yml'
-      - 'TV Player MAUI/**'
-      - 'TV Player Core/**'
-      - 'TV Player Plugin.Abstractions/**'
-      - 'global.json'
-      - 'NuGet.Config'
   workflow_dispatch:
 
 permissions:
