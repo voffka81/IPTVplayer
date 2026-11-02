@@ -21,6 +21,7 @@ public partial class PlayerPage : ContentPage
     public PlayerPage(M3UInfo channel, IReadOnlyList<M3UInfo> channels, ProgramsData sourceData)
     {
         InitializeComponent();
+        PlayerLayout.SizeChanged += (_, _) => RefreshVideoSurfaceSize();
         _sourceData = sourceData;
         ChannelTitle.Text = channel.Name;
         ClockLabel.Text = DateTime.Now.ToString("HH:mm");
@@ -117,7 +118,35 @@ public partial class PlayerPage : ContentPage
         ShowPlayerUi();
     }
 
-    private void OnPlayerLoaded(object? sender, EventArgs e) => HideLibVlcControls();
+    private void OnPlayerLoaded(object? sender, EventArgs e)
+    {
+        HideLibVlcControls();
+        RefreshVideoSurfaceSize();
+    }
+
+    private void OnMediaPlayerPlaying(object? sender, EventArgs e)
+    {
+#if ANDROID
+        _ = RefreshVideoSurfaceSizeAfterPlaybackAsync();
+#endif
+    }
+
+    private async Task RefreshVideoSurfaceSizeAfterPlaybackAsync()
+    {
+        await Task.Delay(150);
+        await MainThread.InvokeOnMainThreadAsync(RefreshVideoSurfaceSize);
+    }
+
+    private void RefreshVideoSurfaceSize()
+    {
+#if ANDROID
+        if (VideoPlayer.VideoView?.Handler?.PlatformView is LibVLCSharp.Platforms.Android.VideoView nativeVideoView &&
+            nativeVideoView.Width > 0 && nativeVideoView.Height > 0)
+        {
+            nativeVideoView.TriggerLayoutChangeListener();
+        }
+#endif
+    }
 
     private void HideLibVlcControls()
     {
@@ -165,6 +194,8 @@ public partial class PlayerPage : ContentPage
         StatusLabel.Text = "Подключение…";
         _libVlc ??= new LibVLC(enableDebugLogs: false);
         _mediaPlayer ??= new MediaPlayer(_libVlc);
+        _mediaPlayer.Playing -= OnMediaPlayerPlaying;
+        _mediaPlayer.Playing += OnMediaPlayerPlaying;
         VideoPlayer.LibVLC = _libVlc;
         VideoPlayer.MediaPlayer = _mediaPlayer;
         _currentMedia?.Dispose();
@@ -433,6 +464,8 @@ public partial class PlayerPage : ContentPage
 
         try { player?.Stop(); }
         catch (Exception ex) { System.Diagnostics.Debug.WriteLine($"Failed to stop media player: {ex.Message}"); }
+        if (player != null)
+            player.Playing -= OnMediaPlayerPlaying;
         try { media?.Dispose(); }
         catch (Exception ex) { System.Diagnostics.Debug.WriteLine($"Failed to dispose media: {ex.Message}"); }
         try { player?.Dispose(); }

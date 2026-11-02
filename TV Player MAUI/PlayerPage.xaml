@@ -5,26 +5,26 @@
              x:Class="TV_Player.Maui.PlayerPage"
              Padding="0"
              NavigationPage.HasNavigationBar="False">
-  <Grid x:Name="PlayerLayout" BackgroundColor="#050A12">
-    <Grid HorizontalOptions="Fill" VerticalOptions="Fill">
-      <vlc:MediaPlayerElement x:Name="VideoPlayer"
-                              EnableRendererDiscovery="False"
-                              Loaded="OnPlayerLoaded"
-                              HorizontalOptions="Fill"
-                              VerticalOptions="Fill" />
-      <BoxView BackgroundColor="Transparent">
-        <BoxView.GestureRecognizers>
-          <TapGestureRecognizer Tapped="OnVideoTapped" />
-        </BoxView.GestureRecognizers>
-      </BoxView>
-    </Grid>
-    <Grid x:Name="PlayerTopBar" ColumnDefinitions="48,*,Auto,48" Padding="8,6" BackgroundColor="#D90A121E" VerticalOptions="Start">
+  <Grid x:Name="PlayerLayout" BackgroundColor="#050A12" RowDefinitions="*" ColumnDefinitions="*">
+    <vlc:MediaPlayerElement x:Name="VideoPlayer"
+                            Grid.Row="0"
+                            Grid.Column="0"
+                            EnableRendererDiscovery="False"
+                            Loaded="OnPlayerLoaded"
+                            HorizontalOptions="Fill"
+                            VerticalOptions="Fill" />
+    <BoxView Grid.Row="0" Grid.Column="0" BackgroundColor="Transparent">
+      <BoxView.GestureRecognizers>
+        <TapGestureRecognizer Tapped="OnVideoTapped" />
+      </BoxView.GestureRecognizers>
+    </BoxView>
+    <Grid x:Name="PlayerTopBar" Grid.Row="0" Grid.Column="0" ColumnDefinitions="48,*,Auto,48" Padding="8,6" BackgroundColor="#D90A121E" VerticalOptions="Start">
       <Button Text="‹" FontSize="30" Padding="0" Clicked="OnBackClicked" />
       <Label x:Name="ChannelTitle" Grid.Column="1" FontSize="19" FontAttributes="Bold" VerticalTextAlignment="Center" LineBreakMode="TailTruncation" />
       <Label x:Name="ClockLabel" Grid.Column="2" FontSize="17" VerticalTextAlignment="Center" Margin="8,0" />
       <Button Grid.Column="3" Text="☷" Padding="0" Clicked="OnPickerClicked" />
     </Grid>
-    <Grid x:Name="PlayerBottomBar" RowDefinitions="Auto,Auto,Auto,Auto" BackgroundColor="#E609101B" Padding="12,8" VerticalOptions="End">
+    <Grid x:Name="PlayerBottomBar" Grid.Row="0" Grid.Column="0" RowDefinitions="Auto,Auto,Auto,Auto" BackgroundColor="#E609101B" Padding="12,8" VerticalOptions="End">
       <Grid x:Name="ProgramInfoPanel" IsVisible="False" RowDefinitions="Auto,Auto" ColumnDefinitions="Auto,*,Auto" Padding="4,2,4,8">
         <Grid.GestureRecognizers>
           <TapGestureRecognizer Tapped="OnGuideInfoTapped" />
