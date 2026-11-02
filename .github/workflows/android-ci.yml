@@ -48,53 +48,56 @@ jobs:
         env:
           ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
           ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
-          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
           ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
         shell: bash
         run: |
           set -euo pipefail
           : "${ANDROID_KEYSTORE_BASE64:?Set repository secret ANDROID_KEYSTORE_BASE64}"
           : "${ANDROID_KEYSTORE_PASSWORD:?Set repository secret ANDROID_KEYSTORE_PASSWORD}"
-          : "${ANDROID_KEY_ALIAS:?Set repository secret ANDROID_KEY_ALIAS}"
           : "${ANDROID_KEY_PASSWORD:?Set repository secret ANDROID_KEY_PASSWORD}"
           echo "Decoding Android keystore secret..."
           printf '%s' "$ANDROID_KEYSTORE_BASE64" | base64 --decode > "$RUNNER_TEMP/iptv-release.p12"
           test -s "$RUNNER_TEMP/iptv-release.p12"
-          echo "Checking PKCS12 keystore password and alias..."
-          keytool -list \
+          echo "Reading signing key alias from PKCS12 keystore..."
+          signing_alias=$(keytool -list -v \
             -keystore "$RUNNER_TEMP/iptv-release.p12" \
             -storetype PKCS12 \
             -storepass "$ANDROID_KEYSTORE_PASSWORD" \
-            -alias "$ANDROID_KEY_ALIAS"
+            | awk -F ': ' '/^Alias name:/{print $2; exit}')
+          if [[ -z "$signing_alias" ]]; then
+            echo "No key alias found in the PKCS12 keystore." >&2
+            exit 1
+          fi
+          echo "Detected a signing key alias in the PKCS12 keystore."
           echo "Importing signing key into JKS for Android APK signer..."
           keytool -importkeystore -noprompt \
             -srckeystore "$RUNNER_TEMP/iptv-release.p12" \
             -srcstoretype PKCS12 \
             -srcstorepass "$ANDROID_KEYSTORE_PASSWORD" \
-            -srcalias "$ANDROID_KEY_ALIAS" \
+            -srcalias "$signing_alias" \
             -srckeypass "$ANDROID_KEY_PASSWORD" \
             -destkeystore "$RUNNER_TEMP/iptv-release.jks" \
             -deststoretype JKS \
             -deststorepass "$ANDROID_KEYSTORE_PASSWORD" \
             -destkeypass "$ANDROID_KEY_PASSWORD" \
-            -destalias "$ANDROID_KEY_ALIAS"
+            -destalias "$signing_alias"
           echo "Verifying imported JKS alias..."
           keytool -list \
             -keystore "$RUNNER_TEMP/iptv-release.jks" \
             -storetype JKS \
             -storepass "$ANDROID_KEYSTORE_PASSWORD" \
-            -alias "$ANDROID_KEY_ALIAS"
+            -alias "$signing_alias"
+          echo "ANDROID_SIGNING_ALIAS=$signing_alias" >> "$GITHUB_ENV"
           echo "Private key and alias imported and verified for APK signing."
 
       - name: Publish APK
         env:
           ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
-          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
           ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
         shell: bash
         run: |
           : "${ANDROID_KEYSTORE_PASSWORD:?Set repository secret ANDROID_KEYSTORE_PASSWORD}"
-          : "${ANDROID_KEY_ALIAS:?Set repository secret ANDROID_KEY_ALIAS}"
+          : "${ANDROID_SIGNING_ALIAS:?Signing alias was not discovered from keystore}"
           : "${ANDROID_KEY_PASSWORD:?Set repository secret ANDROID_KEY_PASSWORD}"
 
           publish_args=(
@@ -107,7 +110,7 @@ jobs:
             --output artifacts/android
             --property:AndroidKeyStore=true
             --property:AndroidSigningKeyStore="$RUNNER_TEMP/iptv-release.jks"
-            --property:AndroidSigningKeyAlias="$ANDROID_KEY_ALIAS"
+            --property:AndroidSigningKeyAlias="$ANDROID_SIGNING_ALIAS"
             --property:AndroidSigningStorePass="$ANDROID_KEYSTORE_PASSWORD"
             --property:AndroidSigningKeyPass="$ANDROID_KEY_PASSWORD"
             --property:AndroidApkSignerAdditionalArguments=--ks-type\ JKS
