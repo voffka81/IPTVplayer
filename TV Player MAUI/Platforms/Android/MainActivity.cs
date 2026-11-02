@@ -5,6 +5,7 @@ using Android.OS;
 using Android.Views;
 using Android.Widget;
 using Microsoft.Maui;
+using NativeView = Android.Views.View;
 
 namespace TV_Player.Maui;
 
@@ -131,7 +132,7 @@ public class MainActivity : MauiAppCompatActivity
         _privacySnapshotBitmap = null;
     }
 
-    private static LibVLCSharp.Platforms.Android.VideoView? FindVideoSurface(View? view)
+    private static LibVLCSharp.Platforms.Android.VideoView? FindVideoSurface(NativeView? view)
     {
         if (view is LibVLCSharp.Platforms.Android.VideoView videoView)
             return videoView;
