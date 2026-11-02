@@ -807,6 +807,25 @@ public partial class PlayerView : UserControl
         return started;
     }
 
+    // Capture the stream generation before queueing work on the UI thread.
+    // Every native callback must pass through this gate to avoid stale UI updates.
+    private void DispatchPlaybackCallback(object? sender, Action action)
+    {
+        if (_viewModel == null)
+            return;
+
+        var generation = _playbackSession.Generation;
+        var player = sender;
+        Dispatcher.UIThread.Post(() =>
+        {
+            if (_viewModel == null ||
+                !PlaybackCallbackGuard.IsCurrent(generation, _playbackSession.Generation, player, _mediaPlayer))
+                return;
+
+            action();
+        });
+    }
+
     private void OnMediaPlayerBuffering(object? sender, MediaPlayerBufferingEventArgs e)
     {
         if (_viewModel == null)
@@ -817,12 +836,8 @@ public partial class PlayerView : UserControl
             Log($"MediaPlayer buffering: {e.Cache:0}%");
         }
 
-        var generation = _playbackSession.Generation;
-        var player = sender;
-        Dispatcher.UIThread.Post(() =>
+        DispatchPlaybackCallback(sender, () =>
         {
-            if (!PlaybackCallbackGuard.IsCurrent(generation, _playbackSession.Generation, player, _mediaPlayer))
-                return;
             ReconcilePlayingUi();
             if (_viewModel != null)
             {
@@ -834,15 +849,8 @@ public partial class PlayerView : UserControl
 
     private void OnMediaPlayerPlaying(object? sender, System.EventArgs e)
     {
-        if (_viewModel == null)
-            return;
-
-        var generation = _playbackSession.Generation;
-        var player = sender;
-        Dispatcher.UIThread.Post(() =>
+        DispatchPlaybackCallback(sender, () =>
         {
-            if (!PlaybackCallbackGuard.IsCurrent(generation, _playbackSession.Generation, player, _mediaPlayer))
-                return;
             _bufferingWatchdogCts?.Cancel();
             Log($"MediaPlayer event: Playing. audioTracks={_mediaPlayer?.AudioTrackCount}, audioTrack={_mediaPlayer?.AudioTrack}, volume={_mediaPlayer?.Volume}, muted={_mediaPlayer?.Mute}");
             _playbackUi.Playing();
@@ -856,15 +864,8 @@ public partial class PlayerView : UserControl
 
     private void OnMediaPlayerEncounteredError(object? sender, System.EventArgs e)
     {
-        if (_viewModel == null)
-            return;
-
-        var generation = _playbackSession.Generation;
-        var player = sender;
-        Dispatcher.UIThread.Post(() =>
+        DispatchPlaybackCallback(sender, () =>
         {
-            if (!PlaybackCallbackGuard.IsCurrent(generation, _playbackSession.Generation, player, _mediaPlayer))
-                return;
             Log("MediaPlayer event: EncounteredError");
             if (TryStartNextStreamFallback())
                 return;
@@ -881,15 +882,8 @@ public partial class PlayerView : UserControl
 
     private void OnMediaPlayerEndReached(object? sender, System.EventArgs e)
     {
-        if (_viewModel == null)
-            return;
-
-        var generation = _playbackSession.Generation;
-        var player = sender;
-        Dispatcher.UIThread.Post(() =>
+        DispatchPlaybackCallback(sender, () =>
         {
-            if (!PlaybackCallbackGuard.IsCurrent(generation, _playbackSession.Generation, player, _mediaPlayer))
-                return;
             _bufferingWatchdogCts?.Cancel();
             Log("MediaPlayer event: EndReached");
             _playbackUi.End();
@@ -903,15 +897,8 @@ public partial class PlayerView : UserControl
 
     private void OnMediaPlayerStopped(object? sender, System.EventArgs e)
     {
-        if (_viewModel == null)
-            return;
-
-        var generation = _playbackSession.Generation;
-        var player = sender;
-        Dispatcher.UIThread.Post(() =>
+        DispatchPlaybackCallback(sender, () =>
         {
-            if (!PlaybackCallbackGuard.IsCurrent(generation, _playbackSession.Generation, player, _mediaPlayer))
-                return;
             Log("MediaPlayer event: Stopped");
             // Stop is expected while switching channels; avoid a persistent toast.
         });
