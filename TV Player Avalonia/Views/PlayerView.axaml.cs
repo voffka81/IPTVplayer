@@ -37,8 +37,7 @@ public partial class PlayerView : UserControl
     private int _attachmentGeneration;
     private CancellationTokenSource? _bufferingWatchdogCts;
     private string? _activeStreamUrl;
-    private IReadOnlyList<string> _fallbackStreamUrls = Array.Empty<string>();
-    private int _fallbackStreamIndex;
+    private readonly StreamFallbackQueue _fallbackStreams = new();
     private bool _fallbackAttempted;
     private MMDeviceEnumerator? _audioDeviceEnumerator;
     private MMDevice? _masterAudioDevice;
@@ -691,8 +690,7 @@ public partial class PlayerView : UserControl
             _playbackUiTimer.Start();
             ShowOverlay();
             _activeStreamUrl = streamUrl;
-            _fallbackStreamUrls = _viewModel.FallbackStreamUrls;
-            _fallbackStreamIndex = 0;
+            _fallbackStreams.Reset(_viewModel.FallbackStreamUrls);
             _fallbackAttempted = false;
 
             _viewModel.SetPlaybackStatus(string.Empty);
@@ -790,10 +788,8 @@ public partial class PlayerView : UserControl
 
     private bool TryStartNextStreamFallback()
     {
-        if (_mediaPlayer == null || _viewModel == null || _fallbackStreamIndex >= _fallbackStreamUrls.Count)
+        if (_mediaPlayer == null || _viewModel == null || !_fallbackStreams.TryNext(out var fallbackUrl))
             return false;
-
-        var fallbackUrl = _fallbackStreamUrls[_fallbackStreamIndex++];
         _activeStreamUrl = fallbackUrl;
         _playbackSession.TryTransition(_playbackSession.Generation, PlaybackSessionState.Recovering);
         _playbackUi.Begin();
@@ -801,7 +797,7 @@ public partial class PlayerView : UserControl
         _playbackUiTimer.Start();
         ShowOverlay();
         _fallbackAttempted = false;
-        Log($"Trying alternate stream URL {_fallbackStreamIndex}/{_fallbackStreamUrls.Count}: {FormatUrlForLog(fallbackUrl)}");
+        Log($"Trying alternate stream URL {_fallbackStreams.Attempted}/{_fallbackStreams.Total}: {FormatUrlForLog(fallbackUrl)}");
 
         _viewModel.SetPlaybackStatus("Trying alternate stream…");
         StartBufferingWatchdog();
