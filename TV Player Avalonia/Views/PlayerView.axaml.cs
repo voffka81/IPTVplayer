@@ -861,7 +861,6 @@ public partial class PlayerView : UserControl
             if (TryStartNextStreamFallback())
                 return;
 
-            _bufferingWatchdog.Cancel();
             ApplyPlaybackState(PlaybackSessionState.Error);
             ShowOverlay();
             _viewModel.SetPlaybackStatus("Playback error. The stream may be unavailable or unsupported.");
