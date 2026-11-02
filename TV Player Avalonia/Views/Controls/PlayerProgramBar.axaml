@@ -1,7 +1,7 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              x:Class="TV_Player.AvaloniaApp.Views.Controls.PlayerProgramBar">
-  <Grid>
+  <Grid HorizontalAlignment="Stretch">
       <!-- Bottom EPG carousel, matching the Android player layout. -->
       <Border x:Name="GuidePanel" 
               VerticalAlignment="Center"
@@ -51,15 +51,18 @@
 
 
         <Button Classes="toolbar-flat"
+                HorizontalAlignment="Stretch"
+                HorizontalContentAlignment="Center"
                 IsVisible="{Binding ShowCurrentProgramInBar}"
                 Command="{Binding ShowProgramListCommand}">
-          <StackPanel Spacing="3" HorizontalAlignment="Center">
+          <StackPanel Spacing="3" HorizontalAlignment="Stretch">
             <TextBlock FontSize="18"
                        Foreground="White"
                        Text="{Binding ProgramGuideText}"
                        HorizontalAlignment="Stretch"
                        VerticalAlignment="Center"
                        TextAlignment="Center"
+                       HorizontalAlignment="Stretch"
                        TextTrimming="CharacterEllipsis" />
             <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center">
               <TextBlock FontSize="13" Foreground="#F5F5F5" Text="{Binding StartProgram}" VerticalAlignment="Center" />

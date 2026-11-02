@@ -10,13 +10,9 @@ namespace TV_Player.AvaloniaApp.ViewModels;
 public class PlayerViewModel : TV_Player.ObservableViewModelBase, IDisposable
 {
     private readonly IDisposable _programSubscription;
-    private IDisposable? _programGuideDisposable;
-    private IDisposable? _timer;
     private M3UInfo _currentProgram;
     private List<M3UInfo> _programs = new();
     private IReadOnlyList<string> _fallbackStreamUrls = Array.Empty<string>();
-    private ProgramGuide? _currentGuide;
-    private ProgramInfo? _currentProgramInfo;
     private int _currentProgramIndex;
     private CancellationTokenSource? _resolveCts;
     private bool _disposed;
@@ -25,7 +21,6 @@ public class PlayerViewModel : TV_Player.ObservableViewModelBase, IDisposable
     public ICommand SettingsCommand { get; }
     public ICommand FullscreenCommand { get; }
     public ICommand ToggleChannelPickerCommand { get; }
-    public ICommand ShowProgramListCommand { get; }
     public ICommand CloseAppCommand { get; }
     public ICommand OpenStreamCommand { get; }
 
@@ -57,44 +52,7 @@ public class PlayerViewModel : TV_Player.ObservableViewModelBase, IDisposable
         set => SetProperty(ref _topPanelTitle, value);
     }
 
-    private string _programGuideText = string.Empty;
-    public string ProgramGuideText
-    {
-        get => _programGuideText;
-        set => SetProperty(ref _programGuideText, value);
-    }
-
-    private string _startProgram = string.Empty;
-    public string StartProgram
-    {
-        get => _startProgram;
-        set => SetProperty(ref _startProgram, value);
-    }
-
-    private string _endProgram = string.Empty;
-    public string EndProgram
-    {
-        get => _endProgram;
-        set => SetProperty(ref _endProgram, value);
-    }
-
-    private int _durationValue;
-    public int DurationValue
-    {
-        get => _durationValue;
-        set => SetProperty(ref _durationValue, value);
-    }
-
-    private bool _isProgramInfoVisible;
-    public bool IsProgramInfoVisible
-    {
-        get => _isProgramInfoVisible;
-        set
-        {
-            if (SetProperty(ref _isProgramInfoVisible, value))
-                NotifyProgramBarVisibilityChanged();
-        }
-    }
+    public PlayerProgramBarViewModel ProgramBar { get; } = new();
 
     private bool _isBuffering;
     public bool IsBuffering
@@ -102,31 +60,14 @@ public class PlayerViewModel : TV_Player.ObservableViewModelBase, IDisposable
         get => _isBuffering;
         set
         {
-            if (SetProperty(ref _isBuffering, value))
-                NotifyProgramBarVisibilityChanged();
+            if (SetProperty(ref _isBuffering, value)) ProgramBar.IsBuffering = value;
         }
     }
 
-    public bool ShowProgramInfo => IsProgramInfoVisible && !IsBuffering;
-    public bool ShowCurrentProgramInBar => ShowProgramInfo && !ProgramGuideVisible;
-    public bool ShowProgramGuideInBar => ProgramGuideVisible && !IsBuffering;
-
-    private bool _programGuideVisible;
     public bool ProgramGuideVisible
     {
-        get => _programGuideVisible;
-        set
-        {
-            if (SetProperty(ref _programGuideVisible, value))
-                NotifyProgramBarVisibilityChanged();
-        }
-    }
-
-    private void NotifyProgramBarVisibilityChanged()
-    {
-        RaisePropertyChanged(nameof(ShowProgramInfo));
-        RaisePropertyChanged(nameof(ShowCurrentProgramInBar));
-        RaisePropertyChanged(nameof(ShowProgramGuideInBar));
+        get => ProgramBar.ProgramGuideVisible;
+        set => ProgramBar.ProgramGuideVisible = value;
     }
 
     private string _streamUrl = string.Empty;
@@ -156,13 +97,6 @@ public class PlayerViewModel : TV_Player.ObservableViewModelBase, IDisposable
         set => SetProperty(ref _hasPlaybackStatus, value);
     }
 
-    private List<ProgramInfo> _programItems = new();
-    public List<ProgramInfo> Programs
-    {
-        get => _programItems;
-        set => SetProperty(ref _programItems, value);
-    }
-
     public PlayerViewModel(M3UInfo selectedProgram)
     {
         _currentProgram = selectedProgram;
@@ -171,7 +105,6 @@ public class PlayerViewModel : TV_Player.ObservableViewModelBase, IDisposable
         ToggleChannelPickerCommand = new RelayCommand(() => ChannelPickerVisible = !ChannelPickerVisible);
         FullscreenCommand = new RelayCommand(TVPlayerViewModel.Instance.FullScreenToggle);
         CloseAppCommand = new RelayCommand(TVPlayerViewModel.Instance.CloseAppCommand);
-        ShowProgramListCommand = new RelayCommand(ShowProgramList);
         OpenStreamCommand = new RelayCommand(OpenStreamExternally);
 
         _programSubscription = TVPlayerViewModel.Instance.CurrentProgramsData!
@@ -215,26 +148,7 @@ public class PlayerViewModel : TV_Player.ObservableViewModelBase, IDisposable
         SetPlaybackStatus(string.Empty);
         IsBuffering = true;
         _ = ResolveCurrentStreamAsync(_currentProgram, _resolveCts.Token);
-        ProgramGuideVisible = false;
-
-        _programGuideDisposable?.Dispose();
-        _timer?.Dispose();
-
-        _programGuideDisposable = TVPlayerViewModel.Instance.CurrentProgramsData!
-            .ProgramGuideInfo
-            .Subscribe(async _ =>
-            {
-                try
-                {
-                    _currentGuide = await TVPlayerViewModel.Instance.CurrentProgramsData.GetGuideByProgram(_currentProgram);
-                    UpdateScreenInfo();
-                    _timer = Observable.Interval(TimeSpan.FromMinutes(1)).Subscribe(_ => UpdateScreenInfo());
-                }
-                catch (Exception ex)
-                {
-                    Debug.WriteLine($"Failed to load program guide: {ex.Message}");
-                }
-            });
+        ProgramBar.SetChannel(_currentProgram);
     }
 
     private async Task ResolveCurrentStreamAsync(M3UInfo channel, CancellationToken token)
@@ -326,11 +240,6 @@ public class PlayerViewModel : TV_Player.ObservableViewModelBase, IDisposable
         UpdateUi();
     }
 
-    private void ShowProgramList()
-    {
-        ProgramGuideVisible = !ProgramGuideVisible;
-    }
-
     private void OpenStreamExternally()
     {
         if (string.IsNullOrWhiteSpace(StreamUrl))
@@ -343,46 +252,6 @@ public class PlayerViewModel : TV_Player.ObservableViewModelBase, IDisposable
             FileName = externalUrl,
             UseShellExecute = true
         });
-    }
-
-    private void UpdateScreenInfo()
-    {
-        try
-        {
-            if (_currentGuide?.Programs == null || _currentGuide.Programs.Count == 0)
-            {
-                IsProgramInfoVisible = false;
-                Programs = new List<ProgramInfo>();
-                return;
-            }
-
-            _currentProgramInfo = _currentGuide.Programs
-                .FirstOrDefault(item => item.StartTime <= DateTime.Now && item.EndTime >= DateTime.Now);
-
-            if (_currentProgramInfo == null)
-            {
-                IsProgramInfoVisible = false;
-                Programs = _currentGuide.Programs.Take(7).ToList();
-                return;
-            }
-
-            var currentIndex = _currentGuide.Programs.FindIndex(x => x.Title == _currentProgramInfo.Title);
-            Programs = _currentGuide.Programs.Skip(Math.Max(currentIndex, 0)).Take(7).ToList();
-
-            IsProgramInfoVisible = true;
-            ProgramGuideText = _currentProgramInfo.Title;
-            StartProgram = _currentProgramInfo.StartTime.ToShortTimeString();
-            EndProgram = _currentProgramInfo.EndTime.ToShortTimeString();
-
-            var totalMinutes = (_currentProgramInfo.EndTime - _currentProgramInfo.StartTime).TotalMinutes;
-            DurationValue = totalMinutes <= 0
-                ? 0
-                : (int)((DateTime.Now - _currentProgramInfo.StartTime).TotalMinutes / totalMinutes * 100);
-        }
-        catch (Exception ex)
-        {
-            Debug.WriteLine($"Failed to update screen info: {ex.Message}");
-        }
     }
 
     private void OnButtonBackClick()
@@ -400,8 +269,7 @@ public class PlayerViewModel : TV_Player.ObservableViewModelBase, IDisposable
         _resolveCts?.Cancel();
         _resolveCts?.Dispose();
         _programSubscription.Dispose();
-        _programGuideDisposable?.Dispose();
-        _timer?.Dispose();
+        ProgramBar.Dispose();
     }
 }
 
