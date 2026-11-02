@@ -158,7 +158,8 @@ public partial class PlayerView : UserControl
         var centerColumnWidth = Math.Max(0, size.Width - leftColumnWidth - rightColumnWidth);
         GuideProgress.Width = Math.Clamp(centerColumnWidth * 0.42, 40, 360);
         MasterVolumeSlider.Width = masterVolumeSliderWidth;
-        GuidePanel.Width = Math.Min(size.Width * 0.45, 360 * scale);
+        // The bottom EPG uses the full available width; never apply the old sidebar cap.
+        GuidePanel.Width = double.NaN;
     }
 
     private void OnAttachedToVisualTree(object? sender, Avalonia.VisualTreeAttachmentEventArgs e)
@@ -313,7 +314,11 @@ public partial class PlayerView : UserControl
         if (_viewModel == null || newlyPressed == 0)
             return;
 
-        _viewModel.SwitchChannel((newlyPressed & dpadRight) != 0 ? 1 : -1);
+        var direction = (newlyPressed & dpadRight) != 0 ? 1 : -1;
+        if (_viewModel.ProgramGuideVisible)
+            ScrollProgramGuide(direction);
+        else
+            _viewModel.SwitchChannel(direction);
         ShowOverlay();
     }
 
@@ -348,7 +353,13 @@ public partial class PlayerView : UserControl
                     Dispatcher.UIThread.Post(() =>
                     {
                         if (_viewModel != null)
-                            _viewModel.SwitchChannel(key == VkRight ? 1 : -1);
+                        {
+                            var direction = key == VkRight ? 1 : -1;
+                            if (_viewModel.ProgramGuideVisible)
+                                ScrollProgramGuide(direction);
+                            else
+                                _viewModel.SwitchChannel(direction);
+                        }
                     });
                     return new IntPtr(1);
                 }
@@ -527,6 +538,34 @@ public partial class PlayerView : UserControl
             HideOverlay();
         else
             ShowOverlay();
+    }
+
+    private void ScrollProgramGuide(int direction)
+    {
+        var viewer = ProgramGuideScroll;
+        var maxOffset = Math.Max(0, viewer.Extent.Width - viewer.Viewport.Width);
+        viewer.Offset = new Vector(
+            Math.Clamp(viewer.Offset.X + direction * 228, 0, maxOffset),
+            viewer.Offset.Y);
+    }
+
+    private void OnProgramGuidePointerWheelChanged(object? sender, PointerWheelEventArgs e)
+    {
+        if (sender is not ScrollViewer scrollViewer)
+            return;
+
+        var maxOffset = Math.Max(0, scrollViewer.Extent.Width - scrollViewer.Viewport.Width);
+        if (maxOffset <= 0)
+            return;
+
+        var delta = Math.Abs(e.Delta.X) > 0 ? e.Delta.X : e.Delta.Y;
+        if (delta == 0)
+            return;
+
+        scrollViewer.Offset = new Vector(
+            Math.Clamp(scrollViewer.Offset.X - delta * 110, 0, maxOffset),
+            scrollViewer.Offset.Y);
+        e.Handled = true;
     }
 
     private void OnChannelPickerPointerWheelChanged(object? sender, PointerWheelEventArgs e)
