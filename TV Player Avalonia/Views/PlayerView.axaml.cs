@@ -35,7 +35,7 @@ public partial class PlayerView : UserControl
     private bool _initialized;
     private bool _initializing;
     private int _attachmentGeneration;
-    private CancellationTokenSource? _bufferingWatchdogCts;
+    private readonly PlaybackWatchdog _bufferingWatchdog = new(TimeSpan.FromSeconds(12));
     private string? _activeStreamUrl;
     private readonly StreamFallbackQueue _fallbackStreams = new();
     private bool _fallbackAttempted;
@@ -281,11 +281,10 @@ public partial class PlayerView : UserControl
         _playbackUiTimer.Stop();
         _playbackEngine?.DisposeAsync().AsTask().GetAwaiter().GetResult();
         _playbackEngine = null;
-        _bufferingWatchdogCts?.Cancel();
-        _bufferingWatchdogCts?.Dispose();
+        _bufferingWatchdog.Cancel();
         _mediaPlayer?.Dispose();
         DisposeMasterVolume();
-        _bufferingWatchdogCts = null;
+
         _mediaPlayer = null;
         _libVlc = null;
         _activeStreamUrl = null;
@@ -494,7 +493,7 @@ public partial class PlayerView : UserControl
 
         _playbackUi.Playing();
         _playbackUiTimer.Stop();
-        _bufferingWatchdogCts?.Cancel();
+        _bufferingWatchdog.Cancel();
         _playbackSession.TryTransition(_playbackSession.Generation, PlaybackSessionState.Playing);
         _viewModel.IsBuffering = _playbackUi.IsBuffering;
         _viewModel.SetPlaybackStatus(string.Empty);
@@ -735,32 +734,17 @@ public partial class PlayerView : UserControl
 
     private void StartBufferingWatchdog()
     {
-        _bufferingWatchdogCts?.Cancel();
-        _bufferingWatchdogCts?.Dispose();
-        _bufferingWatchdogCts = new CancellationTokenSource();
-        var token = _bufferingWatchdogCts.Token;
         var generation = _playbackSession.Generation;
         var player = _mediaPlayer;
         Log("Buffering watchdog started (12s)");
 
-        _ = Task.Run(async () =>
+        _bufferingWatchdog.Arm(token =>
         {
-            try
-            {
-                await Task.Delay(TimeSpan.FromSeconds(12), token);
-            }
-            catch (TaskCanceledException)
-            {
-                return;
-            }
-
-            if (token.IsCancellationRequested)
-                return;
-
             Dispatcher.UIThread.Post(() =>
             {
-                if (token.IsCancellationRequested || !PlaybackCallbackGuard.IsCurrent(generation, _playbackSession.Generation, player, _mediaPlayer) || _mediaPlayer == null || _viewModel == null ||
-                    string.IsNullOrWhiteSpace(_activeStreamUrl))
+                if (token.IsCancellationRequested ||
+                    !PlaybackCallbackGuard.IsCurrent(generation, _playbackSession.Generation, player, _mediaPlayer) ||
+                    _mediaPlayer == null || _viewModel == null || string.IsNullOrWhiteSpace(_activeStreamUrl))
                     return;
 
                 ReconcilePlayingUi();
@@ -779,11 +763,9 @@ public partial class PlayerView : UserControl
                 var started = StartPlayback(_activeStreamUrl!, fallback: true);
                 Log($"Fallback playback start result: {started}");
                 if (!started)
-                {
                     _viewModel.SetPlaybackStatus("Fallback playback failed. Try Open Externally for this channel.");
-                }
             });
-        }, token);
+        });
     }
 
     private bool TryStartNextStreamFallback()
@@ -851,7 +833,7 @@ public partial class PlayerView : UserControl
     {
         DispatchPlaybackCallback(sender, () =>
         {
-            _bufferingWatchdogCts?.Cancel();
+            _bufferingWatchdog.Cancel();
             Log($"MediaPlayer event: Playing. audioTracks={_mediaPlayer?.AudioTrackCount}, audioTrack={_mediaPlayer?.AudioTrack}, volume={_mediaPlayer?.Volume}, muted={_mediaPlayer?.Mute}");
             _playbackUi.Playing();
             _playbackUiTimer.Stop();
@@ -870,7 +852,7 @@ public partial class PlayerView : UserControl
             if (TryStartNextStreamFallback())
                 return;
 
-            _bufferingWatchdogCts?.Cancel();
+            _bufferingWatchdog.Cancel();
             _playbackUi.End();
             _playbackUiTimer.Stop();
             _playbackSession.TryTransition(_playbackSession.Generation, PlaybackSessionState.Error);
@@ -884,7 +866,7 @@ public partial class PlayerView : UserControl
     {
         DispatchPlaybackCallback(sender, () =>
         {
-            _bufferingWatchdogCts?.Cancel();
+            _bufferingWatchdog.Cancel();
             Log("MediaPlayer event: EndReached");
             _playbackUi.End();
             _playbackUiTimer.Stop();
