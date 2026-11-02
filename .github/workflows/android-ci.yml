@@ -90,6 +90,7 @@ jobs:
           : "${ANDROID_KEYSTORE_PASSWORD:?Set repository secret ANDROID_KEYSTORE_PASSWORD}"
           : "${ANDROID_SIGNING_ALIAS:?Signing alias was not discovered from keystore}"
           : "${ANDROID_KEY_PASSWORD:?Set repository secret ANDROID_KEY_PASSWORD}"
+          android_version_code=$((GITHUB_RUN_ID % 2000000000 + 1))
 
           publish_args=(
             "TV Player MAUI/TV Player MAUI.csproj"
@@ -97,7 +98,7 @@ jobs:
             --framework net10.0-android
             --verbosity normal
             --property:AndroidPackageFormat=apk
-            --property:ApplicationVersion="$GITHUB_RUN_ID"
+            --property:ApplicationVersion="$android_version_code"
             --output artifacts/android
             --property:AndroidKeyStore=true
             --property:AndroidSigningKeyStore="$RUNNER_TEMP/iptv-release.jks"

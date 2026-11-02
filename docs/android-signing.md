@@ -20,8 +20,9 @@ add that output and the passwords as GitHub repository secrets under
 Settings → Secrets and variables → Actions. Never commit the keystore or its
 passwords. CI reads the key alias directly from the keystore.
 
-CI assigns each APK a larger Android version code from the GitHub Actions run
-ID so a newer build can be installed over an earlier CI build.
+CI derives each APK's Android version code from its GitHub Actions run ID,
+keeping it within Android's supported integer range while allowing newer builds
+to be installed over earlier CI builds.
 `ApplicationDisplayVersion` in `TV Player MAUI.csproj` is the version shown to
 users. Local builds use the project `ApplicationVersion` value.
 

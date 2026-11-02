@@ -95,12 +95,13 @@ jobs:
         run: |
           set -euo pipefail
           : "${ANDROID_SIGNING_ALIAS:?Signing alias was not discovered from keystore}"
+          android_version_code=$((GITHUB_RUN_ID % 2000000000 + 1))
           dotnet publish "TV Player MAUI/TV Player MAUI.csproj" \
             --configuration Release \
             --framework net10.0-android \
             --verbosity normal \
             --property:AndroidPackageFormat=apk \
-            --property:ApplicationVersion="$GITHUB_RUN_ID" \
+            --property:ApplicationVersion="$android_version_code" \
             --output artifacts/android \
             --property:AndroidKeyStore=true \
             --property:AndroidSigningKeyStore="$RUNNER_TEMP/iptv-release.jks" \
