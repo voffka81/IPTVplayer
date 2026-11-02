@@ -670,8 +670,6 @@ public partial class PlayerView : UserControl
             _fallbackStreamIndex = 0;
             _fallbackAttempted = false;
 
-            _playbackEngine?.StopAsync().GetAwaiter().GetResult();
-
             _viewModel.SetPlaybackStatus(string.Empty);
             _playbackSession.TryTransition(_playbackSession.Generation, PlaybackSessionState.Buffering);
             StartBufferingWatchdog();
@@ -772,7 +770,6 @@ public partial class PlayerView : UserControl
         _fallbackAttempted = false;
         Log($"Trying alternate stream URL {_fallbackStreamIndex}/{_fallbackStreamUrls.Count}: {FormatUrlForLog(fallbackUrl)}");
 
-        _playbackEngine?.StopAsync().GetAwaiter().GetResult();
         _viewModel.SetPlaybackStatus("Trying alternate stream…");
         StartBufferingWatchdog();
 
