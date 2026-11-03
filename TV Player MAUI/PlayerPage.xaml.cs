@@ -21,6 +21,7 @@ public partial class PlayerPage : ContentPage
     private M3UInfo? _selectedChannel;
     private readonly List<(M3UInfo Channel, Border Tile)> _channelPickerTiles = new();
     private readonly IReadOnlyList<M3UInfo> _channels;
+    private readonly List<(ProgramInfo Program, Border Card, ProgressBar Progress)> _guideCards = new();
 
     public PlayerPage(M3UInfo channel, IReadOnlyList<M3UInfo> channels, ProgramsData sourceData)
     {
@@ -352,6 +353,7 @@ public partial class PlayerPage : ContentPage
             ProgramInfoPanel.IsVisible = false;
             ProgramGuideList.IsVisible = false;
             ProgramGuideItems.Children.Clear();
+            _guideCards.Clear();
         });
 
         try
@@ -378,8 +380,9 @@ public partial class PlayerPage : ContentPage
                     AddGuideItem(item);
 
                 UpdateProgramInfo(guide);
+                UpdateGuideCards();
                 _guideRefreshTimer = new System.Threading.Timer(
-                    _ => MainThread.BeginInvokeOnMainThread(() => UpdateProgramInfo(guide)),
+                    _ => MainThread.BeginInvokeOnMainThread(() => { if (!token.IsCancellationRequested && !_isClosing) { UpdateProgramInfo(guide); UpdateGuideCards(); } }),
                     null,
                     TimeSpan.FromMinutes(1),
                     TimeSpan.FromMinutes(1));
@@ -427,7 +430,16 @@ public partial class PlayerPage : ContentPage
             Text = item.Title,
             FontSize = 13,
             LineBreakMode = LineBreakMode.TailTruncation,
+            MaxLines = 2,
             WidthRequest = 160
+        };
+        var progress = new ProgressBar
+        {
+            Progress = 0,
+            ProgressColor = Color.FromArgb("#55B9FF"),
+            BackgroundColor = Color.FromArgb("#304054"),
+            HeightRequest = 3,
+            IsVisible = false
         };
         var card = new Border
         {
@@ -436,9 +448,27 @@ public partial class PlayerPage : ContentPage
             StrokeThickness = 1,
             StrokeShape = new Microsoft.Maui.Controls.Shapes.RoundRectangle { CornerRadius = 10 },
             Padding = new Thickness(10, 6),
-            Content = new VerticalStackLayout { Spacing = 2, Children = { timeLabel, titleLabel } }
+            Content = new VerticalStackLayout { Spacing = 2, Children = { timeLabel, titleLabel, progress } }
         };
+        _guideCards.Add((item, card, progress));
         ProgramGuideItems.Children.Add(card);
+    }
+
+    private void UpdateGuideCards()
+    {
+        var now = DateTime.Now;
+        foreach (var (program, card, progress) in _guideCards)
+        {
+            var isCurrent = program.StartTime <= now && now < program.EndTime;
+            card.BackgroundColor = Color.FromArgb(isCurrent ? "#1A4263" : "#162130");
+            card.Stroke = Color.FromArgb(isCurrent ? "#55B9FF" : "#304054");
+            card.StrokeThickness = isCurrent ? 2 : 1;
+            progress.IsVisible = isCurrent;
+            var duration = (program.EndTime - program.StartTime).TotalSeconds;
+            progress.Progress = isCurrent && duration > 0
+                ? Math.Clamp((now - program.StartTime).TotalSeconds / duration, 0, 1)
+                : 0;
+        }
     }
 
     private void ShowPlayerUi()
