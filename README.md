@@ -52,3 +52,13 @@ overlays, platform navigation and minute timers. Native adapters retain LibVLC,
 video surfaces and foreground/surface lifecycle handling. Dispose the presentation
 model when leaving the player permanently; source providers remain owned by
 `ProgramsData`.
+
+The desktop `AvaloniaPlaybackController` owns native VLC subscriptions, media/engine,
+startup reconciliation and fallback/watchdog handling. `PlayerView` retains layout,
+input/audio widgets and the video host; `PlaybackHostLease` detaches that host before
+releasing the adapter and MediaPlayer, including failed initialization. Queued native
+callbacks are rejected after adapter disposal or a model/attempt change.
+`MauiPlaybackController` owns Android player/media resources and detach-only video
+binding; the page renders presentation snapshots and supplies the native surface.
+See [current ownership and migration history](docs/shared-player-architecture.md)
+and [playback adapters](docs/playback-engines.md).

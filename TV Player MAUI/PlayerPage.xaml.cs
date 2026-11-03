@@ -55,8 +55,6 @@ public partial class PlayerPage : ContentPage
             _presentation.SelectChannel(selected);
         };
         ChannelPicker.SetChannels(_presentation.Selection.Channels);
-        ChannelPicker.SelectChannel(channel);
-        ChannelTitle.Text = channel.Name;
         ClockLabel.Text = DateTime.Now.ToString("HH:mm");
         _ = _presentation.OpenAsync(channel);
     }
@@ -407,15 +405,5 @@ public partial class PlayerPage : ContentPage
 #endif
     }
 
-    private void DetachPlayback(MediaPlayer? player)
-    {
-        VideoPlayer.MediaPlayer = null;
-        if (player != null)
-        {
-            VideoPlayer.MediaPlayer = player;
-#if ANDROID
-            _nativeVideoView?.TriggerLayoutChangeListener();
-#endif
-        }
-    }
+    private void DetachPlayback() => VideoPlayer.MediaPlayer = null;
 }

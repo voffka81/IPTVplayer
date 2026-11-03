@@ -2,7 +2,20 @@
 
 The playback API lives in `TV Player Core/Playback` without dependencies on Avalonia or WPF.
 
-## Implemented
+## Current clients
+
+Avalonia uses `LibVlcPlaybackEngine` behind `AvaloniaPlaybackController`; its view
+owns the native host/MediaPlayer through `PlaybackHostLease`. Native Playing and
+Buffering events, rather than an accepted backend Play command, drive the shared
+presentation snapshot. The adapter retains ordered URL fallbacks, the 12-second
+startup watchdog and the compatibility retry options.
+
+MAUI uses `MauiPlaybackController` with the shared foreground/surface contracts.
+It stops/disposes native player/media in the background and starts a fresh live
+connection after foreground and surface readiness. Both clients bind the Core
+`PlayerPresentationModel` and `PlayerPlaybackModel`.
+
+## Engine API and optional MPV backend
 
 - `IPlaybackEngine`: playback commands, state, volume and error events.
 - `StreamSource`: URL, optional headers and fallback URLs.
@@ -22,10 +35,10 @@ await using var engine = engines.Create("mpv");
 await engine.PlayAsync(new StreamSource("https://example.org/live.m3u8"));
 ```
 
-## Known limitations
+## Optional MPV limitations
 
-- This is **not yet integrated into the Avalonia or WPF views**. Existing playback
-  remains unchanged. It does not resolve the current Avalonia VideoView exception.
+- The optional MPV backend is not integrated into the client views; current clients
+  use VLC as described above.
 - The application must deploy a compatible native libmpv library. Native dependency
   packaging and cross-platform loader verification remain outstanding.
 - PlaybackState.Playing currently means libmpv accepted `loadfile`, **not** that
@@ -36,12 +49,13 @@ await engine.PlayAsync(new StreamSource("https://example.org/live.m3u8"));
 - Native `wid` embedding requires platform-specific host window lifecycle handling;
   macOS support must be validated separately.
 
-## Follow-up
+## Optional MPV follow-up
 
 1. Integrate a native video surface host into Avalonia and WPF.
-2. Adapt existing VLC playback to `IPlaybackEngine`.
+2. Preserve VLC native event/surface semantics when offering another engine.
 3. Wire engine selection into settings and handle runtime failures.
 4. Add event-based mpv state/error tracking, stream headers and fallback logic.
 5. Build and test on Windows/macOS.
 
-This branch is based on `master`. .NET 10 migration is handled separately.
+The applications target .NET 10. Native engine/device smoke checks remain
+separate from the framework-free regression suite.

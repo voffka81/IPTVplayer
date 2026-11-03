@@ -12,12 +12,12 @@ internal sealed class MauiPlaybackController : IDisposable
     private MediaPlayer? _mediaPlayer;
     private Media? _currentMedia;
     private readonly Action<MediaPlayer> _bind;
-    private readonly Action<MediaPlayer?> _detach;
+    private readonly Action _detach;
     private readonly PlayerPlaybackModel _model;
     private readonly Action<Action> _dispatch;
     private Action? _unsubscribe;
 
-    public MauiPlaybackController(Action<MediaPlayer> bind, Action<MediaPlayer?> detach, PlayerPlaybackModel model, Action<Action> dispatch)
+    public MauiPlaybackController(Action<MediaPlayer> bind, Action detach, PlayerPlaybackModel model, Action<Action> dispatch)
     {
         _bind = bind;
         _detach = detach;
@@ -25,9 +25,6 @@ internal sealed class MauiPlaybackController : IDisposable
         _dispatch = dispatch;
         _session = new ForegroundPlaybackSession(PlayOnSurface, ReleasePlayer);
     }
-
-    public bool HasStream => _session.HasStream;
-    public bool IsForeground => _session.IsForeground;
 
     public void SetForeground(bool foreground)
     {
@@ -137,7 +134,7 @@ internal sealed class MauiPlaybackController : IDisposable
         // new MediaPlayer is created on foreground entry, with a new Android vout.
         try { player?.Stop(); }
         catch (Exception ex) { System.Diagnostics.Debug.WriteLine($"Failed to stop media player: {ex.Message}"); }
-        try { _detach(null); }
+        try { _detach(); }
         catch (Exception ex) { System.Diagnostics.Debug.WriteLine($"Failed to detach media player: {ex.Message}"); }
         try { media?.Dispose(); }
         catch (Exception ex) { System.Diagnostics.Debug.WriteLine($"Failed to dispose media: {ex.Message}"); }
