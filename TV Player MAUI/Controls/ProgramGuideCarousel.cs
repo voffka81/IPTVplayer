@@ -110,7 +110,15 @@ public sealed class ProgramGuideCarousel : ContentView
             Padding = new Thickness(10, 6),
             Content = new VerticalStackLayout { Spacing = 2, Children = { timeLabel, titleLabel, progress } }
         };
-        var button = new Button { BackgroundColor = Colors.Transparent, Text = string.Empty, Padding = 0 };
+        var button = new Button
+        {
+            BackgroundColor = Colors.Transparent,
+            BorderColor = Colors.Transparent,
+            BorderWidth = 0,
+            CornerRadius = 10,
+            Text = string.Empty,
+            Padding = 0
+        };
         button.Focused += (_, _) =>
         {
             _focusedIndex = _cards.FindIndex(item => item.Button == button);
