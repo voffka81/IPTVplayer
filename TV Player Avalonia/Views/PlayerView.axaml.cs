@@ -170,6 +170,11 @@ public partial class PlayerView : UserControl
         if (_initialized || _initializing)
             return;
 
+        if (_viewModel != null)
+        {
+            _viewModel.PropertyChanged -= OnViewModelPropertyChanged;
+            _viewModel.PropertyChanged += OnViewModelPropertyChanged;
+        }
         _clockTimer.Start();
         if (OperatingSystem.IsWindows())
         {
@@ -231,7 +236,12 @@ public partial class PlayerView : UserControl
                     return;
                 _initializing = false;
                 Log($"VLC initialization failed: {ex}");
-                _viewModel?.SetPlaybackStatus($"VLC init failed: {ex.Message}");
+                if (_viewModel != null)
+                {
+                    _viewModel.Playback.Apply(new(PlayerPlaybackCommandKind.Fail, _viewModel.Playback.Snapshot.Token.Generation,
+                        Failure: PlayerPlaybackFailure.EngineUnavailable, Cause: ex));
+                    _viewModel.SetPlaybackStatus($"VLC init failed: {ex.Message}");
+                }
             });
         }
     }
