@@ -14,6 +14,7 @@ public partial class PlayerPage : ContentPage
     private readonly ProgramsData _sourceData;
     private CancellationTokenSource? _hideUiToken;
     private CancellationTokenSource? _guideLoadToken;
+    private int _guideRequestVersion;
     private CancellationTokenSource? _playbackRequestToken;
     private System.Threading.Timer? _guideRefreshTimer;
     private bool _isClosing;
@@ -273,6 +274,7 @@ public partial class PlayerPage : ContentPage
         _isClosing = true;
         _hideUiToken?.Cancel();
         _guideLoadToken?.Cancel();
+        ++_guideRequestVersion;
         _playbackRequestToken?.Cancel();
         _guideRefreshTimer?.Dispose();
 
@@ -342,6 +344,7 @@ public partial class PlayerPage : ContentPage
 
     private async Task LoadProgramGuideAsync(M3UInfo channel)
     {
+        var requestVersion = ++_guideRequestVersion;
         _guideLoadToken?.Cancel();
         _guideLoadToken?.Dispose();
         _guideLoadToken = new CancellationTokenSource();
@@ -350,6 +353,7 @@ public partial class PlayerPage : ContentPage
         _guideRefreshTimer = null;
         await MainThread.InvokeOnMainThreadAsync(() =>
         {
+            if (token.IsCancellationRequested || _isClosing || requestVersion != _guideRequestVersion) return;
             ProgramInfoPanel.IsVisible = false;
             ProgramGuideList.IsVisible = false;
             ProgramGuideItems.Children.Clear();
@@ -359,11 +363,11 @@ public partial class PlayerPage : ContentPage
         try
         {
             var guide = await _sourceData.GetGuideByProgram(channel);
-            if (token.IsCancellationRequested) return;
+            if (token.IsCancellationRequested || _isClosing || requestVersion != _guideRequestVersion) return;
 
             await MainThread.InvokeOnMainThreadAsync(() =>
             {
-                if (token.IsCancellationRequested) return;
+                if (token.IsCancellationRequested || _isClosing || requestVersion != _guideRequestVersion) return;
                 if (guide?.Programs == null || guide.Programs.Count == 0)
                 {
                     ProgramInfoPanel.IsVisible = false;
@@ -382,7 +386,7 @@ public partial class PlayerPage : ContentPage
                 UpdateProgramInfo(guide);
                 UpdateGuideCards();
                 _guideRefreshTimer = new System.Threading.Timer(
-                    _ => MainThread.BeginInvokeOnMainThread(() => { if (!token.IsCancellationRequested && !_isClosing) { UpdateProgramInfo(guide); UpdateGuideCards(); } }),
+                    _ => MainThread.BeginInvokeOnMainThread(() => { if (!token.IsCancellationRequested && !_isClosing && requestVersion == _guideRequestVersion) { UpdateProgramInfo(guide); UpdateGuideCards(); } }),
                     null,
                     TimeSpan.FromMinutes(1),
                     TimeSpan.FromMinutes(1));
@@ -508,6 +512,7 @@ public partial class PlayerPage : ContentPage
 #endif
         _hideUiToken?.Cancel();
         _guideLoadToken?.Cancel();
+        ++_guideRequestVersion;
         _guideRefreshTimer?.Dispose();
 #if ANDROID
         try
