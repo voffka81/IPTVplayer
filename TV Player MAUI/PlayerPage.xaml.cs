@@ -1,3 +1,4 @@
+using TV_Player.Playback;
 using LibVLCSharp.Shared;
 using TV_Player;
 using TV_Player.Providers;
@@ -11,6 +12,7 @@ namespace TV_Player.Maui;
 
 public partial class PlayerPage : ContentPage
 {
+    private readonly PlayerPlaybackModel _playbackModel = new();
     private readonly MauiPlaybackController _playback;
     private readonly MauiPlayerUiController _ui;
     private readonly ProgramGuideController _guideController;
@@ -31,7 +33,8 @@ public partial class PlayerPage : ContentPage
         _ui = new MauiPlayerUiController(Dispatcher, RenderPlayerUi);
         PlayerLayout.SizeChanged += (_, _) => RefreshVideoSurfaceSize();
         _streamResolver = new StreamResolutionService(sourceData.Provider);
-        _playback = new MauiPlaybackController(BindPlayback, DetachPlayback, () => OnMediaPlayerPlaying(null, EventArgs.Empty), OnPlaybackError);
+        _playbackModel.Changed += RenderPlayback;
+        _playback = new MauiPlaybackController(BindPlayback, DetachPlayback, _playbackModel, MainThread.BeginInvokeOnMainThread);
         _guideController = new ProgramGuideController(sourceData, ResetProgramGuide, DisplayProgramGuide, RefreshProgramGuide);
         _selection = new ChannelSelectionState(channel);
         _selection.SetChannels(channels);
@@ -94,20 +97,32 @@ public partial class PlayerPage : ContentPage
         DetachSurfaceCallback();
     }
 
-    private void OnMediaPlayerPlaying(object? sender, EventArgs e) => MainThread.BeginInvokeOnMainThread(() =>
+    private void RenderPlayback(PlayerPlaybackSnapshot state)
     {
-        if (_isClosing || !_pageVisible || !_appActive) return;
-        RefreshVideoSurfaceSize();
-        StatusLabel.Text = string.Empty;
-    });
+        if (_isClosing) return;
+        StatusLabel.Text = state.IsSuspended ? string.Empty : state.Phase switch
+        {
+            PlayerPlaybackPhase.Resolving => "Получение потока…",
+            PlayerPlaybackPhase.Connecting or PlayerPlaybackPhase.Buffering or PlayerPlaybackPhase.Recovering
+                when !state.HasStarted => "Подключение…",
+            PlayerPlaybackPhase.Error => state.Failure switch
+            {
+                PlayerPlaybackFailure.NoStream => "Для этого канала нет ссылки на поток.",
+                PlayerPlaybackFailure.ResolutionFailed => "Не удалось получить поток. Попробуйте открыть канал заново.",
+                _ => "VLC не смог открыть поток. Попробуйте другой канал или откройте этот канал заново."
+            },
+            PlayerPlaybackPhase.Ended => "Поток завершён.",
+            _ => string.Empty
+        };
+        if (state.Phase == PlayerPlaybackPhase.Playing && _pageVisible && _appActive) RefreshVideoSurfaceSize();
+        if (state.Phase is PlayerPlaybackPhase.Error or PlayerPlaybackPhase.Ended) _ui.Show();
+    }
 
-    private void OnPlaybackError() => MainThread.BeginInvokeOnMainThread(() =>
+    private void ReportStartupFailure(Exception error)
     {
-        if (_isClosing || !_pageVisible || !_appActive) return;
-        PrivacyOverlay.IsVisible = false;
-        StatusLabel.Text = "VLC не смог открыть поток. Попробуйте другой канал или откройте этот канал заново.";
-        _ui.Show();
-    });
+        var token = _playbackModel.Snapshot.Token;
+        _playbackModel.Apply(new(PlayerPlaybackCommandKind.Fail, token.Generation, token.Epoch, Cause: error));
+    }
 
     private void RefreshVideoSurfaceSize()
     {
@@ -131,7 +146,7 @@ public partial class PlayerPage : ContentPage
             native.Holder?.Surface?.IsValid == true;
         if (ready) native!.TriggerLayoutChangeListener();
         try { _playback.SetSurfaceReady(ready); }
-        catch (Exception ex) { StatusLabel.Text = $"Не удалось запустить видео: {ex.Message}"; _ui.Show(); }
+        catch (Exception ex) { ReportStartupFailure(ex); }
 #endif
     }
 
@@ -164,21 +179,21 @@ public partial class PlayerPage : ContentPage
         ChannelPicker.SelectChannel(channel);
 
         _ = _guideController.LoadAsync(channel);
-        if (_streamResolver.RequiresProviderLookup(channel)) StatusLabel.Text = "Получение потока…";
+        var generation = _playbackModel.Begin();
         var result = await _streamResolver.ResolveAsync(channel);
         if (!_streamResolver.IsCurrent(result) || _isClosing) return;
         if (result.Status != StreamResolutionStatus.Resolved)
         {
-            StatusLabel.Text = result.Status == StreamResolutionStatus.NoStream
-                ? "Для этого канала нет ссылки на поток."
-                : $"Не удалось получить поток: {result.Error?.Message}";
+            _playbackModel.Apply(new(PlayerPlaybackCommandKind.Fail, generation,
+                Failure: result.Status == StreamResolutionStatus.NoStream ? PlayerPlaybackFailure.NoStream : PlayerPlaybackFailure.ResolutionFailed,
+                Cause: result.Error));
             return;
         }
         var streamUrl = result.Stream!.Url;
         ChannelTitle.Text = channel.Name;
-        StatusLabel.Text = "Подключение…";
+        if (!_playbackModel.Apply(new(PlayerPlaybackCommandKind.Connect, generation, Url: streamUrl))) return;
         try { _playback.Play(streamUrl); }
-        catch (Exception ex) { StatusLabel.Text = $"Не удалось запустить видео: {ex.Message}"; }
+        catch (Exception ex) { ReportStartupFailure(ex); }
         _ui.Show();
     }
 
@@ -216,6 +231,8 @@ public partial class PlayerPage : ContentPage
         finally
         {
             _playback.Dispose();
+            _playbackModel.Changed -= RenderPlayback;
+            _playbackModel.Dispose();
             _streamResolver.Dispose();
             _guideController.Dispose();
             _ui.Dispose();
@@ -367,7 +384,6 @@ public partial class PlayerPage : ContentPage
         _appActive = true;
         if (_isClosing || !_pageVisible) return;
         PrivacyOverlay.IsVisible = false;
-        if (!_playback.IsForeground && _playback.HasStream) StatusLabel.Text = "Подключение…";
         _playback.SetForeground(true);
         _ui.Resume();
         RestoreRemoteFocus();
