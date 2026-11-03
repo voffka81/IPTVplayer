@@ -1,5 +1,6 @@
 using LibVLCSharp.Shared;
 using TV_Player;
+using TV_Player.Providers;
 using TV_Player.Presentation;
 using TV_Player.Input;
 #if ANDROID
@@ -13,7 +14,7 @@ public partial class PlayerPage : ContentPage
     private readonly MauiPlaybackController _playback;
     private readonly MauiPlayerUiController _ui;
     private readonly ProgramGuideController _guideController;
-    private readonly StreamResolutionController _streamResolver;
+    private readonly StreamResolutionService _streamResolver;
     private bool _isClosing;
     private bool _pageVisible;
     private bool _appActive = true;
@@ -29,7 +30,7 @@ public partial class PlayerPage : ContentPage
         InitializeComponent();
         _ui = new MauiPlayerUiController(Dispatcher, RenderPlayerUi);
         PlayerLayout.SizeChanged += (_, _) => RefreshVideoSurfaceSize();
-        _streamResolver = new StreamResolutionController(sourceData);
+        _streamResolver = new StreamResolutionService(sourceData.Provider);
         _playback = new MauiPlaybackController(BindPlayback, DetachPlayback, () => OnMediaPlayerPlaying(null, EventArgs.Empty), OnPlaybackError);
         _guideController = new ProgramGuideController(sourceData, ResetProgramGuide, DisplayProgramGuide, RefreshProgramGuide);
         _selection = new ChannelSelectionState(channel);
@@ -163,14 +164,17 @@ public partial class PlayerPage : ContentPage
         ChannelPicker.SelectChannel(channel);
 
         _ = _guideController.LoadAsync(channel);
-        var result = await _streamResolver.ResolveAsync(channel, () => StatusLabel.Text = "Получение потока…");
-        if (result == null || _isClosing) return;
-        if (result.Error != null)
+        if (_streamResolver.RequiresProviderLookup(channel)) StatusLabel.Text = "Получение потока…";
+        var result = await _streamResolver.ResolveAsync(channel);
+        if (!_streamResolver.IsCurrent(result) || _isClosing) return;
+        if (result.Status != StreamResolutionStatus.Resolved)
         {
-            StatusLabel.Text = result.Error;
+            StatusLabel.Text = result.Status == StreamResolutionStatus.NoStream
+                ? "Для этого канала нет ссылки на поток."
+                : $"Не удалось получить поток: {result.Error?.Message}";
             return;
         }
-        var streamUrl = result.Url!;
+        var streamUrl = result.Stream!.Url;
         ChannelTitle.Text = channel.Name;
         StatusLabel.Text = "Подключение…";
         try { _playback.Play(streamUrl); }

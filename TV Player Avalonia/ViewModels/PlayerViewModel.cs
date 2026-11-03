@@ -1,4 +1,5 @@
 using Avalonia.Threading;
+using TV_Player.Providers;
 using CommunityToolkit.Mvvm.Input;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
@@ -12,7 +13,7 @@ public class PlayerViewModel : TV_Player.ObservableViewModelBase, IDisposable
     private readonly IDisposable _programSubscription;
     private M3UInfo _currentProgram;
     private IReadOnlyList<string> _fallbackStreamUrls = Array.Empty<string>();
-    private CancellationTokenSource? _resolveCts;
+    private readonly StreamResolutionService _streamResolver;
     private bool _disposed;
 
     public ICommand BackCommand { get; }
@@ -85,6 +86,8 @@ public class PlayerViewModel : TV_Player.ObservableViewModelBase, IDisposable
     public PlayerViewModel(M3UInfo selectedProgram)
     {
         _currentProgram = selectedProgram;
+        _streamResolver = new StreamResolutionService(TVPlayerViewModel.Instance.CurrentProgramsData?.Provider,
+            ProviderResolutionMode.PreferProvider);
         BackCommand = new RelayCommand(OnButtonBackClick);
         SettingsCommand = new RelayCommand(TVPlayerViewModel.Instance.ShowSettingsScreen);
         ChannelPicker = new PlayerChannelPickerViewModel(selectedProgram);
@@ -119,54 +122,40 @@ public class PlayerViewModel : TV_Player.ObservableViewModelBase, IDisposable
         ChannelPicker.SyncCurrentChannel(_currentProgram);
         TVPlayerViewModel.Instance.TopPanelVisible(false, _currentProgram.Name);
         TopPanelTitle = _currentProgram.Name;
-        _resolveCts?.Cancel();
-        _resolveCts?.Dispose();
-        _resolveCts = new CancellationTokenSource();
+        _streamResolver.Cancel();
         StreamUrl = string.Empty;
         FallbackStreamUrls = Array.Empty<string>();
         SetPlaybackStatus(string.Empty);
         IsBuffering = true;
-        _ = ResolveCurrentStreamAsync(_currentProgram, _resolveCts.Token);
+        _ = ResolveCurrentStreamAsync(_currentProgram);
         ProgramBar.SetChannel(_currentProgram);
     }
 
-    private async Task ResolveCurrentStreamAsync(M3UInfo channel, CancellationToken token)
+    private async Task ResolveCurrentStreamAsync(M3UInfo channel)
     {
-        try
+        var result = await _streamResolver.ResolveAsync(channel);
+        await Dispatcher.UIThread.InvokeAsync(() =>
         {
-            var provider = TVPlayerViewModel.Instance.CurrentProgramsData?.Provider;
-            var url = channel.Url;
-            IReadOnlyList<string> fallbackUrls = Array.Empty<string>();
-            if (provider != null && channel.ProviderId == provider.Id && channel.ChannelId != null)
+            if (_disposed || !_streamResolver.IsCurrent(result)) return;
+            if (result.Status == StreamResolutionStatus.Resolved)
             {
-                var stream = await provider.ResolveStreamAsync(channel.ChannelId, token);
-                url = stream.PrimaryUrl;
-                fallbackUrls = stream.FallbackUrls ?? Array.Empty<string>();
+                FallbackStreamUrls = result.Stream!.FallbackUrls;
+                IsBuffering = true;
+                SetPlaybackStatus(string.Empty);
+                StreamUrl = result.Stream.Url;
             }
-            await Dispatcher.UIThread.InvokeAsync(() =>
+            else
             {
-                if (token.IsCancellationRequested || _disposed) return;
-                FallbackStreamUrls = fallbackUrls;
-                IsBuffering = !string.IsNullOrWhiteSpace(url);
-                SetPlaybackStatus(string.IsNullOrWhiteSpace(url)
-                    ? "No stream URL available for this channel."
-                    : string.Empty);
-                StreamUrl = url;
-            });
-        }
-        catch (OperationCanceledException) when (token.IsCancellationRequested) { }
-        catch (Exception ex)
-        {
-            Debug.WriteLine($"Stream resolution failed: {ex}");
-            await Dispatcher.UIThread.InvokeAsync(() =>
-            {
-                if (!token.IsCancellationRequested && !_disposed)
+                IsBuffering = false;
+                if (result.Status == StreamResolutionStatus.NoStream)
+                    SetPlaybackStatus("No stream URL available for this channel.");
+                else
                 {
-                    IsBuffering = false;
-                    SetPlaybackStatus($"Cannot resolve stream: {ex.Message}");
+                    Debug.WriteLine($"Stream resolution failed: {result.Error}");
+                    SetPlaybackStatus($"Cannot resolve stream: {result.Error?.Message}");
                 }
-            });
-        }
+            }
+        });
     }
 
     public void SwitchChannel(int direction) => ChannelPicker.SwitchChannel(direction);
@@ -203,8 +192,7 @@ public class PlayerViewModel : TV_Player.ObservableViewModelBase, IDisposable
     public void Dispose()
     {
         _disposed = true;
-        _resolveCts?.Cancel();
-        _resolveCts?.Dispose();
+        _streamResolver.Dispose();
         _programSubscription.Dispose();
         ChannelPicker.ChannelChanged -= OnChannelChanged;
         ProgramBar.Dispose();
