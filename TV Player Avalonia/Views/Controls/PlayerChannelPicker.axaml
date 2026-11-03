@@ -53,6 +53,15 @@
                           CornerRadius="12"
                           Padding="6">
                     <Grid RowDefinitions="*,Auto">
+                      <Border IsVisible="{Binding IsCurrent}"
+                              HorizontalAlignment="Right"
+                              VerticalAlignment="Top"
+                              Background="#176B50"
+                              CornerRadius="5"
+                              Padding="4,2"
+                              ZIndex="1">
+                        <TextBlock Text="СЕЙЧАС" Foreground="White" FontSize="8" FontWeight="Bold" />
+                      </Border>
                       <Image asyncImageLoader:ImageLoader.Source="{Binding Channel.Logo}"
                              MaxWidth="54"
                              Margin="0,0,0,4"
