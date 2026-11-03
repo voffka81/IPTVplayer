@@ -1,4 +1,6 @@
 using Avalonia.Threading;
+using TV_Player.Presentation;
+using System.Globalization;
 using CommunityToolkit.Mvvm.Input;
 using System.Diagnostics;
 using System.Reactive.Linq;
@@ -11,12 +13,11 @@ public sealed class PlayerProgramBarViewModel : TV_Player.ObservableViewModelBas
     private IDisposable? _programGuideDisposable;
     private IDisposable? _timer;
     private ProgramGuide? _currentGuide;
-    private ProgramInfo? _currentProgramInfo;
     private long _channelVersion;
     private bool _disposed;
     public ICommand ShowProgramListCommand { get; }
-    private List<ProgramInfo> _programItems = new();
-    public List<ProgramInfo> Programs { get => _programItems; set => SetProperty(ref _programItems, value); }
+    private IReadOnlyList<EpgProgramItem> _programItems = Array.Empty<EpgProgramItem>();
+    public IReadOnlyList<EpgProgramItem> Programs { get => _programItems; set => SetProperty(ref _programItems, value); }
     private string _programGuideText = string.Empty;
     public string ProgramGuideText
     {
@@ -94,7 +95,7 @@ public sealed class PlayerProgramBarViewModel : TV_Player.ObservableViewModelBas
         _timer?.Dispose();
         _timer = null;
         _currentGuide = null;
-        Programs = new List<ProgramInfo>();
+        Programs = Array.Empty<EpgProgramItem>();
         IsProgramInfoVisible = false;
         ProgramGuideVisible = false;
         _programGuideDisposable = TVPlayerViewModel.Instance.CurrentProgramsData!
@@ -121,44 +122,15 @@ public sealed class PlayerProgramBarViewModel : TV_Player.ObservableViewModelBas
     }
     private void UpdateScreenInfo()
     {
-        try
-        {
-            if (_currentGuide?.Programs == null || _currentGuide.Programs.Count == 0)
-            {
-                IsProgramInfoVisible = false;
-                Programs = new List<ProgramInfo>();
-                return;
-            }
-
-            _currentProgramInfo = _currentGuide.Programs
-                .FirstOrDefault(item => item.StartTime <= DateTime.Now && item.EndTime >= DateTime.Now);
-
-            if (_currentProgramInfo == null)
-            {
-                IsProgramInfoVisible = false;
-                Programs = _currentGuide.Programs.Take(7).ToList();
-                return;
-            }
-
-            var currentIndex = _currentGuide.Programs.FindIndex(x => x.Title == _currentProgramInfo.Title);
-            Programs = _currentGuide.Programs.Skip(Math.Max(currentIndex, 0)).Take(7).ToList();
-
-            IsProgramInfoVisible = true;
-            ProgramGuideText = _currentProgramInfo.Title;
-            StartProgram = _currentProgramInfo.StartTime.ToShortTimeString();
-            EndProgram = _currentProgramInfo.EndTime.ToShortTimeString();
-
-            var totalMinutes = (_currentProgramInfo.EndTime - _currentProgramInfo.StartTime).TotalMinutes;
-            DurationValue = totalMinutes <= 0
-                ? 0
-                : (int)((DateTime.Now - _currentProgramInfo.StartTime).TotalMinutes / totalMinutes * 100);
-        }
-        catch (Exception ex)
-        {
-            Debug.WriteLine($"Failed to update screen info: {ex.Message}");
-        }
+        var state = ProgramGuideProjection.Project(_currentGuide, DateTime.Now,
+            origin: GuideWindowOrigin.CurrentOrFirst, formatProvider: CultureInfo.CurrentCulture);
+        Programs = state.Window;
+        IsProgramInfoVisible = state.Current != null;
+        ProgramGuideText = state.Current?.Title ?? string.Empty;
+        StartProgram = state.Current?.ShortTimeLabels.Start ?? string.Empty;
+        EndProgram = state.Current?.ShortTimeLabels.End ?? string.Empty;
+        DurationValue = state.Current == null ? 0 : (int)(state.Current.Progress * 100);
     }
-
 
     public void Dispose()
     {

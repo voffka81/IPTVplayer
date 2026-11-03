@@ -299,43 +299,25 @@ public partial class PlayerPage : ContentPage
         ProgramGuideList.Clear();
     }
 
-    private void DisplayProgramGuide(ProgramGuide guide)
-    {
-        var ordered = guide.Programs.OrderBy(item => item.StartTime).ToList();
-        var now = DateTime.Now;
-        var first = ordered.FindIndex(item => item.StartTime <= now && now < item.EndTime);
-        if (first < 0) first = ordered.FindIndex(item => item.StartTime > now);
-        if (first < 0) first = 0;
-        ProgramGuideList.SetPrograms(ordered.Skip(first).Take(7));
-        RefreshProgramGuide(guide);
-    }
+    private void DisplayProgramGuide(ProgramGuide guide) => RefreshProgramGuide(guide);
 
     private void RefreshProgramGuide(ProgramGuide guide)
     {
-        UpdateProgramInfo(guide);
-        ProgramGuideList.Refresh();
-    }
-
-    private void UpdateProgramInfo(ProgramGuide guide)
-    {
-        var now = DateTime.Now;
-        var programs = guide.Programs.OrderBy(item => item.StartTime).ToList();
-        var current = programs.FirstOrDefault(item => item.StartTime <= now && item.EndTime >= now);
-        var next = current == null ? programs.FirstOrDefault(item => item.StartTime > now) : current;
-        if (next == null)
+        var state = ProgramGuideProjection.Project(guide, DateTime.Now,
+            formatProvider: System.Globalization.CultureInfo.CurrentCulture);
+        ProgramGuideList.SetPrograms(state.Window);
+        var program = state.Current ?? state.Next;
+        ProgramInfoPanel.IsVisible = program != null;
+        if (program == null)
         {
-            ProgramInfoPanel.IsVisible = false;
+            ProgramTitleLabel.Text = ProgramStartLabel.Text = ProgramEndLabel.Text = string.Empty;
+            ProgramProgress.Progress = 0;
             return;
         }
-
-        ProgramInfoPanel.IsVisible = true;
-        ProgramTitleLabel.Text = current == null ? $"Далее: {next.Title}" : next.Title;
-        ProgramStartLabel.Text = next.StartTime.ToString("HH:mm");
-        ProgramEndLabel.Text = next.EndTime.ToString("HH:mm");
-        var duration = (next.EndTime - next.StartTime).TotalSeconds;
-        ProgramProgress.Progress = current == null || duration <= 0
-            ? 0
-            : Math.Clamp((now - next.StartTime).TotalSeconds / duration, 0, 1);
+        ProgramTitleLabel.Text = state.Current == null ? $"Далее: {program.Title}" : program.Title;
+        ProgramStartLabel.Text = program.TimeLabels.Start;
+        ProgramEndLabel.Text = program.TimeLabels.End;
+        ProgramProgress.Progress = program.Progress;
     }
 
     protected override void OnDisappearing()

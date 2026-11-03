@@ -31,10 +31,10 @@
                                  MaxHeight="48" FontSize="14" FontWeight="SemiBold"
                                  Foreground="White" />
                       <StackPanel Orientation="Horizontal" Spacing="8">
-                        <TextBlock Text="{Binding StartTime, StringFormat='{}{0:HH:mm}'}"
+                        <TextBlock Text="{Binding TimeLabels.Start}"
                                    FontSize="12" Foreground="#8DD2FF" />
                         <TextBlock Text="–" FontSize="12" Foreground="#8DD2FF" />
-                        <TextBlock Text="{Binding EndTime, StringFormat='{}{0:HH:mm}'}"
+                        <TextBlock Text="{Binding TimeLabels.End}"
                                    FontSize="12" Foreground="#8DD2FF" />
                       </StackPanel>
                     </StackPanel>

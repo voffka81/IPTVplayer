@@ -1,4 +1,4 @@
-using TV_Player;
+using TV_Player.Presentation;
 
 namespace TV_Player.Maui.Controls;
 
@@ -6,7 +6,7 @@ namespace TV_Player.Maui.Controls;
 public sealed class ProgramGuideCarousel : ContentView
 {
     private readonly HorizontalStackLayout _items = new() { Spacing = 8 };
-    private readonly List<(ProgramInfo Program, Border Card, ProgressBar Progress, Button Button)> _cards = new();
+    private readonly List<(EpgProgramItem Program, Border Card, ProgressBar Progress, Button Button)> _cards = new();
     private readonly ScrollView _scroll;
     private int _focusedIndex;
     private int _focusGeneration;
@@ -29,28 +29,43 @@ public sealed class ProgramGuideCarousel : ContentView
         _items.Children.Clear();
     }
 
-    public void SetPrograms(IEnumerable<ProgramInfo> programs)
+    public void SetPrograms(IReadOnlyList<EpgProgramItem> programs)
     {
+        var sameWindow = programs.Count == _cards.Count && programs.Select((item, index) =>
+            SameProgram(item, _cards[index].Program)).All(same => same);
+        if (sameWindow)
+        {
+            for (var i = 0; i < programs.Count; i++)
+            {
+                var card = _cards[i];
+                _cards[i] = (programs[i], card.Card, card.Progress, card.Button);
+            }
+            RenderStyles();
+            return;
+        }
+        var focused = _cards.FirstOrDefault(card => card.Button.IsFocused).Program;
         Clear();
-        foreach (var program in programs)
-            AddCard(program);
-        Refresh();
+        foreach (var program in programs) AddCard(program);
+        RenderStyles();
+        if (focused != null && IsVisible && _cards.Count > 0)
+        {
+            _focusedIndex = Math.Max(0, _cards.FindIndex(card => SameProgram(card.Program, focused)));
+            _ = MoveFocusAsync(0);
+        }
     }
 
-    public void Refresh()
+    private static bool SameProgram(EpgProgramItem left, EpgProgramItem right) =>
+        left.StartTime == right.StartTime && left.EndTime == right.EndTime && left.Title == right.Title;
+
+    private void RenderStyles()
     {
-        var now = DateTime.Now;
         foreach (var (program, card, progress, button) in _cards)
         {
-            var isCurrent = program.StartTime <= now && now < program.EndTime;
-            card.BackgroundColor = Color.FromArgb(isCurrent ? "#1A4263" : "#162130");
-            card.Stroke = Color.FromArgb(button.IsFocused ? "#7BD0FF" : isCurrent ? "#55B9FF" : "#304054");
-            card.StrokeThickness = isCurrent || button.IsFocused ? 2 : 1;
-            progress.IsVisible = isCurrent;
-            var duration = (program.EndTime - program.StartTime).TotalSeconds;
-            progress.Progress = isCurrent && duration > 0
-                ? Math.Clamp((now - program.StartTime).TotalSeconds / duration, 0, 1)
-                : 0;
+            card.BackgroundColor = Color.FromArgb(program.IsCurrent ? "#1A4263" : "#162130");
+            card.Stroke = Color.FromArgb(button.IsFocused ? "#7BD0FF" : program.IsCurrent ? "#55B9FF" : "#304054");
+            card.StrokeThickness = program.IsCurrent || button.IsFocused ? 2 : 1;
+            progress.IsVisible = program.IsCurrent;
+            progress.Progress = program.Progress;
         }
     }
 
@@ -77,11 +92,11 @@ public sealed class ProgramGuideCarousel : ContentView
         if (generation == _focusGeneration && IsVisible) item.Button.Focus();
     }
 
-    private void AddCard(ProgramInfo program)
+    private void AddCard(EpgProgramItem program)
     {
         var timeLabel = new Label
         {
-            Text = $"{program.StartTime:HH:mm} – {program.EndTime:HH:mm}",
+            Text = $"{program.TimeLabels.Start} – {program.TimeLabels.End}",
             FontSize = 12,
             TextColor = Color.FromArgb("#8DD2FF")
         };
@@ -122,9 +137,9 @@ public sealed class ProgramGuideCarousel : ContentView
         button.Focused += (_, _) =>
         {
             _focusedIndex = _cards.FindIndex(item => item.Button == button);
-            Refresh();
+            RenderStyles();
         };
-        button.Unfocused += (_, _) => Refresh();
+        button.Unfocused += (_, _) => RenderStyles();
         var content = (View)card.Content;
         content.InputTransparent = true;
         card.Content = new Grid { Children = { content, button } };
