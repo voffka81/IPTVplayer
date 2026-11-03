@@ -69,20 +69,34 @@ public class MainActivity : MauiAppCompatActivity
 
     protected override void OnPause()
     {
-        _isBackgrounded = true;
-        _handledPlayerKeys.Clear();
-        if (!_pixelCopyPending && _privacySnapshotView == null)
-            CaptureBlurredVideoFrame();
-        SuspendPlayback();
+        EnterBackground();
         base.OnPause();
     }
 
     protected override void OnUserLeaveHint()
     {
-        _isBackgrounded = true;
-        CaptureBlurredVideoFrame();
-        SuspendPlayback();
+        EnterBackground();
         base.OnUserLeaveHint();
+    }
+
+    private void EnterBackground()
+    {
+        _isBackgrounded = true;
+        _handledPlayerKeys.Clear();
+        try
+        {
+            if (!_pixelCopyPending && _privacySnapshotView == null)
+                CaptureBlurredVideoFrame();
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"Could not capture app-switch preview: {ex.Message}");
+        }
+        finally
+        {
+            // A destroyed surface or failed screenshot must never skip stopping live playback.
+            SuspendPlayback();
+        }
     }
 
     protected override void OnResume()
