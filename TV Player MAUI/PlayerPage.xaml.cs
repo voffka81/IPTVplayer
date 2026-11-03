@@ -13,10 +13,8 @@ public partial class PlayerPage : ContentPage
     private Media? _currentMedia;
     private readonly ProgramsData _sourceData;
     private CancellationTokenSource? _hideUiToken;
-    private CancellationTokenSource? _guideLoadToken;
-    private int _guideRequestVersion;
+    private readonly ProgramGuideController _guideController;
     private CancellationTokenSource? _playbackRequestToken;
-    private System.Threading.Timer? _guideRefreshTimer;
     private bool _isClosing;
     private bool _wasPlayingBeforeAppSwitch;
     private M3UInfo? _selectedChannel;
@@ -28,6 +26,7 @@ public partial class PlayerPage : ContentPage
         InitializeComponent();
         PlayerLayout.SizeChanged += (_, _) => RefreshVideoSurfaceSize();
         _sourceData = sourceData;
+        _guideController = new ProgramGuideController(sourceData, ResetProgramGuide, DisplayProgramGuide, RefreshProgramGuide);
         _channels = channels;
         _selectedChannel = channel;
         ChannelTitle.Text = channel.Name;
@@ -182,7 +181,7 @@ public partial class PlayerPage : ContentPage
         _playbackRequestToken = new CancellationTokenSource();
         var playbackToken = _playbackRequestToken.Token;
 
-        _ = LoadProgramGuideAsync(channel);
+        _ = _guideController.LoadAsync(channel);
         var streamUrl = channel.Url;
         if (string.IsNullOrWhiteSpace(streamUrl) &&
             channel.ProviderId == _sourceData.Provider.Id &&
@@ -272,10 +271,8 @@ public partial class PlayerPage : ContentPage
         if (_isClosing) return;
         _isClosing = true;
         _hideUiToken?.Cancel();
-        _guideLoadToken?.Cancel();
-        ++_guideRequestVersion;
+        _guideController.Cancel();
         _playbackRequestToken?.Cancel();
-        _guideRefreshTimer?.Dispose();
 
         StopAndDetachVideo();
 
@@ -341,59 +338,28 @@ public partial class PlayerPage : ContentPage
         ShowPlayerUi();
     }
 
-    private async Task LoadProgramGuideAsync(M3UInfo channel)
+    private void ResetProgramGuide()
     {
-        var requestVersion = ++_guideRequestVersion;
-        _guideLoadToken?.Cancel();
-        _guideLoadToken?.Dispose();
-        _guideLoadToken = new CancellationTokenSource();
-        var token = _guideLoadToken.Token;
-        _guideRefreshTimer?.Dispose();
-        _guideRefreshTimer = null;
-        await MainThread.InvokeOnMainThreadAsync(() =>
-        {
-            if (token.IsCancellationRequested || _isClosing || requestVersion != _guideRequestVersion) return;
-            ProgramInfoPanel.IsVisible = false;
-            ProgramGuideList.IsVisible = false;
-            ProgramGuideList.Clear();
-        });
+        ProgramInfoPanel.IsVisible = false;
+        ProgramGuideList.IsVisible = false;
+        ProgramGuideList.Clear();
+    }
 
-        try
-        {
-            var guide = await _sourceData.GetGuideByProgram(channel);
-            if (token.IsCancellationRequested || _isClosing || requestVersion != _guideRequestVersion) return;
+    private void DisplayProgramGuide(ProgramGuide guide)
+    {
+        var ordered = guide.Programs.OrderBy(item => item.StartTime).ToList();
+        var now = DateTime.Now;
+        var first = ordered.FindIndex(item => item.StartTime <= now && now < item.EndTime);
+        if (first < 0) first = ordered.FindIndex(item => item.StartTime > now);
+        if (first < 0) first = 0;
+        ProgramGuideList.SetPrograms(ordered.Skip(first).Take(7));
+        RefreshProgramGuide(guide);
+    }
 
-            await MainThread.InvokeOnMainThreadAsync(() =>
-            {
-                if (token.IsCancellationRequested || _isClosing || requestVersion != _guideRequestVersion) return;
-                if (guide?.Programs == null || guide.Programs.Count == 0)
-                {
-                    ProgramInfoPanel.IsVisible = false;
-                    return;
-                }
-
-                var orderedPrograms = guide.Programs.OrderBy(item => item.StartTime).ToList();
-                var firstVisibleProgram = orderedPrograms.FindIndex(item => item.StartTime <= DateTime.Now && item.EndTime >= DateTime.Now);
-                if (firstVisibleProgram < 0)
-                    firstVisibleProgram = orderedPrograms.FindIndex(item => item.StartTime > DateTime.Now);
-                if (firstVisibleProgram < 0) firstVisibleProgram = 0;
-
-                ProgramGuideList.SetPrograms(orderedPrograms.Skip(firstVisibleProgram).Take(7));
-
-                UpdateProgramInfo(guide);
-                ProgramGuideList.Refresh();
-                _guideRefreshTimer = new System.Threading.Timer(
-                    _ => MainThread.BeginInvokeOnMainThread(() => { if (!token.IsCancellationRequested && !_isClosing && requestVersion == _guideRequestVersion) { UpdateProgramInfo(guide); ProgramGuideList.Refresh(); } }),
-                    null,
-                    TimeSpan.FromMinutes(1),
-                    TimeSpan.FromMinutes(1));
-            });
-        }
-        catch (OperationCanceledException) { }
-        catch (Exception ex)
-        {
-            System.Diagnostics.Debug.WriteLine($"Failed to load program guide: {ex.Message}");
-        }
+    private void RefreshProgramGuide(ProgramGuide guide)
+    {
+        UpdateProgramInfo(guide);
+        ProgramGuideList.Refresh();
     }
 
     private void UpdateProgramInfo(ProgramGuide guide)
