@@ -7,9 +7,11 @@ public sealed class ChannelPickerView : ContentView
 {
     private readonly ScrollView _scroll;
     private readonly HorizontalStackLayout _items = new() { Spacing = 8 };
-    private readonly List<(M3UInfo Channel, Border Tile)> _channelPickerTiles = new();
+    private readonly List<(M3UInfo Channel, Border Tile, Button Button)> _channelPickerTiles = new();
     private IReadOnlyList<M3UInfo> _channels = Array.Empty<M3UInfo>();
     private M3UInfo? _selectedChannel;
+    private int _focusedIndex = -1;
+    private int _focusGeneration;
 
     public event Action<M3UInfo>? ChannelSelected;
 
@@ -21,6 +23,8 @@ public sealed class ChannelPickerView : ContentView
 
     public void SetChannels(IReadOnlyList<M3UInfo> channels)
     {
+        CancelPendingFocus();
+        _focusedIndex = -1;
         _channels = channels;
         _channelPickerTiles.Clear();
         _items.Children.Clear();
@@ -32,6 +36,7 @@ public sealed class ChannelPickerView : ContentView
     public void SelectChannel(M3UInfo channel)
     {
         _selectedChannel = channel;
+        _focusedIndex = ChannelSelection.FindIndex(_channels, channel);
         UpdateChannelPickerSelection();
     }
 
@@ -83,8 +88,6 @@ public sealed class ChannelPickerView : ContentView
             StrokeShape = new Microsoft.Maui.Controls.Shapes.RoundRectangle { CornerRadius = 10 },
             Content = new Grid { Children = { content } }
         };
-        _channelPickerTiles.Add((channel, tile));
-        UpdateChannelPickerSelection();
         var button = new Button
         {
             BackgroundColor = Colors.Transparent,
@@ -96,11 +99,13 @@ public sealed class ChannelPickerView : ContentView
         };
         button.Clicked += (_, _) =>
         {
-            IsVisible = false;
             ChannelSelected?.Invoke(channel);
         };
+        _channelPickerTiles.Add((channel, tile, button));
+        UpdateChannelPickerSelection();
         button.Focused += (_, _) =>
         {
+            _focusedIndex = _channelPickerTiles.FindIndex(item => item.Button == button);
             tile.Stroke = Color.FromArgb("#7BD0FF");
             tile.StrokeThickness = 2;
         };
@@ -124,14 +129,37 @@ public sealed class ChannelPickerView : ContentView
         await _scroll.ScrollToAsync(offset, 0, animated: false);
     }
 
+    public void CancelPendingFocus() => _focusGeneration++;
+
+    public async Task FocusSelectedChannelAsync()
+    {
+        var generation = ++_focusGeneration;
+        await ScrollSelectedChannelIntoViewAsync();
+        if (generation != _focusGeneration || !IsVisible || _channelPickerTiles.Count == 0) return;
+        var index = _selectedChannel == null ? -1 : ChannelSelection.FindIndex(_channels, _selectedChannel);
+        _focusedIndex = Math.Max(0, index);
+        _channelPickerTiles[_focusedIndex].Button.Focus();
+    }
+
+    public async Task MoveFocusAsync(int direction)
+    {
+        if (!IsVisible || _channelPickerTiles.Count == 0) return;
+        var generation = ++_focusGeneration;
+        _focusedIndex = ChannelSelection.NextIndex(_focusedIndex, _channelPickerTiles.Count, direction);
+        var item = _channelPickerTiles[_focusedIndex];
+        item.Button.Focus();
+        await _scroll.ScrollToAsync(item.Tile, ScrollToPosition.Center, animated: false);
+        if (generation == _focusGeneration && IsVisible) item.Button.Focus();
+    }
+
     private void UpdateChannelPickerSelection()
     {
-        foreach (var (channel, tile) in _channelPickerTiles)
+        foreach (var (channel, tile, button) in _channelPickerTiles)
         {
             var isSelected = _selectedChannel != null && ChannelSelection.IsSameChannel(channel, _selectedChannel);
             tile.BackgroundColor = Color.FromArgb(isSelected ? "#1A4263" : "#162130");
-            tile.Stroke = Color.FromArgb(isSelected ? "#55B9FF" : "#304054");
-            tile.StrokeThickness = isSelected ? 2 : 1;
+            tile.Stroke = Color.FromArgb(button.IsFocused ? "#7BD0FF" : isSelected ? "#55B9FF" : "#304054");
+            tile.StrokeThickness = isSelected || button.IsFocused ? 2 : 1;
         }
     }
 

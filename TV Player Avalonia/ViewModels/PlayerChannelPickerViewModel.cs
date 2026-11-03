@@ -1,13 +1,12 @@
 using System.Collections.ObjectModel;
+using TV_Player.Presentation;
 
 namespace TV_Player.AvaloniaApp.ViewModels;
 
 /// <summary>Owns channel picker items, selection and adjacent-channel navigation.</summary>
 public sealed class PlayerChannelPickerViewModel : TV_Player.ObservableViewModelBase
 {
-    private M3UInfo _currentProgram;
-    private List<M3UInfo> _programs = new();
-    private int _currentProgramIndex;
+    private readonly ChannelSelectionState _selection;
     public event Action<M3UInfo>? ChannelChanged;
     public ObservableCollection<ChannelPickerItem> ChannelPickerItems { get; } = new();
 
@@ -31,20 +30,26 @@ public sealed class PlayerChannelPickerViewModel : TV_Player.ObservableViewModel
     }
 
 
-    public PlayerChannelPickerViewModel(M3UInfo currentProgram) => _currentProgram = currentProgram;
+    public PlayerChannelPickerViewModel(M3UInfo currentProgram)
+    {
+        _selection = new ChannelSelectionState(currentProgram);
+        _selection.ChannelRequested += channel =>
+        {
+            SyncCurrentChannel(channel);
+            ChannelChanged?.Invoke(channel);
+        };
+    }
 
     public void SetChannels(IEnumerable<M3UInfo> channels)
     {
-        _programs = channels.ToList();
-        _currentProgramIndex = TV_Player.ChannelSelection.FindIndex(_programs, _currentProgram);
-        if (_currentProgramIndex < 0) _currentProgramIndex = 0;
+        _selection.SetChannels(channels);
         RefreshChannelPickerItems();
     }
 
     public void SyncCurrentChannel(M3UInfo channel)
     {
-        _currentProgram = channel;
-        foreach (var item in ChannelPickerItems) item.IsCurrent = TV_Player.ChannelSelection.IsSameChannel(item.Channel, _currentProgram);
+        _selection.Sync(channel);
+        foreach (var item in ChannelPickerItems) item.IsCurrent = _selection.CurrentChannel != null && TV_Player.ChannelSelection.IsSameChannel(item.Channel, _selection.CurrentChannel);
         _updatingChannelPickerSelection = true;
         SelectedChannelPickerItem = ChannelPickerItems.FirstOrDefault(item => item.IsCurrent);
         _updatingChannelPickerSelection = false;
@@ -54,41 +59,18 @@ public sealed class PlayerChannelPickerViewModel : TV_Player.ObservableViewModel
     {
         _updatingChannelPickerSelection = true;
         ChannelPickerItems.Clear();
-        foreach (var program in _programs)
-            ChannelPickerItems.Add(new ChannelPickerItem(program, TV_Player.ChannelSelection.IsSameChannel(program, _currentProgram)));
+        foreach (var program in _selection.Channels)
+            ChannelPickerItems.Add(new ChannelPickerItem(program, _selection.CurrentChannel != null && TV_Player.ChannelSelection.IsSameChannel(program, _selection.CurrentChannel)));
         SelectedChannelPickerItem = ChannelPickerItems.FirstOrDefault(item => item.IsCurrent);
         _updatingChannelPickerSelection = false;
     }
 
     private void SelectChannel(ChannelPickerItem? item)
     {
-        if (item == null)
-            return;
-
-        var index = TV_Player.ChannelSelection.FindIndex(_programs, item.Channel);
-        if (index < 0)
-            return;
-
-        if (index == _currentProgramIndex)
-            return;
-
-        _currentProgramIndex = index;
-        _currentProgram = _programs[index];
-        SyncCurrentChannel(_currentProgram);
-        ChannelChanged?.Invoke(_currentProgram);
+        if (item != null) _selection.Select(item.Channel);
     }
 
-    public void SwitchChannel(int direction)
-    {
-        if (_programs.Count < 2 || direction == 0)
-            return;
-
-        var nextIndex = TV_Player.ChannelSelection.NextIndex(_currentProgramIndex, _programs.Count, direction);
-        _currentProgramIndex = nextIndex;
-        _currentProgram = _programs[nextIndex];
-        SyncCurrentChannel(_currentProgram);
-        ChannelChanged?.Invoke(_currentProgram);
-    }
+    public void SwitchChannel(int direction) => _selection.Switch(direction);
 
 
 }
