@@ -165,6 +165,7 @@ jobs:
           test "${#apks[@]}" -eq 1
           mkdir -p artifacts/release
           mv "${apks[0]}" "artifacts/release/IPTVplayer-android-$RELEASE_VERSION.apk"
+          python scripts/check_android_apk.py "artifacts/release/IPTVplayer-android-$RELEASE_VERSION.apk"
           python scripts/android_release.py "artifacts/release/IPTVplayer-android-$RELEASE_VERSION.apk" "$RELEASE_VERSION" "${{ needs.version.outputs.code }}"
       - uses: actions/upload-artifact@v4
         with:

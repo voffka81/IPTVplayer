@@ -10,11 +10,13 @@ using NativeView = Android.Views.View;
 
 namespace TV_Player.Maui;
 
-[Activity(Theme = "@style/Maui.SplashTheme", MainLauncher = true, ConfigurationChanges = ConfigChanges.ScreenSize | ConfigChanges.Orientation | ConfigChanges.UiMode | ConfigChanges.ScreenLayout | ConfigChanges.SmallestScreenSize | ConfigChanges.Density)]
+[Activity(Theme = "@style/Maui.SplashTheme", MainLauncher = true, Banner = "@drawable/iptv_tv_banner", ConfigurationChanges = ConfigChanges.ScreenSize | ConfigChanges.Orientation | ConfigChanges.UiMode | ConfigChanges.ScreenLayout | ConfigChanges.SmallestScreenSize | ConfigChanges.Density)]
+[IntentFilter(new[] { Android.Content.Intent.ActionMain }, Categories = new[] { Android.Content.Intent.CategoryLeanbackLauncher })]
 public class MainActivity : MauiAppCompatActivity
 {
     private SystemUiFlags? _previousSystemUiFlags;
     private bool _isBackgrounded;
+    public static bool IsAppActive { get; private set; }
     private bool _pixelCopyPending;
     private ImageView? _privacySnapshotView;
     private Bitmap? _privacySnapshotBitmap;
@@ -68,27 +70,56 @@ public class MainActivity : MauiAppCompatActivity
 
     protected override void OnPause()
     {
-        _isBackgrounded = true;
-        _handledPlayerKeys.Clear();
-        AppPausing?.Invoke();
-        if (!_pixelCopyPending && _privacySnapshotView == null)
-            CaptureBlurredVideoFrame();
+        EnterBackground();
         base.OnPause();
     }
 
     protected override void OnUserLeaveHint()
     {
-        _isBackgrounded = true;
-        CaptureBlurredVideoFrame();
+        EnterBackground();
         base.OnUserLeaveHint();
+    }
+
+    private void EnterBackground()
+    {
+        _isBackgrounded = true;
+        _handledPlayerKeys.Clear();
+        try
+        {
+            if (!_pixelCopyPending && _privacySnapshotView == null)
+                CaptureBlurredVideoFrame();
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"Could not capture app-switch preview: {ex.Message}");
+        }
+        finally
+        {
+            // A destroyed surface or failed screenshot must never skip stopping live playback.
+            SuspendPlayback();
+        }
     }
 
     protected override void OnResume()
     {
         base.OnResume();
         _isBackgrounded = false;
+        IsAppActive = true;
         RemovePrivacySnapshot();
         AppResumed?.Invoke();
+    }
+
+    protected override void OnStop()
+    {
+        SuspendPlayback();
+        base.OnStop();
+    }
+
+    private static void SuspendPlayback()
+    {
+        if (!IsAppActive) return;
+        IsAppActive = false;
+        AppPausing?.Invoke();
     }
 
     private void CaptureBlurredVideoFrame()

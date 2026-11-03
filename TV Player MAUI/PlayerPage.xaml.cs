@@ -15,6 +15,13 @@ public partial class PlayerPage : ContentPage
     private readonly ProgramGuideController _guideController;
     private readonly StreamResolutionController _streamResolver;
     private bool _isClosing;
+    private bool _pageVisible;
+    private bool _appActive = true;
+#if ANDROID
+    private LibVLCSharp.Platforms.Android.VideoView? _nativeVideoView;
+    private VideoSurfaceCallback? _surfaceCallback;
+    private Android.Views.ISurfaceHolder? _surfaceHolder;
+#endif
     private readonly ChannelSelectionState _selection;
 
     public PlayerPage(M3UInfo channel, IReadOnlyList<M3UInfo> channels, ProgramsData sourceData)
@@ -23,7 +30,7 @@ public partial class PlayerPage : ContentPage
         _ui = new MauiPlayerUiController(Dispatcher, RenderPlayerUi);
         PlayerLayout.SizeChanged += (_, _) => RefreshVideoSurfaceSize();
         _streamResolver = new StreamResolutionController(sourceData);
-        _playback = new MauiPlaybackController(BindPlayback, DetachPlayback, () => OnMediaPlayerPlaying(null, EventArgs.Empty));
+        _playback = new MauiPlaybackController(BindPlayback, DetachPlayback, () => OnMediaPlayerPlaying(null, EventArgs.Empty), OnPlaybackError);
         _guideController = new ProgramGuideController(sourceData, ResetProgramGuide, DisplayProgramGuide, RefreshProgramGuide);
         _selection = new ChannelSelectionState(channel);
         _selection.SetChannels(channels);
@@ -43,6 +50,12 @@ public partial class PlayerPage : ContentPage
     protected override void OnAppearing()
     {
         base.OnAppearing();
+        _pageVisible = true;
+#if ANDROID
+        _appActive = MainActivity.IsAppActive;
+#else
+        _appActive = true;
+#endif
         PrivacyOverlay.IsVisible = false;
 #if ANDROID
         MainActivity.PlayerKeyPressed += OnRemoteKeyPressed;
@@ -61,46 +74,86 @@ public partial class PlayerPage : ContentPage
             System.Diagnostics.Debug.WriteLine($"Failed to enter immersive mode: {ex.Message}");
         }
 #endif
-        HideLibVlcControls();
-        _ui.Resume();
-        RestoreRemoteFocus();
-    }
-
-    private void OnPlayerLoaded(object? sender, EventArgs e)
-    {
-        HideLibVlcControls();
+        _playback.SetForeground(_appActive);
         RefreshVideoSurfaceSize();
+        if (_appActive)
+        {
+            _ui.Resume();
+            RestoreRemoteFocus();
+        }
     }
 
-    private void OnMediaPlayerPlaying(object? sender, EventArgs e)
+    private void OnPlayerLoaded(object? sender, EventArgs e) => RefreshVideoSurfaceSize();
+    private void OnVideoHandlerChanged(object? sender, EventArgs e) => RefreshVideoSurfaceSize();
+    private void OnVideoSizeChanged(object? sender, EventArgs e) => RefreshVideoSurfaceSize();
+
+    private void OnPlayerUnloaded(object? sender, EventArgs e)
     {
-#if ANDROID
-        _ = RefreshVideoSurfaceSizeAfterPlaybackAsync();
-#endif
+        _playback?.SetSurfaceReady(false);
+        DetachSurfaceCallback();
     }
 
-    private async Task RefreshVideoSurfaceSizeAfterPlaybackAsync()
+    private void OnMediaPlayerPlaying(object? sender, EventArgs e) => MainThread.BeginInvokeOnMainThread(() =>
     {
-        await Task.Delay(150);
-        await MainThread.InvokeOnMainThreadAsync(RefreshVideoSurfaceSize);
-    }
+        if (_isClosing || !_pageVisible || !_appActive) return;
+        RefreshVideoSurfaceSize();
+        StatusLabel.Text = string.Empty;
+    });
+
+    private void OnPlaybackError() => MainThread.BeginInvokeOnMainThread(() =>
+    {
+        if (_isClosing || !_pageVisible || !_appActive) return;
+        PrivacyOverlay.IsVisible = false;
+        StatusLabel.Text = "VLC не смог открыть поток. Попробуйте другой канал или откройте этот канал заново.";
+        _ui.Show();
+    });
 
     private void RefreshVideoSurfaceSize()
     {
+        if (_playback == null || _isClosing) return;
 #if ANDROID
-        if (VideoPlayer.VideoView?.Handler?.PlatformView is LibVLCSharp.Platforms.Android.VideoView nativeVideoView &&
-            nativeVideoView.Width > 0 && nativeVideoView.Height > 0)
+        var native = VideoPlayer.Handler?.PlatformView as LibVLCSharp.Platforms.Android.VideoView;
+        if (!ReferenceEquals(native, _nativeVideoView))
         {
-            nativeVideoView.TriggerLayoutChangeListener();
+            _playback.SetSurfaceReady(false);
+            DetachSurfaceCallback();
+            _nativeVideoView = native;
+            if (native != null)
+            {
+                _surfaceCallback = new VideoSurfaceCallback(() => MainThread.BeginInvokeOnMainThread(RefreshVideoSurfaceSize),
+                    () => _playback.SetSurfaceReady(false));
+                _surfaceHolder = native.Holder;
+                _surfaceHolder?.AddCallback(_surfaceCallback);
+            }
         }
+        var ready = _pageVisible && _appActive && native != null && native.Width > 0 && native.Height > 0 &&
+            native.Holder?.Surface?.IsValid == true;
+        if (ready) native!.TriggerLayoutChangeListener();
+        try { _playback.SetSurfaceReady(ready); }
+        catch (Exception ex) { StatusLabel.Text = $"Не удалось запустить видео: {ex.Message}"; _ui.Show(); }
 #endif
     }
 
-    private void HideLibVlcControls()
+    private void DetachSurfaceCallback()
     {
-        if (VideoPlayer.PlaybackControls != null)
-            VideoPlayer.PlaybackControls.IsVisible = false;
+#if ANDROID
+        if (_surfaceHolder != null && _surfaceCallback != null)
+            _surfaceHolder.RemoveCallback(_surfaceCallback);
+        _surfaceHolder = null;
+        _nativeVideoView = null;
+        _surfaceCallback?.Dispose();
+        _surfaceCallback = null;
+#endif
     }
+
+#if ANDROID
+    private sealed class VideoSurfaceCallback(Action changed, Action destroyed) : Java.Lang.Object, Android.Views.ISurfaceHolderCallback
+    {
+        public void SurfaceCreated(Android.Views.ISurfaceHolder holder) => changed();
+        public void SurfaceChanged(Android.Views.ISurfaceHolder holder, Android.Graphics.Format format, int width, int height) => changed();
+        public void SurfaceDestroyed(Android.Views.ISurfaceHolder holder) => destroyed();
+    }
+#endif
 
     private async void PlayChannel(M3UInfo channel)
     {
@@ -120,8 +173,8 @@ public partial class PlayerPage : ContentPage
         var streamUrl = result.Url!;
         ChannelTitle.Text = channel.Name;
         StatusLabel.Text = "Подключение…";
-        _playback.Play(streamUrl);
-        StatusLabel.Text = string.Empty;
+        try { _playback.Play(streamUrl); }
+        catch (Exception ex) { StatusLabel.Text = $"Не удалось запустить видео: {ex.Message}"; }
         _ui.Show();
     }
 
@@ -143,7 +196,9 @@ public partial class PlayerPage : ContentPage
         _guideController.Cancel();
         _streamResolver.Cancel();
 
+        _playback.SetSurfaceReady(false);
         _playback.StopAndDetach();
+        DetachSurfaceCallback();
 
         try
         {
@@ -285,6 +340,9 @@ public partial class PlayerPage : ContentPage
 
     protected override void OnDisappearing()
     {
+        _pageVisible = false;
+        _playback.SetForeground(false);
+        DetachSurfaceCallback();
         base.OnDisappearing();
 #if ANDROID
         MainActivity.PlayerKeyPressed -= OnRemoteKeyPressed;
@@ -310,55 +368,45 @@ public partial class PlayerPage : ContentPage
 
     private void OnApplicationPausing()
     {
+        _appActive = false;
         _ui.Suspend();
         ChannelPicker.CancelPendingFocus();
         ProgramGuideList.CancelPendingFocus();
-        _playback.PauseForAppSwitch();
+        _playback.SetForeground(false);
         PrivacyOverlay.IsVisible = true;
     }
 
     private void OnApplicationResumed()
     {
-        if (!_isClosing)
-        {
-            _ui.Resume();
-            RestoreRemoteFocus();
-        }
-        if (!_playback.ShouldResume || _isClosing)
-        {
-            PrivacyOverlay.IsVisible = false;
-            return;
-        }
-        _ = ResumePlaybackAfterAppSwitchAsync();
+        _appActive = true;
+        if (_isClosing || !_pageVisible) return;
+        PrivacyOverlay.IsVisible = false;
+        if (!_playback.IsForeground && _playback.HasStream) StatusLabel.Text = "Подключение…";
+        _playback.SetForeground(true);
+        _ui.Resume();
+        RestoreRemoteFocus();
+        RefreshVideoSurfaceSize();
     }
 
-    private async Task ResumePlaybackAfterAppSwitchAsync()
+    private void BindPlayback(MediaPlayer player)
     {
-        try
-        {
-            await _playback.ResumeAfterAppSwitchAsync(CancellationToken.None);
-            if (_isClosing) return;
-            await MainThread.InvokeOnMainThreadAsync(() =>
-            {
-                RefreshVideoSurfaceSize();
-                PrivacyOverlay.IsVisible = false;
-            });
-        }
-        catch (OperationCanceledException) { }
-    }
-
-    private void BindPlayback(LibVLC libVlc, MediaPlayer player)
-    {
-        VideoPlayer.LibVLC = libVlc;
         VideoPlayer.MediaPlayer = player;
+#if ANDROID
+        // Attach creates a new VLC AWindow after the Android layout may already be complete.
+        // Supply its size before Play; waiting for another layout event can leave video black.
+        _nativeVideoView?.TriggerLayoutChangeListener();
+#endif
     }
 
     private void DetachPlayback(MediaPlayer? player)
     {
-        if (VideoPlayer.VideoView is { } view)
+        VideoPlayer.MediaPlayer = null;
+        if (player != null)
         {
-            view.MediaPlayer = null;
-            if (player != null) view.MediaPlayer = player;
+            VideoPlayer.MediaPlayer = player;
+#if ANDROID
+            _nativeVideoView?.TriggerLayoutChangeListener();
+#endif
         }
     }
 }

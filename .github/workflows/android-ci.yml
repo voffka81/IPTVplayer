@@ -5,7 +5,7 @@ on:
     paths:
       - '.github/workflows/android-ci.yml'
       - '.github/workflows/release.yml'
-      - 'scripts/android_release.py'
+      - 'scripts/**'
       - 'TV Player MAUI/**'
       - 'TV Player Core/**'
       - 'TV Player Plugin.Abstractions/**'
@@ -122,6 +122,9 @@ jobs:
             exit 1
           fi
           mv "${apks[0]}" artifacts/IPTVplayer-android.apk
+
+      - name: Verify universal APK and Android TV manifest
+        run: python scripts/check_android_apk.py artifacts/IPTVplayer-android.apk
 
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
