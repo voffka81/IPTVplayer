@@ -4,6 +4,8 @@ on:
   pull_request:
     paths:
       - '.github/workflows/android-ci.yml'
+      - '.github/workflows/release.yml'
+      - 'scripts/android_release.py'
       - 'TV Player MAUI/**'
       - 'TV Player Core/**'
       - 'TV Player Plugin.Abstractions/**'
@@ -90,7 +92,7 @@ jobs:
           : "${ANDROID_KEYSTORE_PASSWORD:?Set repository secret ANDROID_KEYSTORE_PASSWORD}"
           : "${ANDROID_SIGNING_ALIAS:?Signing alias was not discovered from keystore}"
           : "${ANDROID_KEY_PASSWORD:?Set repository secret ANDROID_KEY_PASSWORD}"
-          android_version_code=$((GITHUB_RUN_ID % 2000000000 + 1))
+          android_version_code=$(date +%s)
 
           publish_args=(
             "TV Player MAUI/TV Player MAUI.csproj"

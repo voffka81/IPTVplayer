@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="TV_Player.Maui.UpdatePage" Title="Обновления приложения">
+  <ScrollView>
+    <VerticalStackLayout Spacing="14" Padding="4,10">
+      <Label x:Name="InstalledLabel" FontSize="18" />
+      <Label Text="Канал обновлений" />
+      <Picker x:Name="ChannelPicker" Title="Канал обновлений" SelectedIndexChanged="OnChannelChanged" />
+      <Label Text="Release — стабильные версии. Dev — стабильные и тестовые версии. Понижение версии не выполняется." FontSize="13" TextColor="#91A6BF" />
+      <Button x:Name="CheckButton" Text="Проверить обновления" Clicked="OnCheckClicked" />
+      <Label x:Name="UpdateStatus" TextColor="#8DD2FF" />
+      <Label x:Name="AvailableLabel" FontAttributes="Bold" />
+      <ProgressBar x:Name="DownloadProgress" IsVisible="False" ProgressColor="#55B9FF" />
+      <Button x:Name="DownloadButton" Text="Скачать обновление" IsVisible="False" Clicked="OnDownloadClicked" />
+      <Button x:Name="InstallButton" Text="Установить обновление" IsVisible="False" Clicked="OnInstallClicked" />
+      <Button x:Name="CancelButton" Text="Отменить" IsVisible="False" Clicked="OnCancelClicked" />
+      <Label x:Name="ReleaseNotes" FontSize="14" />
+    </VerticalStackLayout>
+  </ScrollView>
+</ContentPage>

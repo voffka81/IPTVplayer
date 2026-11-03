@@ -23,6 +23,8 @@ public partial class SettingsPage : ContentPage
         ProviderPicker.ItemsSource = _session.ProviderPlugins.OrderBy(plugin => plugin.Name).ToList();
     }
 
+    private async void OnUpdatesClicked(object sender, EventArgs e) => await Navigation.PushAsync(new UpdatePage());
+
     private void OnAddClicked(object sender, EventArgs e)
     {
         var name = NameEntry.Text?.Trim();

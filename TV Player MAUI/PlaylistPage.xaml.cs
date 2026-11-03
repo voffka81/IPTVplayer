@@ -5,6 +5,8 @@ namespace TV_Player.Maui;
 public partial class PlaylistPage : ContentPage
 {
     private readonly AppSession _session;
+    private static bool _startupUpdateChecked;
+    private CancellationTokenSource? _updateCheck;
     public IReadOnlyList<SourceItem> Sources => _session.Sources.Keys.Select(name => new SourceItem(name)).ToList();
 
     public PlaylistPage(AppSession session)
@@ -20,7 +22,41 @@ public partial class PlaylistPage : ContentPage
     {
         base.OnAppearing();
         SourcesView.ItemsSource = Sources;
+        if (!_startupUpdateChecked)
+        {
+            _startupUpdateChecked = true;
+            _updateCheck = new CancellationTokenSource();
+            _ = CheckForUpdateAsync(_updateCheck.Token);
+        }
     }
+
+    protected override void OnDisappearing()
+    {
+        _updateCheck?.Cancel();
+        _updateCheck?.Dispose();
+        _updateCheck = null;
+        base.OnDisappearing();
+    }
+
+    private async Task CheckForUpdateAsync(CancellationToken token)
+    {
+        try
+        {
+            var updater = AndroidAppUpdater.Current;
+            updater.CleanOldDownloads();
+            if (updater.IsStoreBuild) return;
+            var result = await updater.CheckAsync(token);
+            if (token.IsCancellationRequested || result.Update == null) return;
+            UpdateAvailableButton.Text = $"Доступна версия {result.Update.Manifest.VersionName} — обновить";
+            UpdateAvailableButton.IsVisible = true;
+        }
+        catch (Exception ex) when (ex is not OutOfMemoryException)
+        {
+            System.Diagnostics.Debug.WriteLine($"Startup update check: {ex.Message}");
+        }
+    }
+
+    private async void OnUpdateClicked(object sender, EventArgs e) => await Navigation.PushAsync(new UpdatePage());
 
     private async void OnSourceClicked(object sender, EventArgs e)
     {
