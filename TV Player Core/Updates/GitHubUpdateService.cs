@@ -7,8 +7,6 @@ namespace TV_Player.Updates;
 /// <summary>Reads only published official Release assets. Caller owns HttpClient and cancellation.</summary>
 public sealed class GitHubUpdateService(HttpClient http)
 {
-    private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web);
-
     public async Task<UpdateCheckResult> CheckAsync(UpdateChannel channel, long installedVersion, int sdk,
         CancellationToken cancellationToken)
     {
@@ -16,16 +14,16 @@ public sealed class GitHubUpdateService(HttpClient http)
         // Bound requests while checking multiple pages (stable releases may follow many prereleases).
         for (var page = 1; page <= 5; page++)
         {
-            var releases = JsonSerializer.Deserialize<List<AppRelease>>(await ReadAsync(
+            var releases = JsonSerializer.Deserialize(await ReadAsync(
                 $"https://api.github.com/repos/{AndroidUpdatePolicy.Repository}/releases?per_page=30&page={page}",
-                2 * 1024 * 1024, cancellationToken), JsonOptions) ?? new();
+                2 * 1024 * 1024, cancellationToken), UpdateJsonContext.Default.ListAppRelease) ?? new();
             foreach (var release in releases.Where(release => AndroidUpdatePolicy.IsEligible(release, channel)))
             {
                 var metadata = release.Assets.SingleOrDefault(asset => asset.Name == "android-update.json");
                 if (metadata == null || !AndroidUpdatePolicy.IsOfficialAssetUrl(metadata.DownloadUrl)) continue;
                 // A broken published manifest must produce a retryable error, not a false 'up to date'.
-                var manifest = JsonSerializer.Deserialize<AndroidUpdateManifest>(
-                    await ReadAsync(metadata.DownloadUrl, 64 * 1024, cancellationToken), JsonOptions);
+                var manifest = JsonSerializer.Deserialize(
+                    await ReadAsync(metadata.DownloadUrl, 64 * 1024, cancellationToken), UpdateJsonContext.Default.AndroidUpdateManifest);
                 if (manifest == null) continue;
                 var apk = release.Assets.SingleOrDefault(asset => asset.Name == manifest.ApkAssetName);
                 if (apk != null && AndroidUpdatePolicy.IsValid(manifest, apk, sdk))
