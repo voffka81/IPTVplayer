@@ -1,22 +1,27 @@
-using TV_Player.Playback;
 using Avalonia.Threading;
-using TV_Player.Providers;
 using CommunityToolkit.Mvvm.Input;
-using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Reactive.Linq;
 using System.Windows.Input;
+using TV_Player.Playback;
+using TV_Player.Presentation;
+using TV_Player.Providers;
 
 namespace TV_Player.AvaloniaApp.ViewModels;
 
+/// <summary>Desktop commands and bindings over the shared player presentation.</summary>
 public class PlayerViewModel : TV_Player.ObservableViewModelBase, IDisposable
 {
     private readonly IDisposable _programSubscription;
-    private M3UInfo _currentProgram;
-    private IReadOnlyList<string> _fallbackStreamUrls = Array.Empty<string>();
-    private readonly StreamResolutionService _streamResolver;
+    private readonly IDisposable _guideSubscription;
     private bool _disposed;
+    private string _renderedStreamUrl = string.Empty;
+    private long _renderedChannelVersion;
 
+    public PlayerPresentationModel Presentation { get; }
+    public PlayerPlaybackModel Playback => Presentation.Playback;
+    public PlayerChannelPickerViewModel ChannelPicker { get; }
+    public PlayerProgramBarViewModel ProgramBar { get; }
     public ICommand BackCommand { get; }
     public ICommand SettingsCommand { get; }
     public ICommand FullscreenCommand { get; }
@@ -24,32 +29,10 @@ public class PlayerViewModel : TV_Player.ObservableViewModelBase, IDisposable
     public ICommand CloseAppCommand { get; }
     public ICommand OpenStreamCommand { get; }
 
-    public PlayerPlaybackModel Playback { get; } = new();
-    public PlayerChannelPickerViewModel ChannelPicker { get; }
-
     public bool ChannelPickerVisible
     {
         get => ChannelPicker.ChannelPickerVisible;
         set => ChannelPicker.ChannelPickerVisible = value;
-    }
-
-    private string _topPanelTitle = string.Empty;
-    public string TopPanelTitle
-    {
-        get => _topPanelTitle;
-        set => SetProperty(ref _topPanelTitle, value);
-    }
-
-    public PlayerProgramBarViewModel ProgramBar { get; } = new();
-
-    private bool _isBuffering;
-    public bool IsBuffering
-    {
-        get => _isBuffering;
-        private set
-        {
-            if (SetProperty(ref _isBuffering, value)) ProgramBar.IsBuffering = value;
-        }
     }
 
     public bool ProgramGuideVisible
@@ -58,156 +41,107 @@ public class PlayerViewModel : TV_Player.ObservableViewModelBase, IDisposable
         set => ProgramBar.ProgramGuideVisible = value;
     }
 
-    private string _streamUrl = string.Empty;
-    public string StreamUrl
-    {
-        get => _streamUrl;
-        set => SetProperty(ref _streamUrl, value);
-    }
-
-    public IReadOnlyList<string> FallbackStreamUrls
-    {
-        get => _fallbackStreamUrls;
-        private set => SetProperty(ref _fallbackStreamUrls, value);
-    }
+    public string TopPanelTitle => Presentation.Snapshot.ChannelTitle;
+    public bool IsBuffering => Presentation.Snapshot.Playback.IsLoading;
+    public string StreamUrl => Presentation.Snapshot.Stream?.Url ?? string.Empty;
+    public IReadOnlyList<string> FallbackStreamUrls => Presentation.Snapshot.Stream?.FallbackUrls ?? Array.Empty<string>();
 
     private string _playbackStatus = string.Empty;
-    public string PlaybackStatus
-    {
-        get => _playbackStatus;
-        set => SetProperty(ref _playbackStatus, value);
-    }
-
+    public string PlaybackStatus { get => _playbackStatus; private set => SetProperty(ref _playbackStatus, value); }
     private bool _hasPlaybackStatus;
-    public bool HasPlaybackStatus
-    {
-        get => _hasPlaybackStatus;
-        set => SetProperty(ref _hasPlaybackStatus, value);
-    }
+    public bool HasPlaybackStatus { get => _hasPlaybackStatus; private set => SetProperty(ref _hasPlaybackStatus, value); }
 
     public PlayerViewModel(M3UInfo selectedProgram)
     {
-        Playback.Changed += OnPlaybackChanged;
-        _currentProgram = selectedProgram;
-        _streamResolver = new StreamResolutionService(TVPlayerViewModel.Instance.CurrentProgramsData?.Provider,
-            ProviderResolutionMode.PreferProvider);
+        var source = TVPlayerViewModel.Instance.CurrentProgramsData!;
+        Presentation = new PlayerPresentationModel(new StreamResolutionService(source.Provider, ProviderResolutionMode.PreferProvider),
+            async channel => await source.GetGuideByProgram(channel),
+            async action => await Dispatcher.UIThread.InvokeAsync(action),
+            options: new(GuideWindowOrigin.CurrentOrFirst, IncludeNextProgram: false),
+            formatProvider: System.Globalization.CultureInfo.CurrentCulture);
+        ChannelPicker = new PlayerChannelPickerViewModel(Presentation.Selection);
+        ProgramBar = new PlayerProgramBarViewModel(Presentation);
+        Presentation.Changed += RenderPresentation;
         BackCommand = new RelayCommand(OnButtonBackClick);
         SettingsCommand = new RelayCommand(TVPlayerViewModel.Instance.ShowSettingsScreen);
-        ChannelPicker = new PlayerChannelPickerViewModel(selectedProgram);
-        ChannelPicker.ChannelChanged += OnChannelChanged;
         ToggleChannelPickerCommand = new RelayCommand(() => ChannelPickerVisible = !ChannelPickerVisible);
         FullscreenCommand = new RelayCommand(TVPlayerViewModel.Instance.FullScreenToggle);
         CloseAppCommand = new RelayCommand(TVPlayerViewModel.Instance.CloseAppCommand);
         OpenStreamCommand = new RelayCommand(OpenStreamExternally);
-
-        _programSubscription = TVPlayerViewModel.Instance.CurrentProgramsData!
-            .AllPrograms
-            .Subscribe(programs =>
-            {
-                var groupPrograms = programs.Where(p => p.GroupTitle == _currentProgram.GroupTitle).ToList();
-                Dispatcher.UIThread.Post(() =>
-                {
-                    ChannelPicker.SetChannels(groupPrograms);
-                });
-            });
-
-        UpdateUi();
+        _programSubscription = source.AllPrograms.Subscribe(programs => Dispatcher.UIThread.Post(() =>
+        {
+            if (_disposed) return;
+            var group = Presentation.Snapshot.Channel?.GroupTitle ?? selectedProgram.GroupTitle;
+            Presentation.SetChannels(programs.Where(channel => channel.GroupTitle == group));
+            ChannelPicker.RefreshChannels();
+        }));
+        _guideSubscription = source.ProgramGuideInfo.Subscribe(signal => Dispatcher.UIThread.Post(() =>
+        {
+            if (!_disposed) _ = Presentation.NotifyGuideAvailableAsync();
+        }));
+        _ = Presentation.OpenAsync(selectedProgram);
     }
 
+    private void RenderPresentation(PlayerPresentationSnapshot state)
+    {
+        if (_disposed) return;
+        if (_renderedChannelVersion != state.ChannelVersion)
+        {
+            _renderedChannelVersion = state.ChannelVersion;
+            if (state.Channel != null) ChannelPicker.SyncCurrentChannel(state.Channel);
+            TVPlayerViewModel.Instance.TopPanelVisible(false, state.ChannelTitle);
+        }
+        RaisePropertyChanged(nameof(TopPanelTitle));
+        RaisePropertyChanged(nameof(IsBuffering));
+        RaisePropertyChanged(nameof(FallbackStreamUrls));
+        SetPlaybackStatus(state.Status switch
+        {
+            PlayerStatus.NoStream => "No stream URL available for this channel.",
+            PlayerStatus.ResolutionFailed => "Cannot resolve stream. Try opening the channel again.",
+            PlayerStatus.PlaybackFailed => "Playback error. The stream may be unavailable or unsupported.",
+            PlayerStatus.EngineUnavailable => "VLC is unavailable. Try opening the player again.",
+            PlayerStatus.Ended => "Stream ended.",
+            _ => string.Empty
+        });
+        // Source changes start native playback. Loading/progress updates must not replay it.
+        var url = state.Stream?.Url ?? string.Empty;
+        if (_renderedStreamUrl != url)
+        {
+            _renderedStreamUrl = url;
+            RaisePropertyChanged(nameof(StreamUrl));
+        }
+    }
+
+    // Native adapter-specific diagnostics remain local; common failures come from Presentation.Status.
     public void SetPlaybackStatus(string status)
     {
         PlaybackStatus = status;
         HasPlaybackStatus = !string.IsNullOrWhiteSpace(status);
     }
 
-    private void OnPlaybackChanged(PlayerPlaybackSnapshot state)
-    {
-        IsBuffering = state.IsLoading;
-        if (state.Phase != PlayerPlaybackPhase.Error) SetPlaybackStatus(string.Empty);
-    }
-
-    private void UpdateUi()
-    {
-        ChannelPicker.SyncCurrentChannel(_currentProgram);
-        TVPlayerViewModel.Instance.TopPanelVisible(false, _currentProgram.Name);
-        TopPanelTitle = _currentProgram.Name;
-        _streamResolver.Cancel();
-        var generation = Playback.Begin();
-        StreamUrl = string.Empty;
-        FallbackStreamUrls = Array.Empty<string>();
-        SetPlaybackStatus(string.Empty);
-        _ = ResolveCurrentStreamAsync(_currentProgram, generation);
-        ProgramBar.SetChannel(_currentProgram);
-    }
-
-    private async Task ResolveCurrentStreamAsync(M3UInfo channel, long generation)
-    {
-        var result = await _streamResolver.ResolveAsync(channel);
-        await Dispatcher.UIThread.InvokeAsync(() =>
-        {
-            if (_disposed || !_streamResolver.IsCurrent(result)) return;
-            if (result.Status == StreamResolutionStatus.Resolved)
-            {
-                FallbackStreamUrls = result.Stream!.FallbackUrls;
-                if (!Playback.Apply(new(PlayerPlaybackCommandKind.Connect, generation, Url: result.Stream.Url))) return;
-                SetPlaybackStatus(string.Empty);
-                StreamUrl = result.Stream.Url;
-            }
-            else
-            {
-                Playback.Apply(new(PlayerPlaybackCommandKind.Fail, generation,
-                    Failure: result.Status == StreamResolutionStatus.NoStream ? PlayerPlaybackFailure.NoStream : PlayerPlaybackFailure.ResolutionFailed, Cause: result.Error));
-                if (result.Status == StreamResolutionStatus.NoStream)
-                    SetPlaybackStatus("No stream URL available for this channel.");
-                else
-                {
-                    Debug.WriteLine($"Stream resolution failed: {result.Error}");
-                    SetPlaybackStatus($"Cannot resolve stream: {result.Error?.Message}");
-                }
-            }
-        });
-    }
-
-    public void SwitchChannel(int direction) => ChannelPicker.SwitchChannel(direction);
-
-    private void OnChannelChanged(M3UInfo channel)
-    {
-        _currentProgram = channel;
-        UpdateUi();
-    }
+    public void SwitchChannel(int direction) => Presentation.SwitchChannel(direction);
 
     private void OpenStreamExternally()
     {
-        if (string.IsNullOrWhiteSpace(StreamUrl))
-            return;
-
-        var externalUrl = StreamUrl.Split('|', 2)[0];
-
-        Process.Start(new ProcessStartInfo
-        {
-            FileName = externalUrl,
-            UseShellExecute = true
-        });
+        if (string.IsNullOrWhiteSpace(StreamUrl)) return;
+        Process.Start(new ProcessStartInfo { FileName = StreamUrl.Split('|', 2)[0], UseShellExecute = true });
     }
 
-    private void OnButtonBackClick()
+    private void OnButtonBackClick() => TVPlayerViewModel.Instance.ShowProgramsListScreen(new GroupInfo
     {
-        TVPlayerViewModel.Instance.ShowProgramsListScreen(new GroupInfo
-        {
-            Name = _currentProgram.GroupTitle,
-            Count = 0
-        });
-    }
+        Name = Presentation.Snapshot.Channel?.GroupTitle ?? string.Empty,
+        Count = 0
+    });
 
     public void Dispose()
     {
+        if (_disposed) return;
         _disposed = true;
-        Playback.Changed -= OnPlaybackChanged;
-        Playback.Dispose();
-        _streamResolver.Dispose();
         _programSubscription.Dispose();
-        ChannelPicker.ChannelChanged -= OnChannelChanged;
+        _guideSubscription.Dispose();
+        Presentation.Changed -= RenderPresentation;
         ProgramBar.Dispose();
+        ChannelPicker.Dispose();
+        Presentation.Dispose();
     }
 }
-
