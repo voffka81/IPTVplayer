@@ -49,3 +49,19 @@ Run on a phone and Xiaomi Android TV 14 with the same test playlist:
 Automated Core and Avalonia tests cover policy and selection, not native Android
 focus, installation or actual video playback. Record device results in the PR;
 #65/#75 and Android TV release acceptance remain pending those checks.
+
+## Video surface startup regression
+
+The MAUI player now hosts a plain LibVLC `VideoView`. Playback requests wait until
+its Android handler, valid SurfaceHolder surface and nonzero native size are
+available while the page is visible and the app is active. The latest queued
+channel wins. The native VLC window size is supplied immediately after binding
+(and rebinding), before Play, rather than relying on a later layout event.
+
+On a phone, check a direct M3U channel on first opening the player, then a provider
+channel with delayed URL resolution. Verify actual video and audio, switch rapidly
+before the first frame, rotate the phone, background/resume, and exit/re-enter.
+A stream-open error must remain visible instead of immediately clearing status;
+no queued startup should execute after leaving the player. Automated surface-gate
+tests cover both orderings of stream/surface readiness and repeated callbacks;
+they cannot verify decoded frames on a physical Android device.

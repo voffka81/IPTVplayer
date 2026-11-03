@@ -7,11 +7,13 @@
              Padding="0"
              NavigationPage.HasNavigationBar="False">
   <Grid x:Name="PlayerLayout" BackgroundColor="#050A12" RowDefinitions="*" ColumnDefinitions="*">
-    <vlc:MediaPlayerElement x:Name="VideoPlayer"
+    <vlc:VideoView x:Name="VideoPlayer"
                             Grid.Row="0"
                             Grid.Column="0"
-                            EnableRendererDiscovery="False"
                             Loaded="OnPlayerLoaded"
+                            Unloaded="OnPlayerUnloaded"
+                            HandlerChanged="OnVideoHandlerChanged"
+                            SizeChanged="OnVideoSizeChanged"
                             HorizontalOptions="Fill"
                             VerticalOptions="Fill" />
     <BoxView Grid.Row="0" Grid.Column="0" BackgroundColor="Transparent">
