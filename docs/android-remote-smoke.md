@@ -65,3 +65,27 @@ A stream-open error must remain visible instead of immediately clearing status;
 no queued startup should execute after leaving the player. Automated surface-gate
 tests cover both orderings of stream/surface readiness and repeated callbacks;
 they cannot verify decoded frames on a physical Android device.
+
+
+## App switching and live stream restart
+
+Android `OnUserLeaveHint`, `OnPause` and the `OnStop` fallback mark playback
+inactive; duplicate notifications are idempotent. Page disappearance also stops
+playback even if it occurs before the activity pause event and removes the event
+subscription. The shared `ForegroundPlaybackSession` remembers the latest stream
+intent and invalidates surface readiness while inactive. It does not use VLC's
+Playing/Buffering flags to decide whether a request should restart.
+
+`MauiPlaybackController` stops and disposes MediaPlayer/Media on suspension and
+clears the video binding. Foreground entry requires a fresh surface confirmation,
+then creates a new player/media and reconnects the current URL at the live edge.
+There is no Pause toggle, delayed resume task, or reuse of the paused decoder/vout.
+Provider URL results arriving in the background update intent without starting VLC.
+
+On a phone, exercise Home, Recents, another application, and lock/unlock while
+playing and while connecting. Confirm audio and stream network activity stop in
+the background; on return confirm a new live connection and both audio/video.
+Repeat rapidly and after a long background interval. Also leave the player while
+backgrounded or connecting: delayed surface/URL callbacks must not restart it.
+Signed provider URLs can expire during a long absence; that remains a stream-open
+error rather than permission to resume stale native playback resources.

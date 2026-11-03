@@ -51,7 +51,11 @@ public partial class PlayerPage : ContentPage
     {
         base.OnAppearing();
         _pageVisible = true;
+#if ANDROID
+        _appActive = MainActivity.IsAppActive;
+#else
         _appActive = true;
+#endif
         PrivacyOverlay.IsVisible = false;
 #if ANDROID
         MainActivity.PlayerKeyPressed += OnRemoteKeyPressed;
@@ -70,9 +74,13 @@ public partial class PlayerPage : ContentPage
             System.Diagnostics.Debug.WriteLine($"Failed to enter immersive mode: {ex.Message}");
         }
 #endif
+        _playback.SetForeground(_appActive);
         RefreshVideoSurfaceSize();
-        _ui.Resume();
-        RestoreRemoteFocus();
+        if (_appActive)
+        {
+            _ui.Resume();
+            RestoreRemoteFocus();
+        }
     }
 
     private void OnPlayerLoaded(object? sender, EventArgs e) => RefreshVideoSurfaceSize();
@@ -333,7 +341,7 @@ public partial class PlayerPage : ContentPage
     protected override void OnDisappearing()
     {
         _pageVisible = false;
-        _playback.SetSurfaceReady(false);
+        _playback.SetForeground(false);
         DetachSurfaceCallback();
         base.OnDisappearing();
 #if ANDROID
@@ -364,42 +372,20 @@ public partial class PlayerPage : ContentPage
         _ui.Suspend();
         ChannelPicker.CancelPendingFocus();
         ProgramGuideList.CancelPendingFocus();
-        _playback.PauseForAppSwitch();
+        _playback.SetForeground(false);
         PrivacyOverlay.IsVisible = true;
     }
 
     private void OnApplicationResumed()
     {
         _appActive = true;
+        if (_isClosing || !_pageVisible) return;
+        PrivacyOverlay.IsVisible = false;
+        if (!_playback.IsForeground && _playback.HasStream) StatusLabel.Text = "Подключение…";
+        _playback.SetForeground(true);
+        _ui.Resume();
+        RestoreRemoteFocus();
         RefreshVideoSurfaceSize();
-        if (!_isClosing)
-        {
-            _ui.Resume();
-            RestoreRemoteFocus();
-        }
-        if (!_playback.ShouldResume || _isClosing)
-        {
-            PrivacyOverlay.IsVisible = false;
-            return;
-        }
-        _ = ResumePlaybackAfterAppSwitchAsync();
-    }
-
-    private async Task ResumePlaybackAfterAppSwitchAsync()
-    {
-        try
-        {
-            await _playback.ResumeAfterAppSwitchAsync(CancellationToken.None);
-            if (_isClosing) return;
-            await MainThread.InvokeOnMainThreadAsync(() =>
-            {
-                RefreshVideoSurfaceSize();
-                PrivacyOverlay.IsVisible = false;
-            });
-        }
-        catch (OperationCanceledException) { }
-        catch (Exception ex) { StatusLabel.Text = $"Не удалось восстановить видео: {ex.Message}"; }
-        finally { if (!_isClosing && _appActive) PrivacyOverlay.IsVisible = false; }
     }
 
     private void BindPlayback(MediaPlayer player)

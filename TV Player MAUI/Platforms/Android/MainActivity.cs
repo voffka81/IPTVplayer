@@ -15,6 +15,7 @@ public class MainActivity : MauiAppCompatActivity
 {
     private SystemUiFlags? _previousSystemUiFlags;
     private bool _isBackgrounded;
+    public static bool IsAppActive { get; private set; }
     private bool _pixelCopyPending;
     private ImageView? _privacySnapshotView;
     private Bitmap? _privacySnapshotBitmap;
@@ -70,9 +71,9 @@ public class MainActivity : MauiAppCompatActivity
     {
         _isBackgrounded = true;
         _handledPlayerKeys.Clear();
-        AppPausing?.Invoke();
         if (!_pixelCopyPending && _privacySnapshotView == null)
             CaptureBlurredVideoFrame();
+        SuspendPlayback();
         base.OnPause();
     }
 
@@ -80,6 +81,7 @@ public class MainActivity : MauiAppCompatActivity
     {
         _isBackgrounded = true;
         CaptureBlurredVideoFrame();
+        SuspendPlayback();
         base.OnUserLeaveHint();
     }
 
@@ -87,8 +89,22 @@ public class MainActivity : MauiAppCompatActivity
     {
         base.OnResume();
         _isBackgrounded = false;
+        IsAppActive = true;
         RemovePrivacySnapshot();
         AppResumed?.Invoke();
+    }
+
+    protected override void OnStop()
+    {
+        SuspendPlayback();
+        base.OnStop();
+    }
+
+    private static void SuspendPlayback()
+    {
+        if (!IsAppActive) return;
+        IsAppActive = false;
+        AppPausing?.Invoke();
     }
 
     private void CaptureBlurredVideoFrame()
