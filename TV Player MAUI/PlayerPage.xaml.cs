@@ -8,15 +8,12 @@ namespace TV_Player.Maui;
 
 public partial class PlayerPage : ContentPage
 {
-    private LibVLC? _libVlc;
-    private MediaPlayer? _mediaPlayer;
-    private Media? _currentMedia;
+    private readonly MauiPlaybackController _playback;
     private readonly ProgramsData _sourceData;
     private CancellationTokenSource? _hideUiToken;
     private readonly ProgramGuideController _guideController;
     private CancellationTokenSource? _playbackRequestToken;
     private bool _isClosing;
-    private bool _wasPlayingBeforeAppSwitch;
     private M3UInfo? _selectedChannel;
 
     public PlayerPage(M3UInfo channel, IReadOnlyList<M3UInfo> channels, ProgramsData sourceData)
@@ -24,6 +21,7 @@ public partial class PlayerPage : ContentPage
         InitializeComponent();
         PlayerLayout.SizeChanged += (_, _) => RefreshVideoSurfaceSize();
         _sourceData = sourceData;
+        _playback = new MauiPlaybackController(BindPlayback, DetachPlayback, () => OnMediaPlayerPlaying(null, EventArgs.Empty));
         _guideController = new ProgramGuideController(sourceData, ResetProgramGuide, DisplayProgramGuide, RefreshProgramGuide);
         _selectedChannel = channel;
         ChannelPicker.ChannelSelected += selected => PlayChannel(selected);
@@ -132,52 +130,9 @@ public partial class PlayerPage : ContentPage
         }
         ChannelTitle.Text = channel.Name;
         StatusLabel.Text = "Подключение…";
-        _libVlc ??= new LibVLC(enableDebugLogs: false);
-        _mediaPlayer ??= new MediaPlayer(_libVlc);
-        _mediaPlayer.Playing -= OnMediaPlayerPlaying;
-        _mediaPlayer.Playing += OnMediaPlayerPlaying;
-        VideoPlayer.LibVLC = _libVlc;
-        VideoPlayer.MediaPlayer = _mediaPlayer;
-        _currentMedia?.Dispose();
-        _currentMedia = CreateMedia(streamUrl);
-        _mediaPlayer.Play(_currentMedia);
+        _playback.Play(streamUrl);
         StatusLabel.Text = string.Empty;
         ShowPlayerUi();
-    }
-
-    private Media CreateMedia(string rawUrl)
-    {
-        var separator = rawUrl.IndexOf('|');
-        var location = separator > 0 ? rawUrl[..separator].Trim() : rawUrl.Trim();
-        var media = new Media(_libVlc!, location, FromType.FromLocation);
-        media.AddOption(":network-caching=1500");
-        media.AddOption(":live-caching=1500");
-        media.AddOption(":http-reconnect=true");
-
-        if (separator > 0)
-        {
-            foreach (var option in rawUrl[(separator + 1)..].Split('&', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
-            {
-                var equals = option.IndexOf('=');
-                if (equals <= 0 || equals == option.Length - 1) continue;
-                var key = option[..equals].Trim().ToLowerInvariant();
-                var value = Uri.UnescapeDataString(option[(equals + 1)..].Trim());
-                if (string.IsNullOrWhiteSpace(value)) continue;
-                switch (key)
-                {
-                    case "user-agent": media.AddOption($":http-user-agent={value}"); break;
-                    case "referer":
-                    case "referrer":
-                    case "http-referrer":
-                    case "http-referer": media.AddOption($":http-referrer={value}"); break;
-                    case "origin": media.AddOption($":http-header=Origin={value}"); break;
-                    case "cookie":
-                    case "cookies": media.AddOption($":http-header=Cookie={value}"); break;
-                    default: media.AddOption($":{key}={value}"); break;
-                }
-            }
-        }
-        return media;
     }
 
     private async void OnBackClicked(object sender, EventArgs e) => await LeavePlayerAsync();
@@ -196,7 +151,7 @@ public partial class PlayerPage : ContentPage
         _guideController.Cancel();
         _playbackRequestToken?.Cancel();
 
-        StopAndDetachVideo();
+        _playback.StopAndDetach();
 
         try
         {
@@ -209,7 +164,7 @@ public partial class PlayerPage : ContentPage
         }
         finally
         {
-            DisposePlayback();
+            _playback.Dispose();
         }
     }
 
@@ -343,80 +298,47 @@ public partial class PlayerPage : ContentPage
 
     private void OnApplicationPausing()
     {
-        _wasPlayingBeforeAppSwitch = _currentMedia != null && _mediaPlayer?.State is VLCState.Playing or VLCState.Buffering;
-        if (_wasPlayingBeforeAppSwitch)
-            _mediaPlayer?.Pause();
+        _playback.PauseForAppSwitch();
         PrivacyOverlay.IsVisible = true;
     }
 
     private void OnApplicationResumed()
     {
-        if (!_wasPlayingBeforeAppSwitch || _isClosing)
+        if (!_playback.ShouldResume || _isClosing)
         {
             PrivacyOverlay.IsVisible = false;
             return;
         }
-        _wasPlayingBeforeAppSwitch = false;
         _ = ResumePlaybackAfterAppSwitchAsync();
     }
 
     private async Task ResumePlaybackAfterAppSwitchAsync()
     {
-        await Task.Delay(200);
-        if (_isClosing || _mediaPlayer == null || _currentMedia == null) return;
-
-        if (VideoPlayer.VideoView is { } videoView)
-        {
-            videoView.MediaPlayer = null;
-            videoView.MediaPlayer = _mediaPlayer;
-        }
-
-        if (_mediaPlayer.State is VLCState.Stopped or VLCState.Ended or VLCState.Error)
-            _mediaPlayer.Play(_currentMedia);
-        else if (_mediaPlayer.State == VLCState.Paused)
-            _mediaPlayer.Play();
-        await Task.Delay(250);
-        await MainThread.InvokeOnMainThreadAsync(() =>
-        {
-            RefreshVideoSurfaceSize();
-            PrivacyOverlay.IsVisible = false;
-        });
-    }
-
-    private void DisposePlayback()
-    {
-        var media = _currentMedia;
-        var player = _mediaPlayer;
-        var libVlc = _libVlc;
-        _mediaPlayer = null;
-        _libVlc = null;
-        _currentMedia = null;
-
-        try { player?.Stop(); }
-        catch (Exception ex) { System.Diagnostics.Debug.WriteLine($"Failed to stop media player: {ex.Message}"); }
-        if (player != null)
-            player.Playing -= OnMediaPlayerPlaying;
-        try { media?.Dispose(); }
-        catch (Exception ex) { System.Diagnostics.Debug.WriteLine($"Failed to dispose media: {ex.Message}"); }
-        try { player?.Dispose(); }
-        catch (Exception ex) { System.Diagnostics.Debug.WriteLine($"Failed to dispose media player: {ex.Message}"); }
-        try { libVlc?.Dispose(); }
-        catch (Exception ex) { System.Diagnostics.Debug.WriteLine($"Failed to dispose LibVLC: {ex.Message}"); }
-    }
-
-    private void StopAndDetachVideo()
-    {
-        try { _mediaPlayer?.Stop(); }
-        catch (Exception ex) { System.Diagnostics.Debug.WriteLine($"Failed to stop media before leaving: {ex.Message}"); }
-
         try
         {
-            if (VideoPlayer.VideoView != null)
-                VideoPlayer.VideoView.MediaPlayer = null;
+            await _playback.ResumeAfterAppSwitchAsync(_playbackRequestToken?.Token ?? CancellationToken.None);
+            if (_isClosing) return;
+            await MainThread.InvokeOnMainThreadAsync(() =>
+            {
+                RefreshVideoSurfaceSize();
+                PrivacyOverlay.IsVisible = false;
+            });
         }
-        catch (Exception ex)
+        catch (OperationCanceledException) { }
+    }
+
+    private void BindPlayback(LibVLC libVlc, MediaPlayer player)
+    {
+        VideoPlayer.LibVLC = libVlc;
+        VideoPlayer.MediaPlayer = player;
+    }
+
+    private void DetachPlayback(MediaPlayer? player)
+    {
+        if (VideoPlayer.VideoView is { } view)
         {
-            System.Diagnostics.Debug.WriteLine($"Failed to detach video surface: {ex.Message}");
+            view.MediaPlayer = null;
+            if (player != null) view.MediaPlayer = player;
         }
     }
 }
