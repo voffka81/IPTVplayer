@@ -420,9 +420,7 @@ public partial class PlayerPage : ContentPage
         MainActivity.AppResumed -= OnApplicationResumed;
 #endif
         _hideUiToken?.Cancel();
-        _guideLoadToken?.Cancel();
-        ++_guideRequestVersion;
-        _guideRefreshTimer?.Dispose();
+        _guideController.Cancel();
 #if ANDROID
         try
         {
