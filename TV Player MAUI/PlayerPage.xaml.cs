@@ -4,6 +4,7 @@ using TV_Player;
 using TV_Player.Providers;
 using TV_Player.Presentation;
 using TV_Player.Input;
+using System.Reactive.Linq;
 #if ANDROID
 using Microsoft.Maui.ApplicationModel;
 #endif
@@ -12,11 +13,14 @@ namespace TV_Player.Maui;
 
 public partial class PlayerPage : ContentPage
 {
-    private readonly PlayerPlaybackModel _playbackModel = new();
+    private readonly PlayerPresentationModel _presentation;
+    private PlayerPlaybackModel _playbackModel => _presentation.Playback;
+    private readonly IDispatcherTimer _guideTimer;
+    private readonly IDisposable _guideSubscription;
+    private long _renderedChannelVersion;
+    private ProgramGuideState? _renderedGuide;
     private readonly MauiPlaybackController _playback;
     private readonly MauiPlayerUiController _ui;
-    private readonly ProgramGuideController _guideController;
-    private readonly StreamResolutionService _streamResolver;
     private bool _isClosing;
     private bool _pageVisible;
     private bool _appActive = true;
@@ -25,36 +29,44 @@ public partial class PlayerPage : ContentPage
     private VideoSurfaceCallback? _surfaceCallback;
     private Android.Views.ISurfaceHolder? _surfaceHolder;
 #endif
-    private readonly ChannelSelectionState _selection;
 
     public PlayerPage(M3UInfo channel, IReadOnlyList<M3UInfo> channels, ProgramsData sourceData)
     {
         InitializeComponent();
         _ui = new MauiPlayerUiController(Dispatcher, RenderPlayerUi);
         PlayerLayout.SizeChanged += (_, _) => RefreshVideoSurfaceSize();
-        _streamResolver = new StreamResolutionService(sourceData.Provider);
-        _playbackModel.Changed += RenderPlayback;
+        _presentation = new PlayerPresentationModel(new StreamResolutionService(sourceData.Provider),
+            async selected => await sourceData.GetGuideByProgram(selected), MainThread.InvokeOnMainThreadAsync,
+            formatProvider: System.Globalization.CultureInfo.CurrentCulture);
         _playback = new MauiPlaybackController(BindPlayback, DetachPlayback, _playbackModel, MainThread.BeginInvokeOnMainThread);
-        _guideController = new ProgramGuideController(sourceData, ResetProgramGuide, DisplayProgramGuide, RefreshProgramGuide);
-        _selection = new ChannelSelectionState(channel);
-        _selection.SetChannels(channels);
-        _selection.ChannelRequested += PlayChannel;
+        _presentation.Changed += RenderPresentation;
+        _presentation.StreamRequested += PlayStream;
+        _presentation.SetChannels(channels);
+        _guideTimer = Dispatcher.CreateTimer();
+        _guideTimer.Interval = TimeSpan.FromMinutes(1);
+        _guideTimer.Tick += OnGuideTick;
+        _guideSubscription = sourceData.ProgramGuideInfo.Subscribe(signal => MainThread.BeginInvokeOnMainThread(() =>
+        {
+            if (!_isClosing) _ = _presentation.NotifyGuideAvailableAsync();
+        }));
         ChannelPicker.ChannelSelected += selected =>
         {
             _ui.CloseOverlay();
-            _selection.Select(selected);
+            _presentation.SelectChannel(selected);
         };
-        ChannelPicker.SetChannels(_selection.Channels);
+        ChannelPicker.SetChannels(_presentation.Selection.Channels);
         ChannelPicker.SelectChannel(channel);
         ChannelTitle.Text = channel.Name;
         ClockLabel.Text = DateTime.Now.ToString("HH:mm");
-        PlayChannel(channel);
+        _ = _presentation.OpenAsync(channel);
     }
 
     protected override void OnAppearing()
     {
         base.OnAppearing();
         _pageVisible = true;
+        _guideTimer.Start();
+        _presentation.RefreshGuide();
 #if ANDROID
         _appActive = MainActivity.IsAppActive;
 #else
@@ -97,21 +109,37 @@ public partial class PlayerPage : ContentPage
         DetachSurfaceCallback();
     }
 
-    private void RenderPlayback(PlayerPlaybackSnapshot state)
+    private void OnGuideTick(object? sender, EventArgs e) => _presentation.RefreshGuide();
+
+    private void RenderPresentation(PlayerPresentationSnapshot state)
     {
         if (_isClosing) return;
-        StatusLabel.Text = state.IsSuspended ? string.Empty : state.Phase switch
+        ChannelTitle.Text = state.ChannelTitle;
+        if (state.ChannelVersion != _renderedChannelVersion)
         {
-            PlayerPlaybackPhase.Resolving => "Получение потока…",
-            PlayerPlaybackPhase.Connecting or PlayerPlaybackPhase.Buffering or PlayerPlaybackPhase.Recovering
-                when !state.HasStarted => "Подключение…",
-            PlayerPlaybackPhase.Error => state.Failure switch
-            {
-                PlayerPlaybackFailure.NoStream => "Для этого канала нет ссылки на поток.",
-                PlayerPlaybackFailure.ResolutionFailed => "Не удалось получить поток. Попробуйте открыть канал заново.",
-                _ => "VLC не смог открыть поток. Попробуйте другой канал или откройте этот канал заново."
-            },
-            PlayerPlaybackPhase.Ended => "Поток завершён.",
+            _renderedChannelVersion = state.ChannelVersion;
+            if (state.Channel != null) ChannelPicker.SelectChannel(state.Channel);
+            ResetProgramGuide();
+        }
+        if (!ReferenceEquals(_renderedGuide, state.Guide))
+        {
+            _renderedGuide = state.Guide;
+            RenderProgramGuide(state);
+        }
+        RenderPlayback(state.Playback, state.Status);
+    }
+
+    private void RenderPlayback(PlayerPlaybackSnapshot state, PlayerStatus status)
+    {
+        if (_isClosing) return;
+        StatusLabel.Text = status switch
+        {
+            PlayerStatus.Resolving => "Получение потока…",
+            PlayerStatus.Connecting => "Подключение…",
+            PlayerStatus.NoStream => "Для этого канала нет ссылки на поток.",
+            PlayerStatus.ResolutionFailed => "Не удалось получить поток. Попробуйте открыть канал заново.",
+            PlayerStatus.PlaybackFailed or PlayerStatus.EngineUnavailable => "VLC не смог открыть поток. Попробуйте другой канал или откройте этот канал заново.",
+            PlayerStatus.Ended => "Поток завершён.",
             _ => string.Empty
         };
         if (state.Phase == PlayerPlaybackPhase.Playing && _pageVisible && _appActive) RefreshVideoSurfaceSize();
@@ -171,28 +199,10 @@ public partial class PlayerPage : ContentPage
     }
 #endif
 
-    private async void PlayChannel(M3UInfo channel)
+    private void PlayStream(ResolvedStream stream)
     {
         if (_isClosing) return;
-
-        _selection.Sync(channel);
-        ChannelPicker.SelectChannel(channel);
-
-        _ = _guideController.LoadAsync(channel);
-        var generation = _playbackModel.Begin();
-        var result = await _streamResolver.ResolveAsync(channel);
-        if (!_streamResolver.IsCurrent(result) || _isClosing) return;
-        if (result.Status != StreamResolutionStatus.Resolved)
-        {
-            _playbackModel.Apply(new(PlayerPlaybackCommandKind.Fail, generation,
-                Failure: result.Status == StreamResolutionStatus.NoStream ? PlayerPlaybackFailure.NoStream : PlayerPlaybackFailure.ResolutionFailed,
-                Cause: result.Error));
-            return;
-        }
-        var streamUrl = result.Stream!.Url;
-        ChannelTitle.Text = channel.Name;
-        if (!_playbackModel.Apply(new(PlayerPlaybackCommandKind.Connect, generation, Url: streamUrl))) return;
-        try { _playback.Play(streamUrl); }
+        try { _playback.Play(stream.Url); }
         catch (Exception ex) { ReportStartupFailure(ex); }
         _ui.Show();
     }
@@ -212,8 +222,8 @@ public partial class PlayerPage : ContentPage
         _ui.Suspend();
         ChannelPicker.CancelPendingFocus();
         ProgramGuideList.CancelPendingFocus();
-        _guideController.Cancel();
-        _streamResolver.Cancel();
+        _presentation.CancelPending();
+        _guideTimer.Stop();
 
         _playback.SetSurfaceReady(false);
         _playback.StopAndDetach();
@@ -231,10 +241,11 @@ public partial class PlayerPage : ContentPage
         finally
         {
             _playback.Dispose();
-            _playbackModel.Changed -= RenderPlayback;
-            _playbackModel.Dispose();
-            _streamResolver.Dispose();
-            _guideController.Dispose();
+            _guideTimer.Tick -= OnGuideTick;
+            _guideSubscription.Dispose();
+            _presentation.Changed -= RenderPresentation;
+            _presentation.StreamRequested -= PlayStream;
+            _presentation.Dispose();
             _ui.Dispose();
         }
     }
@@ -273,7 +284,7 @@ public partial class PlayerPage : ContentPage
         switch (result.Action)
         {
             case PlayerRemoteAction.None: return false;
-            case PlayerRemoteAction.SwitchChannel: _selection.Switch(result.Direction); break;
+            case PlayerRemoteAction.SwitchChannel: _presentation.SwitchChannel(result.Direction); break;
             case PlayerRemoteAction.MovePicker: _ = ChannelPicker.MoveFocusAsync(result.Direction); break;
             case PlayerRemoteAction.MoveGuide: _ = ProgramGuideList.MoveFocusAsync(result.Direction); break;
             case PlayerRemoteAction.OpenPicker: _ui.TogglePicker(); break;
@@ -320,14 +331,10 @@ public partial class PlayerPage : ContentPage
         ProgramGuideList.Clear();
     }
 
-    private void DisplayProgramGuide(ProgramGuide guide) => RefreshProgramGuide(guide);
-
-    private void RefreshProgramGuide(ProgramGuide guide)
+    private void RenderProgramGuide(PlayerPresentationSnapshot state)
     {
-        var state = ProgramGuideProjection.Project(guide, DateTime.Now,
-            formatProvider: System.Globalization.CultureInfo.CurrentCulture);
-        ProgramGuideList.SetPrograms(state.Window);
-        var program = state.Current ?? state.Next;
+        ProgramGuideList.SetPrograms(state.Guide.Window);
+        var program = state.Program;
         ProgramInfoPanel.IsVisible = program != null;
         if (program == null)
         {
@@ -335,7 +342,7 @@ public partial class PlayerPage : ContentPage
             ProgramProgress.Progress = 0;
             return;
         }
-        ProgramTitleLabel.Text = state.Current == null ? $"Далее: {program.Title}" : program.Title;
+        ProgramTitleLabel.Text = state.IsNextProgram ? $"Далее: {program.Title}" : program.Title;
         ProgramStartLabel.Text = program.TimeLabels.Start;
         ProgramEndLabel.Text = program.TimeLabels.End;
         ProgramProgress.Progress = program.Progress;
@@ -355,7 +362,7 @@ public partial class PlayerPage : ContentPage
         _ui.Suspend();
         ChannelPicker.CancelPendingFocus();
         ProgramGuideList.CancelPendingFocus();
-        _guideController.Cancel();
+        _guideTimer.Stop();
 #if ANDROID
         try
         {

@@ -1,18 +1,14 @@
 using Avalonia.Threading;
 using TV_Player.Presentation;
-using System.Globalization;
 using CommunityToolkit.Mvvm.Input;
-using System.Diagnostics;
-using System.Reactive.Linq;
 using System.Windows.Input;
 
 namespace TV_Player.AvaloniaApp.ViewModels;
 
 public sealed class PlayerProgramBarViewModel : TV_Player.ObservableViewModelBase, IDisposable
 {
-    private IDisposable? _programGuideDisposable;
-    private IDisposable? _timer;
-    private ProgramGuide? _currentGuide;
+    private readonly PlayerPresentationModel _presentation;
+    private readonly DispatcherTimer _timer = new() { Interval = TimeSpan.FromMinutes(1) };
     private long _channelVersion;
     private bool _disposed;
     public ICommand ShowProgramListCommand { get; }
@@ -87,57 +83,42 @@ public sealed class PlayerProgramBarViewModel : TV_Player.ObservableViewModelBas
     }
 
 
-    public PlayerProgramBarViewModel() => ShowProgramListCommand = new RelayCommand(() => ProgramGuideVisible = !ProgramGuideVisible);
-    public void SetChannel(M3UInfo channel)
+    public PlayerProgramBarViewModel(PlayerPresentationModel presentation)
     {
-        var version = ++_channelVersion;
-        _programGuideDisposable?.Dispose();
-        _timer?.Dispose();
-        _timer = null;
-        _currentGuide = null;
-        Programs = Array.Empty<EpgProgramItem>();
-        IsProgramInfoVisible = false;
-        ProgramGuideVisible = false;
-        _programGuideDisposable = TVPlayerViewModel.Instance.CurrentProgramsData!
-            .ProgramGuideInfo.Subscribe(async _ =>
-            {
-                try
-                {
-                    var guide = await TVPlayerViewModel.Instance.CurrentProgramsData.GetGuideByProgram(channel);
-                    Dispatcher.UIThread.Post(() =>
-                    {
-                        if (_disposed || version != _channelVersion) return;
-                        _currentGuide = guide;
-                        UpdateScreenInfo();
-                        _timer?.Dispose();
-                        _timer = Observable.Interval(TimeSpan.FromMinutes(1))
-                            .Subscribe(_ => Dispatcher.UIThread.Post(() =>
-                            {
-                                if (!_disposed && version == _channelVersion) UpdateScreenInfo();
-                            }));
-                    });
-                }
-                catch (Exception ex) { Debug.WriteLine($"Failed to load program guide: {ex.Message}"); }
-            });
+        _presentation = presentation;
+        ShowProgramListCommand = new RelayCommand(() => ProgramGuideVisible = !ProgramGuideVisible);
+        _presentation.Changed += Render;
+        _timer.Tick += OnTick;
+        _timer.Start();
+        Render(presentation.Snapshot);
     }
-    private void UpdateScreenInfo()
+
+    private void OnTick(object? sender, EventArgs e) => _presentation.RefreshGuide();
+
+    private void Render(PlayerPresentationSnapshot state)
     {
-        var state = ProgramGuideProjection.Project(_currentGuide, DateTime.Now,
-            origin: GuideWindowOrigin.CurrentOrFirst, formatProvider: CultureInfo.CurrentCulture);
-        Programs = state.Window;
-        IsProgramInfoVisible = state.Current != null;
-        ProgramGuideText = state.Current?.Title ?? string.Empty;
-        StartProgram = state.Current?.ShortTimeLabels.Start ?? string.Empty;
-        EndProgram = state.Current?.ShortTimeLabels.End ?? string.Empty;
-        DurationValue = state.Current == null ? 0 : (int)(state.Current.Progress * 100);
+        if (_disposed) return;
+        if (_channelVersion != state.ChannelVersion)
+        {
+            _channelVersion = state.ChannelVersion;
+            ProgramGuideVisible = false;
+        }
+        Programs = state.Guide.Window;
+        IsBuffering = state.Playback.IsLoading;
+        var program = state.Program;
+        IsProgramInfoVisible = program != null;
+        ProgramGuideText = program?.Title ?? string.Empty;
+        StartProgram = program?.ShortTimeLabels.Start ?? string.Empty;
+        EndProgram = program?.ShortTimeLabels.End ?? string.Empty;
+        DurationValue = program == null ? 0 : (int)(program.Progress * 100);
     }
 
     public void Dispose()
     {
         if (_disposed) return;
         _disposed = true;
-        ++_channelVersion;
-        _programGuideDisposable?.Dispose();
-        _timer?.Dispose();
+        _timer.Stop();
+        _timer.Tick -= OnTick;
+        _presentation.Changed -= Render;
     }
 }

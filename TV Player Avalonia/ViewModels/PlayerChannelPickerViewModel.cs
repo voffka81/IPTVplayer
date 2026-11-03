@@ -4,7 +4,7 @@ using TV_Player.Presentation;
 namespace TV_Player.AvaloniaApp.ViewModels;
 
 /// <summary>Owns channel picker items, selection and adjacent-channel navigation.</summary>
-public sealed class PlayerChannelPickerViewModel : TV_Player.ObservableViewModelBase
+public sealed class PlayerChannelPickerViewModel : TV_Player.ObservableViewModelBase, IDisposable
 {
     private readonly ChannelSelectionState _selection;
     public event Action<M3UInfo>? ChannelChanged;
@@ -30,15 +30,22 @@ public sealed class PlayerChannelPickerViewModel : TV_Player.ObservableViewModel
     }
 
 
-    public PlayerChannelPickerViewModel(M3UInfo currentProgram)
+    public PlayerChannelPickerViewModel(M3UInfo currentProgram) : this(new ChannelSelectionState(currentProgram)) { }
+
+    public PlayerChannelPickerViewModel(ChannelSelectionState selection)
     {
-        _selection = new ChannelSelectionState(currentProgram);
-        _selection.ChannelRequested += channel =>
-        {
-            SyncCurrentChannel(channel);
-            ChannelChanged?.Invoke(channel);
-        };
+        _selection = selection;
+        _selection.ChannelRequested += OnChannelRequested;
     }
+
+    private void OnChannelRequested(M3UInfo channel)
+    {
+        SyncCurrentChannel(channel);
+        ChannelChanged?.Invoke(channel);
+    }
+
+    public void Dispose() => _selection.ChannelRequested -= OnChannelRequested;
+    public void RefreshChannels() => RefreshChannelPickerItems();
 
     public void SetChannels(IEnumerable<M3UInfo> channels)
     {

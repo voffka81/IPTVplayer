@@ -34,3 +34,19 @@ The unified release workflow publishes signed APKs with `android-update.json`
 and increasing Android version codes. Dev builds are GitHub prereleases; stable
 builds are normal releases. PR artifacts are for testing and are not offered by
 the updater. See [Android update distribution and device checks](docs/android-updates.md).
+
+## Player presentation ownership
+
+Both clients render `PlayerPresentationModel` from Core. It owns channel selection,
+channel title, stream/EPG request coordination, the projected guide and playback
+status codes. A channel change resets the source and guide together; stream and
+EPG requests run independently, and stale results are checked again after UI dispatch.
+Guide readiness notifications coalesce with a pending load; a guide error does not
+fail the video stream. Clients supply the dispatcher, clock, culture and guide display
+options (including whether an upcoming program is shown before the next broadcast).
+
+The MAUI page and Avalonia ViewModels retain localized text, bindings, focus,
+overlays, platform navigation and minute timers. Native adapters retain LibVLC,
+video surfaces and foreground/surface lifecycle handling. Dispose the presentation
+model when leaving the player permanently; source providers remain owned by
+`ProgramsData`.
