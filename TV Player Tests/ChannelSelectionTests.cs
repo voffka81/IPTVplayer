@@ -27,4 +27,21 @@ public sealed class ChannelSelectionTests
         Assert.Equal(1, ChannelSelection.FindIndex(channels, Channel("B", "b")));
         Assert.Equal(-1, ChannelSelection.FindIndex(channels, Channel("C", "c")));
     }
+
+    [Fact]
+    public void ProviderIdentityTakesPriorityOverChangedStreamUrl()
+    {
+        var current = new M3UInfo { Name = "News", Url = "old", ProviderId = "provider", ChannelId = "channel" };
+        var updated = new M3UInfo { Name = "News HD", Url = "new", ProviderId = "provider", ChannelId = "channel" };
+        Assert.True(ChannelSelection.IsSameChannel(updated, current));
+        Assert.Equal(0, ChannelSelection.FindIndex(new[] { updated }, current));
+    }
+
+    [Fact]
+    public void ProviderIdentityDoesNotMatchDifferentChannel()
+    {
+        var current = new M3UInfo { ProviderId = "provider", ChannelId = "one" };
+        var other = new M3UInfo { ProviderId = "provider", ChannelId = "two" };
+        Assert.False(ChannelSelection.IsSameChannel(other, current));
+    }
 }
