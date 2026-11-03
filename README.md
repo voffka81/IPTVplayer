@@ -21,7 +21,9 @@ dotnet build "TV Player MAUI/TV Player MAUI.csproj" -f net10.0-android
 
 The Android app uses LibVLC for playback and the same dark channel tile palette as the Avalonia interface.
 
-The separate **Android APK build** workflow runs for Android-related pull requests and pushes to `master`, or manually from the GitHub Actions page. It uploads `IPTVplayer-android.apk` as the `IPTVplayer-android-apk` workflow artifact for 30 days; it does not attach the APK to a GitHub Release. Download it from the completed Actions run's **Artifacts** section.
+The **Player regression** workflow runs desktop tests and the reusable **Android APK build** workflow on every PR and push to `master`. Its final **Player regression gate** requires both platforms to succeed. The Android workflow can also run manually. Download the signed `IPTVplayer-android.apk` (`IPTVplayer-android-apk`) and desktop TRX reports from the completed Actions run's **Artifacts** section; these artifacts are retained for 30 days and are not GitHub Releases.
+
+See [automated checks and CI artifacts](TV%20Player%20Tests/README.md) and the [quick player smoke checklist](docs/player-smoke.md).
 
 ## Android updates
 

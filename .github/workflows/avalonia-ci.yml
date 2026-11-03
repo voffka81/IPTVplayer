@@ -1,10 +1,17 @@
-name: Avalonia build and tests
+name: Player regression
 
 on:
   pull_request:
   push:
     branches: [master]
   workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: player-regression-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
 
 jobs:
   build-and-test:
@@ -26,4 +33,46 @@ jobs:
       - name: Build Avalonia application
         run: dotnet build "TV Player Avalonia/TV Player Avalonia.csproj" --configuration Release
       - name: Run unit tests
-        run: dotnet test "TV Player Tests/TV Player Tests.csproj" --configuration Release
+        run: >-
+          dotnet test "TV Player Tests/TV Player Tests.csproj" --configuration Release
+          --logger "trx;LogFileName=player-regression.trx"
+          --results-directory artifacts/test-results
+          -- RunConfiguration.TestSessionTimeout=120000
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: player-tests-${{ matrix.os }}
+          path: artifacts/test-results/**/*.trx
+          if-no-files-found: warn
+          retention-days: 30
+
+  android:
+    uses: ./.github/workflows/android-ci.yml
+    secrets: inherit
+
+  android-status:
+    # Preserve the check name used by existing branch-protection rules.
+    name: build-android
+    if: always()
+    needs: android
+    runs-on: ubuntu-latest
+    steps:
+      - name: Require Android APK and upload success
+        env:
+          ANDROID_RESULT: ${{ needs.android.result }}
+        run: test "$ANDROID_RESULT" = success
+
+  player-regression:
+    name: Player regression gate
+    if: always()
+    needs: [build-and-test, android]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Require desktop tests and downloadable Android APK
+        env:
+          DESKTOP_RESULT: ${{ needs.build-and-test.result }}
+          ANDROID_RESULT: ${{ needs.android.result }}
+        run: |
+          test "$DESKTOP_RESULT" = success
+          test "$ANDROID_RESULT" = success
