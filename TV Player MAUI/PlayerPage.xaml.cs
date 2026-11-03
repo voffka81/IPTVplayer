@@ -20,12 +20,14 @@ public partial class PlayerPage : ContentPage
     private bool _wasPlayingBeforeAppSwitch;
     private M3UInfo? _selectedChannel;
     private readonly List<(M3UInfo Channel, Border Tile)> _channelPickerTiles = new();
+    private readonly IReadOnlyList<M3UInfo> _channels;
 
     public PlayerPage(M3UInfo channel, IReadOnlyList<M3UInfo> channels, ProgramsData sourceData)
     {
         InitializeComponent();
         PlayerLayout.SizeChanged += (_, _) => RefreshVideoSurfaceSize();
         _sourceData = sourceData;
+        _channels = channels;
         _selectedChannel = channel;
         ChannelTitle.Text = channel.Name;
         ClockLabel.Text = DateTime.Now.ToString("HH:mm");
@@ -319,10 +321,10 @@ public partial class PlayerPage : ContentPage
     {
         for (var attempt = 0; attempt < 8 && ChannelPicker.ContentSize.Width <= ChannelPicker.Width; attempt++)
             await Task.Delay(50);
-        var selectedTile = _channelPickerTiles
-            .Where(item => IsSameChannel(item.Channel, _selectedChannel))
-            .Select(item => item.Tile)
-            .FirstOrDefault();
+        var selectedIndex = _selectedChannel == null ? -1 : ChannelSelection.FindIndex(_channels, _selectedChannel);
+        var selectedTile = selectedIndex >= 0 && selectedIndex < _channelPickerTiles.Count
+            ? _channelPickerTiles[selectedIndex].Tile
+            : null;
         if (selectedTile == null || ChannelPicker.Width <= 0) return;
 
         var maxOffset = Math.Max(0, ChannelPicker.ContentSize.Width - ChannelPicker.Width);
@@ -494,22 +496,11 @@ public partial class PlayerPage : ContentPage
     {
         foreach (var (channel, tile) in _channelPickerTiles)
         {
-            var isSelected = IsSameChannel(channel, _selectedChannel);
+            var isSelected = _selectedChannel != null && ChannelSelection.IsSameChannel(channel, _selectedChannel);
             tile.BackgroundColor = Color.FromArgb(isSelected ? "#1A4263" : "#162130");
             tile.Stroke = Color.FromArgb(isSelected ? "#55B9FF" : "#304054");
             tile.StrokeThickness = isSelected ? 2 : 1;
         }
-    }
-
-    private static bool IsSameChannel(M3UInfo channel, M3UInfo? selected)
-    {
-        if (selected == null) return false;
-        if (ReferenceEquals(channel, selected)) return true;
-        if (!string.IsNullOrWhiteSpace(channel.ChannelId) && !string.IsNullOrWhiteSpace(selected.ChannelId))
-            return string.Equals(channel.ProviderId, selected.ProviderId, StringComparison.OrdinalIgnoreCase) &&
-                   string.Equals(channel.ChannelId, selected.ChannelId, StringComparison.OrdinalIgnoreCase);
-        return string.Equals(channel.Url, selected.Url, StringComparison.OrdinalIgnoreCase) &&
-               string.Equals(channel.Name, selected.Name, StringComparison.OrdinalIgnoreCase);
     }
 
     private void OnApplicationPausing()
