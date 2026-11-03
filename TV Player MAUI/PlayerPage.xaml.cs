@@ -22,7 +22,6 @@ public partial class PlayerPage : ContentPage
     private M3UInfo? _selectedChannel;
     private readonly List<(M3UInfo Channel, Border Tile)> _channelPickerTiles = new();
     private readonly IReadOnlyList<M3UInfo> _channels;
-    private readonly List<(ProgramInfo Program, Border Card, ProgressBar Progress)> _guideCards = new();
 
     public PlayerPage(M3UInfo channel, IReadOnlyList<M3UInfo> channels, ProgramsData sourceData)
     {
@@ -356,8 +355,7 @@ public partial class PlayerPage : ContentPage
             if (token.IsCancellationRequested || _isClosing || requestVersion != _guideRequestVersion) return;
             ProgramInfoPanel.IsVisible = false;
             ProgramGuideList.IsVisible = false;
-            ProgramGuideItems.Children.Clear();
-            _guideCards.Clear();
+            ProgramGuideList.Clear();
         });
 
         try
@@ -380,13 +378,12 @@ public partial class PlayerPage : ContentPage
                     firstVisibleProgram = orderedPrograms.FindIndex(item => item.StartTime > DateTime.Now);
                 if (firstVisibleProgram < 0) firstVisibleProgram = 0;
 
-                foreach (var item in orderedPrograms.Skip(firstVisibleProgram).Take(7))
-                    AddGuideItem(item);
+                ProgramGuideList.SetPrograms(orderedPrograms.Skip(firstVisibleProgram).Take(7));
 
                 UpdateProgramInfo(guide);
-                UpdateGuideCards();
+                ProgramGuideList.Refresh();
                 _guideRefreshTimer = new System.Threading.Timer(
-                    _ => MainThread.BeginInvokeOnMainThread(() => { if (!token.IsCancellationRequested && !_isClosing && requestVersion == _guideRequestVersion) { UpdateProgramInfo(guide); UpdateGuideCards(); } }),
+                    _ => MainThread.BeginInvokeOnMainThread(() => { if (!token.IsCancellationRequested && !_isClosing && requestVersion == _guideRequestVersion) { UpdateProgramInfo(guide); ProgramGuideList.Refresh(); } }),
                     null,
                     TimeSpan.FromMinutes(1),
                     TimeSpan.FromMinutes(1));
@@ -419,60 +416,6 @@ public partial class PlayerPage : ContentPage
         ProgramProgress.Progress = current == null || duration <= 0
             ? 0
             : Math.Clamp((now - next.StartTime).TotalSeconds / duration, 0, 1);
-    }
-
-    private void AddGuideItem(ProgramInfo item)
-    {
-        var timeLabel = new Label
-        {
-            Text = $"{item.StartTime:HH:mm} – {item.EndTime:HH:mm}",
-            FontSize = 12,
-            TextColor = Color.FromArgb("#8DD2FF")
-        };
-        var titleLabel = new Label
-        {
-            Text = item.Title,
-            FontSize = 13,
-            LineBreakMode = LineBreakMode.TailTruncation,
-            MaxLines = 2,
-            WidthRequest = 160
-        };
-        var progress = new ProgressBar
-        {
-            Progress = 0,
-            ProgressColor = Color.FromArgb("#55B9FF"),
-            BackgroundColor = Color.FromArgb("#304054"),
-            HeightRequest = 3,
-            IsVisible = false
-        };
-        var card = new Border
-        {
-            BackgroundColor = Color.FromArgb("#162130"),
-            Stroke = Color.FromArgb("#304054"),
-            StrokeThickness = 1,
-            StrokeShape = new Microsoft.Maui.Controls.Shapes.RoundRectangle { CornerRadius = 10 },
-            Padding = new Thickness(10, 6),
-            Content = new VerticalStackLayout { Spacing = 2, Children = { timeLabel, titleLabel, progress } }
-        };
-        _guideCards.Add((item, card, progress));
-        ProgramGuideItems.Children.Add(card);
-    }
-
-    private void UpdateGuideCards()
-    {
-        var now = DateTime.Now;
-        foreach (var (program, card, progress) in _guideCards)
-        {
-            var isCurrent = program.StartTime <= now && now < program.EndTime;
-            card.BackgroundColor = Color.FromArgb(isCurrent ? "#1A4263" : "#162130");
-            card.Stroke = Color.FromArgb(isCurrent ? "#55B9FF" : "#304054");
-            card.StrokeThickness = isCurrent ? 2 : 1;
-            progress.IsVisible = isCurrent;
-            var duration = (program.EndTime - program.StartTime).TotalSeconds;
-            progress.Progress = isCurrent && duration > 0
-                ? Math.Clamp((now - program.StartTime).TotalSeconds / duration, 0, 1)
-                : 0;
-        }
     }
 
     private void ShowPlayerUi()
