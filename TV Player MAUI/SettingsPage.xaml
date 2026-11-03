@@ -5,6 +5,7 @@
              Title="Настройки">
   <ScrollView>
     <VerticalStackLayout Spacing="14" Padding="4,10">
+      <Button Text="Обновления приложения" Clicked="OnUpdatesClicked" />
       <Label Text="Плейлисты" FontSize="22" FontAttributes="Bold" />
       <Entry x:Name="NameEntry" Placeholder="Название плейлиста" />
       <Entry x:Name="UrlEntry" Placeholder="Ссылка M3U (HTTP или HTTPS)" Keyboard="Url" />

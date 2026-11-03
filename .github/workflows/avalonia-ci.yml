@@ -18,6 +18,11 @@ jobs:
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '10.0.x'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Test Android release version and metadata policy
+        run: python -m unittest discover -s scripts -p "test_*.py"
       - name: Build Avalonia application
         run: dotnet build "TV Player Avalonia/TV Player Avalonia.csproj" --configuration Release
       - name: Run unit tests
