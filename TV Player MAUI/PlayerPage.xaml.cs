@@ -18,8 +18,6 @@ public partial class PlayerPage : ContentPage
     private bool _isClosing;
     private bool _wasPlayingBeforeAppSwitch;
     private M3UInfo? _selectedChannel;
-    private readonly List<(M3UInfo Channel, Border Tile)> _channelPickerTiles = new();
-    private readonly IReadOnlyList<M3UInfo> _channels;
 
     public PlayerPage(M3UInfo channel, IReadOnlyList<M3UInfo> channels, ProgramsData sourceData)
     {
@@ -27,89 +25,13 @@ public partial class PlayerPage : ContentPage
         PlayerLayout.SizeChanged += (_, _) => RefreshVideoSurfaceSize();
         _sourceData = sourceData;
         _guideController = new ProgramGuideController(sourceData, ResetProgramGuide, DisplayProgramGuide, RefreshProgramGuide);
-        _channels = channels;
         _selectedChannel = channel;
+        ChannelPicker.ChannelSelected += selected => PlayChannel(selected);
+        ChannelPicker.SetChannels(channels);
+        ChannelPicker.SelectChannel(channel);
         ChannelTitle.Text = channel.Name;
         ClockLabel.Text = DateTime.Now.ToString("HH:mm");
-        foreach (var item in channels)
-        {
-            ChannelPickerItems.Children.Add(CreateChannelPickerTile(item));
-        }
         PlayChannel(channel);
-    }
-
-    private View CreateChannelPickerTile(M3UInfo channel)
-    {
-        var logoContainer = new Grid { HeightRequest = 44, WidthRequest = 76 };
-
-        if (Uri.TryCreate(channel.Logo, UriKind.Absolute, out var logoUri) &&
-            (logoUri.Scheme == Uri.UriSchemeHttp || logoUri.Scheme == Uri.UriSchemeHttps))
-        {
-            logoContainer.Children.Add(new Image
-            {
-                Source = new UriImageSource
-                {
-                    Uri = logoUri,
-                    CachingEnabled = true,
-                    CacheValidity = TimeSpan.FromDays(7)
-                },
-                Aspect = Aspect.AspectFit,
-                InputTransparent = true
-            });
-        }
-
-        var nameLabel = new Label
-        {
-            Text = channel.Name,
-            FontSize = 12,
-            LineBreakMode = LineBreakMode.TailTruncation,
-            MaxLines = 2,
-            HorizontalTextAlignment = TextAlignment.Center,
-            VerticalTextAlignment = TextAlignment.Center
-        };
-        var content = new VerticalStackLayout
-        {
-            Spacing = 4,
-            HorizontalOptions = LayoutOptions.Fill,
-            VerticalOptions = LayoutOptions.Fill,
-            InputTransparent = true,
-            Children = { logoContainer, nameLabel }
-        };
-        var tile = new Border
-        {
-            WidthRequest = 112,
-            HeightRequest = 88,
-            Padding = new Thickness(8, 5),
-            BackgroundColor = Color.FromArgb("#162130"),
-            Stroke = Color.FromArgb("#304054"),
-            StrokeThickness = 1,
-            StrokeShape = new Microsoft.Maui.Controls.Shapes.RoundRectangle { CornerRadius = 10 },
-            Content = new Grid { Children = { content } }
-        };
-        _channelPickerTiles.Add((channel, tile));
-        UpdateChannelPickerSelection();
-        var button = new Button
-        {
-            BackgroundColor = Colors.Transparent,
-            BorderColor = Colors.Transparent,
-            BorderWidth = 0,
-            CornerRadius = 10,
-            Padding = 0,
-            Text = string.Empty
-        };
-        button.Clicked += (_, _) =>
-        {
-            ChannelPicker.IsVisible = false;
-            PlayChannel(channel);
-        };
-        button.Focused += (_, _) =>
-        {
-            tile.Stroke = Color.FromArgb("#7BD0FF");
-            tile.StrokeThickness = 2;
-        };
-        button.Unfocused += (_, _) => UpdateChannelPickerSelection();
-        ((Grid)tile.Content).Children.Add(button);
-        return tile;
     }
 
     protected override void OnAppearing()
@@ -174,7 +96,7 @@ public partial class PlayerPage : ContentPage
         if (_isClosing) return;
 
         _selectedChannel = channel;
-        UpdateChannelPickerSelection();
+        ChannelPicker.SelectChannel(channel);
 
         _playbackRequestToken?.Cancel();
         _playbackRequestToken?.Dispose();
@@ -313,22 +235,7 @@ public partial class PlayerPage : ContentPage
         ProgramGuideList.IsVisible = false;
         ShowPlayerUi();
         if (ChannelPicker.IsVisible)
-            await ScrollSelectedChannelIntoViewAsync();
-    }
-
-    private async Task ScrollSelectedChannelIntoViewAsync()
-    {
-        for (var attempt = 0; attempt < 8 && ChannelPicker.ContentSize.Width <= ChannelPicker.Width; attempt++)
-            await Task.Delay(50);
-        var selectedIndex = _selectedChannel == null ? -1 : ChannelSelection.FindIndex(_channels, _selectedChannel);
-        var selectedTile = selectedIndex >= 0 && selectedIndex < _channelPickerTiles.Count
-            ? _channelPickerTiles[selectedIndex].Tile
-            : null;
-        if (selectedTile == null || ChannelPicker.Width <= 0) return;
-
-        var maxOffset = Math.Max(0, ChannelPicker.ContentSize.Width - ChannelPicker.Width);
-        var offset = Math.Clamp(selectedTile.X + selectedTile.Width / 2 - ChannelPicker.Width / 2, 0, maxOffset);
-        await ChannelPicker.ScrollToAsync(offset, 0, animated: false);
+            await ChannelPicker.ScrollSelectedChannelIntoViewAsync();
     }
 
     private void OnGuideInfoTapped(object? sender, TappedEventArgs e)
@@ -432,17 +339,6 @@ public partial class PlayerPage : ContentPage
             System.Diagnostics.Debug.WriteLine($"Failed to restore system bars: {ex.Message}");
         }
 #endif
-    }
-
-    private void UpdateChannelPickerSelection()
-    {
-        foreach (var (channel, tile) in _channelPickerTiles)
-        {
-            var isSelected = _selectedChannel != null && ChannelSelection.IsSameChannel(channel, _selectedChannel);
-            tile.BackgroundColor = Color.FromArgb(isSelected ? "#1A4263" : "#162130");
-            tile.Stroke = Color.FromArgb(isSelected ? "#55B9FF" : "#304054");
-            tile.StrokeThickness = isSelected ? 2 : 1;
-        }
     }
 
     private void OnApplicationPausing()
