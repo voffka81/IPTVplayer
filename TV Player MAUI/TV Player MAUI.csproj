@@ -12,6 +12,8 @@
     <ApplicationDisplayVersion>2.0.1</ApplicationDisplayVersion>
     <ApplicationVersion>3</ApplicationVersion>
     <AndroidMinSdkVersion>23</AndroidMinSdkVersion>
+    <!-- Some ARM64 TV processors run a 32-bit Android userspace. Ship both ARM ABIs. -->
+    <RuntimeIdentifiers>android-arm;android-arm64;android-x64</RuntimeIdentifiers>
   </PropertyGroup>
   <ItemGroup>
     <MauiIcon Include="Resources\AppIcon\appicon.svg"

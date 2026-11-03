@@ -10,7 +10,8 @@ using NativeView = Android.Views.View;
 
 namespace TV_Player.Maui;
 
-[Activity(Theme = "@style/Maui.SplashTheme", MainLauncher = true, ConfigurationChanges = ConfigChanges.ScreenSize | ConfigChanges.Orientation | ConfigChanges.UiMode | ConfigChanges.ScreenLayout | ConfigChanges.SmallestScreenSize | ConfigChanges.Density)]
+[Activity(Theme = "@style/Maui.SplashTheme", MainLauncher = true, Banner = "@drawable/iptv_tv_banner", ConfigurationChanges = ConfigChanges.ScreenSize | ConfigChanges.Orientation | ConfigChanges.UiMode | ConfigChanges.ScreenLayout | ConfigChanges.SmallestScreenSize | ConfigChanges.Density)]
+[IntentFilter(new[] { Android.Content.Intent.ActionMain }, Categories = new[] { Android.Content.Intent.CategoryLeanbackLauncher })]
 public class MainActivity : MauiAppCompatActivity
 {
     private SystemUiFlags? _previousSystemUiFlags;

@@ -89,3 +89,25 @@ Repeat rapidly and after a long background interval. Also leave the player while
 backgrounded or connecting: delayed surface/URL callbacks must not restart it.
 Signed provider URLs can expire during a long absence; that remains a stream-open
 error rather than permission to resume stale native playback resources.
+
+
+## TV installation compatibility
+
+The universal APK explicitly targets `android-arm`, `android-arm64` and
+`android-x64`. A TV can have a 64-bit ARM processor and a 32-bit Android userspace;
+it then needs `armeabi-v7a` versions of both the .NET runtime and LibVLC. The old
+MAUI default APK contained only `arm64-v8a` and `x86_64` and cannot install there.
+Touchscreen and faketouch are optional; the app declares a Leanback launcher entry
+and a TV banner while retaining its phone launcher.
+
+Both PR APK and unified release workflows inspect the actual signed APK with
+`scripts/check_android_apk.py` before uploading/publishing. Checks require .NET and
+VLC libraries for all three ABIs, a minimum SDK allowing Android 14/API 34, no
+required touch hardware, and the compiled TV launcher/banner declarations.
+
+If a TV still rejects installation, use `adb shell getprop ro.product.cpu.abilist`
+and `adb install -r IPTVplayer-android.apk` to obtain the actual ABI list and exact
+PackageManager error. A missing ABI, different signing certificate, a version-code
+downgrade and a truncated APK need different fixes; a generic installer message
+alone does not identify which one occurred. Do not uninstall the existing app as
+a workaround without preserving its settings.
