@@ -1,144 +1,199 @@
-name: Publish Windows release
+name: Publish unified release
 
 on:
-  push:
-    branches:
-      - master
+  workflow_dispatch:
+    inputs:
+      bump:
+        description: Version increment
+        required: true
+        type: choice
+        default: patch
+        options:
+          - patch
+          - minor
+          - major
 
 permissions:
   contents: write
 
+concurrency:
+  group: unified-release
+  cancel-in-progress: false
+
 jobs:
-  check-version:
+  version:
     runs-on: ubuntu-latest
     outputs:
-      changed: ${{ steps.version.outputs.changed }}
-      version: ${{ steps.version.outputs.version }}
+      version: ${{ steps.compute.outputs.version }}
+      tag: ${{ steps.compute.outputs.tag }}
     steps:
-      - name: Check out full history
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-
-      - name: Compare project version with previous commit
-        id: version
+      - name: Calculate next shared version
+        id: compute
         env:
-          BEFORE_SHA: ${{ github.event.before }}
+          BUMP: ${{ inputs.bump }}
         run: |
           python - <<'PY'
-          import os
-          import re
-          import subprocess
-          import xml.etree.ElementTree as ET
+          import os, re, subprocess, xml.etree.ElementTree as ET
           from pathlib import Path
-
-          project = Path("TV Player Avalonia/TV Player Avalonia.csproj")
-
-          def read_version(text):
-              root = ET.fromstring(text)
-              for group in root.findall("PropertyGroup"):
-                  value = group.findtext("Version")
-                  if value and value.strip():
-                      return value.strip()
-              return ""
-
-          current_version = read_version(project.read_text(encoding="utf-8"))
-          if not re.fullmatch(r"\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?", current_version):
-              raise SystemExit(f"Invalid or missing <Version> in {project}: {current_version!r}")
-
-          before_sha = os.environ["BEFORE_SHA"]
-          previous_version = ""
-          if before_sha and set(before_sha) != {"0"}:
-              previous_xml = subprocess.run(
-                  ["git", "show", f"{before_sha}:{project.as_posix()}"],
-                  check=False,
-                  capture_output=True,
-                  text=True,
-              )
-              if previous_xml.returncode == 0:
-                  previous_version = read_version(previous_xml.stdout)
-
-          changed = current_version != previous_version
-          with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as output:
-              output.write(f"version={current_version}\n")
-              output.write(f"changed={str(changed).lower()}\n")
-
-          print(f"Previous version: {previous_version or '(unset)'}")
-          print(f"Current version: {current_version}")
-          print(f"Release required: {changed}")
+          versions = []
+          for path, key in [
+              ("TV Player Avalonia/TV Player Avalonia.csproj", "Version"),
+              ("TV Player MAUI/TV Player MAUI.csproj", "ApplicationDisplayVersion"),
+          ]:
+              root = ET.parse(path).getroot()
+              value = next((n.text or "").strip() for n in root.iter(key) if (n.text or "").strip())
+              if not re.fullmatch(r"\d+\.\d+\.\d+", value):
+                  raise SystemExit(f"Invalid version in {path}: {value}")
+              versions.append(tuple(map(int, value.split("."))))
+          for tag in subprocess.check_output(["git", "tag", "--list"], text=True).splitlines():
+              match = re.fullmatch(r"(?:v|android-v)?(\d+)\.(\d+)\.(\d+)", tag)
+              if match:
+                  versions.append(tuple(map(int, match.groups())))
+          major, minor, patch = max(versions)
+          bump = os.environ["BUMP"]
+          if bump == "major":
+              major, minor, patch = major + 1, 0, 0
+          elif bump == "minor":
+              minor, patch = minor + 1, 0
+          else:
+              patch += 1
+          version = f"{major}.{minor}.{patch}"
+          with open(os.environ["GITHUB_OUTPUT"], "a") as f:
+              f.write(f"version={version}\ntag=v{version}\n")
+          print(f"Next release: v{version}")
           PY
+      - name: Reject existing release tag
+        env:
+          RELEASE_TAG: ${{ steps.compute.outputs.tag }}
+        run: |
+          if git rev-parse -q --verify "refs/tags/$RELEASE_TAG" >/dev/null; then
+            echo "Tag $RELEASE_TAG already exists" >&2
+            exit 1
+          fi
 
-  publish-windows:
-    needs: check-version
-    if: needs.check-version.outputs.changed == 'true'
+  windows:
+    needs: version
     runs-on: windows-latest
     steps:
-      - name: Check out versioned source
-        uses: actions/checkout@v4
-
-      - name: Set up .NET
-        uses: actions/setup-dotnet@v4
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '10.0.x'
-
-      - name: Run unit tests
+      - name: Run tests
         run: dotnet test "TV Player Tests/TV Player Tests.csproj" --configuration Release
-
-      - name: Publish self-contained Windows x64 app
+      - name: Publish Windows
         run: >-
           dotnet publish "TV Player Avalonia/TV Player Avalonia.csproj"
-          --configuration Release
-          --runtime win-x64
-          --self-contained true
+          --configuration Release --runtime win-x64 --self-contained true
+          -p:Version=${{ needs.version.outputs.version }}
           --output publish
-
-      - name: Package release archive
+      - name: Archive Windows
         shell: pwsh
         env:
-          RELEASE_VERSION: ${{ needs.check-version.outputs.version }}
+          RELEASE_VERSION: ${{ needs.version.outputs.version }}
         run: |
           New-Item -ItemType Directory -Path artifacts -Force | Out-Null
-          $archive = "artifacts/IPTVplayer-$env:RELEASE_VERSION-win-x64.zip"
-          Compress-Archive -Path "publish\*" -DestinationPath $archive -CompressionLevel Optimal
+          Compress-Archive -Path "publish\*" -DestinationPath "artifacts/IPTVplayer-$env:RELEASE_VERSION-win-x64.zip"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: windows-release
+          path: artifacts/*.zip
+          if-no-files-found: error
 
-      - name: Create version tag and GitHub Release
-        shell: pwsh
+  android:
+    needs: version
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+      - name: Install Android workload
+        run: dotnet workload restore "TV Player MAUI/TV Player MAUI.csproj"
+      - name: Prepare signing key
+        env:
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          set -euo pipefail
+          : "${ANDROID_KEYSTORE_BASE64:?Missing ANDROID_KEYSTORE_BASE64}"
+          : "${ANDROID_KEYSTORE_PASSWORD:?Missing ANDROID_KEYSTORE_PASSWORD}"
+          : "${ANDROID_KEY_PASSWORD:?Missing ANDROID_KEY_PASSWORD}"
+          printf '%s' "$ANDROID_KEYSTORE_BASE64" | base64 --decode > "$RUNNER_TEMP/iptv-release.p12"
+          alias=$(keytool -list -v -keystore "$RUNNER_TEMP/iptv-release.p12" -storetype PKCS12 -storepass "$ANDROID_KEYSTORE_PASSWORD" | awk -F ': ' '/^Alias name:/{print $2; exit}')
+          test -n "$alias"
+          keytool -importkeystore -noprompt -srckeystore "$RUNNER_TEMP/iptv-release.p12" -srcstoretype PKCS12 -srcstorepass "$ANDROID_KEYSTORE_PASSWORD" -srcalias "$alias" -srckeypass "$ANDROID_KEY_PASSWORD" -destkeystore "$RUNNER_TEMP/iptv-release.jks" -deststoretype JKS -deststorepass "$ANDROID_KEYSTORE_PASSWORD" -destkeypass "$ANDROID_KEY_PASSWORD" -destalias "$alias"
+          echo "ANDROID_SIGNING_ALIAS=$alias" >> "$GITHUB_ENV"
+      - name: Publish signed APK
+        env:
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+          RELEASE_VERSION: ${{ needs.version.outputs.version }}
+        run: |
+          set -euo pipefail
+          android_version_code=$((GITHUB_RUN_ID % 2000000000 + 1))
+          dotnet publish "TV Player MAUI/TV Player MAUI.csproj" \
+            --configuration Release --framework net10.0-android \
+            --property:AndroidPackageFormat=apk \
+            --property:ApplicationDisplayVersion="$RELEASE_VERSION" \
+            --property:ApplicationVersion="$android_version_code" \
+            --output artifacts/android \
+            --property:AndroidKeyStore=true \
+            --property:AndroidSigningKeyStore="$RUNNER_TEMP/iptv-release.jks" \
+            --property:AndroidSigningKeyAlias="$ANDROID_SIGNING_ALIAS" \
+            --property:AndroidSigningStorePass="$ANDROID_KEYSTORE_PASSWORD" \
+            --property:AndroidSigningKeyPass="$ANDROID_KEY_PASSWORD" \
+            --property:AndroidApkSignerAdditionalArguments=--ks-type\ JKS
+      - name: Normalize signed APK
+        env:
+          RELEASE_VERSION: ${{ needs.version.outputs.version }}
+        run: |
+          set -euo pipefail
+          mapfile -t apks < <(find artifacts/android -maxdepth 1 -type f -name '*-Signed.apk')
+          test "${#apks[@]}" -eq 1
+          mkdir -p artifacts/release
+          mv "${apks[0]}" "artifacts/release/IPTVplayer-android-$RELEASE_VERSION.apk"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: android-release
+          path: artifacts/release/*.apk
+          if-no-files-found: error
+
+  release:
+    needs: [version, windows, android]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: '*-release'
+          path: artifacts
+          merge-multiple: true
+      - name: Publish one GitHub release
         env:
           GH_TOKEN: ${{ github.token }}
-          RELEASE_VERSION: ${{ needs.check-version.outputs.version }}
+          RELEASE_TAG: ${{ needs.version.outputs.tag }}
+          RELEASE_VERSION: ${{ needs.version.outputs.version }}
         run: |
-          $assets = @("artifacts/IPTVplayer-$env:RELEASE_VERSION-win-x64.zip")
-          $screenshotDirectory = Join-Path "docs/release-assets" $env:RELEASE_VERSION
-          $screenshots = @()
-          if (Test-Path -LiteralPath $screenshotDirectory) {
-            $screenshots = @(Get-ChildItem -LiteralPath $screenshotDirectory -Filter "*.png" -File)
-            foreach ($screenshot in $screenshots) {
-              $assets += $screenshot.FullName
-            }
-          }
-
-          $createArgs = @("release", "create", $env:RELEASE_VERSION) + $assets + @(
-            "--target", $env:GITHUB_SHA,
-            "--generate-notes"
-          )
-          & gh @createArgs
-          if ($LASTEXITCODE -ne 0) { throw "GitHub release creation failed." }
-
-          if ($screenshots.Count -gt 0) {
-            $releaseBody = gh release view $env:RELEASE_VERSION --json body --jq .body
-            if ($LASTEXITCODE -ne 0) { throw "Could not read generated release notes." }
-            $notesFile = Join-Path $env:RUNNER_TEMP "release-notes-$env:RELEASE_VERSION.md"
-            Set-Content -LiteralPath $notesFile -Value $releaseBody -Encoding utf8
-            Add-Content -LiteralPath $notesFile -Value "`n## Screenshots`n"
-            foreach ($screenshot in $screenshots) {
-              $label = switch ($screenshot.BaseName) {
-                "channel-picker" { "Channel picker" }
-                "player" { "Player" }
-                default { $screenshot.BaseName }
-              }
-              $imageUrl = "https://github.com/$env:GITHUB_REPOSITORY/releases/download/$env:RELEASE_VERSION/$($screenshot.Name)"
-              Add-Content -LiteralPath $notesFile -Value "![${label}]($imageUrl)`n"
-            }
-            & gh release edit $env:RELEASE_VERSION --notes-file $notesFile
-            if ($LASTEXITCODE -ne 0) { throw "Could not add screenshots to the release notes." }
-          }
+          set -euo pipefail
+          test -f "artifacts/IPTVplayer-$RELEASE_VERSION-win-x64.zip"
+          test -f "artifacts/IPTVplayer-android-$RELEASE_VERSION.apk"
+          assets=("artifacts/IPTVplayer-$RELEASE_VERSION-win-x64.zip" "artifacts/IPTVplayer-android-$RELEASE_VERSION.apk")
+          if [[ -d "docs/release-assets/$RELEASE_VERSION" ]]; then
+            while IFS= read -r -d '' file; do assets+=("$file"); done < <(find "docs/release-assets/$RELEASE_VERSION" -maxdepth 1 -name '*.png' -type f -print0)
+          fi
+          gh release create "$RELEASE_TAG" "${assets[@]}" \
+            --target "$GITHUB_SHA" \
+            --title "IPTV Player $RELEASE_VERSION" \
+            --generate-notes \
+            --latest
