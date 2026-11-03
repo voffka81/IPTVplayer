@@ -12,7 +12,7 @@ public partial class PlayerPage : ContentPage
     private readonly ProgramsData _sourceData;
     private CancellationTokenSource? _hideUiToken;
     private readonly ProgramGuideController _guideController;
-    private CancellationTokenSource? _playbackRequestToken;
+    private readonly StreamResolutionController _streamResolver;
     private bool _isClosing;
     private M3UInfo? _selectedChannel;
 
@@ -21,6 +21,7 @@ public partial class PlayerPage : ContentPage
         InitializeComponent();
         PlayerLayout.SizeChanged += (_, _) => RefreshVideoSurfaceSize();
         _sourceData = sourceData;
+        _streamResolver = new StreamResolutionController(sourceData);
         _playback = new MauiPlaybackController(BindPlayback, DetachPlayback, () => OnMediaPlayerPlaying(null, EventArgs.Empty));
         _guideController = new ProgramGuideController(sourceData, ResetProgramGuide, DisplayProgramGuide, RefreshProgramGuide);
         _selectedChannel = channel;
@@ -96,38 +97,15 @@ public partial class PlayerPage : ContentPage
         _selectedChannel = channel;
         ChannelPicker.SelectChannel(channel);
 
-        _playbackRequestToken?.Cancel();
-        _playbackRequestToken?.Dispose();
-        _playbackRequestToken = new CancellationTokenSource();
-        var playbackToken = _playbackRequestToken.Token;
-
         _ = _guideController.LoadAsync(channel);
-        var streamUrl = channel.Url;
-        if (string.IsNullOrWhiteSpace(streamUrl) &&
-            channel.ProviderId == _sourceData.Provider.Id &&
-            !string.IsNullOrWhiteSpace(channel.ChannelId))
+        var result = await _streamResolver.ResolveAsync(channel, () => StatusLabel.Text = "Получение потока…");
+        if (result == null || _isClosing) return;
+        if (result.Error != null)
         {
-            StatusLabel.Text = "Получение потока…";
-            try
-            {
-                var resolved = await _sourceData.Provider.ResolveStreamAsync(channel.ChannelId, playbackToken);
-                if (playbackToken.IsCancellationRequested || _isClosing) return;
-                streamUrl = resolved.PrimaryUrl;
-            }
-            catch (OperationCanceledException) when (playbackToken.IsCancellationRequested) { return; }
-            catch (Exception ex)
-            {
-                if (playbackToken.IsCancellationRequested || _isClosing) return;
-                StatusLabel.Text = $"Не удалось получить поток: {ex.Message}";
-                return;
-            }
-        }
-        if (playbackToken.IsCancellationRequested || _isClosing) return;
-        if (string.IsNullOrWhiteSpace(streamUrl))
-        {
-            StatusLabel.Text = "Для этого канала нет ссылки на поток.";
+            StatusLabel.Text = result.Error;
             return;
         }
+        var streamUrl = result.Url!;
         ChannelTitle.Text = channel.Name;
         StatusLabel.Text = "Подключение…";
         _playback.Play(streamUrl);
@@ -149,7 +127,7 @@ public partial class PlayerPage : ContentPage
         _isClosing = true;
         _hideUiToken?.Cancel();
         _guideController.Cancel();
-        _playbackRequestToken?.Cancel();
+        _streamResolver.Cancel();
 
         _playback.StopAndDetach();
 
@@ -165,6 +143,8 @@ public partial class PlayerPage : ContentPage
         finally
         {
             _playback.Dispose();
+            _streamResolver.Dispose();
+            _guideController.Dispose();
         }
     }
 
@@ -316,7 +296,7 @@ public partial class PlayerPage : ContentPage
     {
         try
         {
-            await _playback.ResumeAfterAppSwitchAsync(_playbackRequestToken?.Token ?? CancellationToken.None);
+            await _playback.ResumeAfterAppSwitchAsync(CancellationToken.None);
             if (_isClosing) return;
             await MainThread.InvokeOnMainThreadAsync(() =>
             {
