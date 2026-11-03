@@ -1,3 +1,4 @@
+using TV_Player.Playback;
 using Avalonia.Threading;
 using TV_Player.Providers;
 using CommunityToolkit.Mvvm.Input;
@@ -23,6 +24,7 @@ public class PlayerViewModel : TV_Player.ObservableViewModelBase, IDisposable
     public ICommand CloseAppCommand { get; }
     public ICommand OpenStreamCommand { get; }
 
+    public PlayerPlaybackModel Playback { get; } = new();
     public PlayerChannelPickerViewModel ChannelPicker { get; }
 
     public bool ChannelPickerVisible
@@ -44,7 +46,7 @@ public class PlayerViewModel : TV_Player.ObservableViewModelBase, IDisposable
     public bool IsBuffering
     {
         get => _isBuffering;
-        set
+        private set
         {
             if (SetProperty(ref _isBuffering, value)) ProgramBar.IsBuffering = value;
         }
@@ -85,6 +87,7 @@ public class PlayerViewModel : TV_Player.ObservableViewModelBase, IDisposable
 
     public PlayerViewModel(M3UInfo selectedProgram)
     {
+        Playback.Changed += OnPlaybackChanged;
         _currentProgram = selectedProgram;
         _streamResolver = new StreamResolutionService(TVPlayerViewModel.Instance.CurrentProgramsData?.Provider,
             ProviderResolutionMode.PreferProvider);
@@ -117,21 +120,27 @@ public class PlayerViewModel : TV_Player.ObservableViewModelBase, IDisposable
         HasPlaybackStatus = !string.IsNullOrWhiteSpace(status);
     }
 
+    private void OnPlaybackChanged(PlayerPlaybackSnapshot state)
+    {
+        IsBuffering = state.IsLoading;
+        if (state.Phase != PlayerPlaybackPhase.Error) SetPlaybackStatus(string.Empty);
+    }
+
     private void UpdateUi()
     {
         ChannelPicker.SyncCurrentChannel(_currentProgram);
         TVPlayerViewModel.Instance.TopPanelVisible(false, _currentProgram.Name);
         TopPanelTitle = _currentProgram.Name;
         _streamResolver.Cancel();
+        var generation = Playback.Begin();
         StreamUrl = string.Empty;
         FallbackStreamUrls = Array.Empty<string>();
         SetPlaybackStatus(string.Empty);
-        IsBuffering = true;
-        _ = ResolveCurrentStreamAsync(_currentProgram);
+        _ = ResolveCurrentStreamAsync(_currentProgram, generation);
         ProgramBar.SetChannel(_currentProgram);
     }
 
-    private async Task ResolveCurrentStreamAsync(M3UInfo channel)
+    private async Task ResolveCurrentStreamAsync(M3UInfo channel, long generation)
     {
         var result = await _streamResolver.ResolveAsync(channel);
         await Dispatcher.UIThread.InvokeAsync(() =>
@@ -140,13 +149,14 @@ public class PlayerViewModel : TV_Player.ObservableViewModelBase, IDisposable
             if (result.Status == StreamResolutionStatus.Resolved)
             {
                 FallbackStreamUrls = result.Stream!.FallbackUrls;
-                IsBuffering = true;
+                if (!Playback.Apply(new(PlayerPlaybackCommandKind.Connect, generation, Url: result.Stream.Url))) return;
                 SetPlaybackStatus(string.Empty);
                 StreamUrl = result.Stream.Url;
             }
             else
             {
-                IsBuffering = false;
+                Playback.Apply(new(PlayerPlaybackCommandKind.Fail, generation,
+                    Failure: result.Status == StreamResolutionStatus.NoStream ? PlayerPlaybackFailure.NoStream : PlayerPlaybackFailure.ResolutionFailed, Cause: result.Error));
                 if (result.Status == StreamResolutionStatus.NoStream)
                     SetPlaybackStatus("No stream URL available for this channel.");
                 else
@@ -192,6 +202,8 @@ public class PlayerViewModel : TV_Player.ObservableViewModelBase, IDisposable
     public void Dispose()
     {
         _disposed = true;
+        Playback.Changed -= OnPlaybackChanged;
+        Playback.Dispose();
         _streamResolver.Dispose();
         _programSubscription.Dispose();
         ChannelPicker.ChannelChanged -= OnChannelChanged;

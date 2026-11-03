@@ -13,43 +13,82 @@ internal sealed class MauiPlaybackController : IDisposable
     private Media? _currentMedia;
     private readonly Action<MediaPlayer> _bind;
     private readonly Action<MediaPlayer?> _detach;
-    private readonly Action _onPlaying;
-    private readonly Action _onError;
+    private readonly PlayerPlaybackModel _model;
+    private readonly Action<Action> _dispatch;
+    private Action? _unsubscribe;
 
-    public MauiPlaybackController(Action<MediaPlayer> bind, Action<MediaPlayer?> detach, Action onPlaying, Action onError)
+    public MauiPlaybackController(Action<MediaPlayer> bind, Action<MediaPlayer?> detach, PlayerPlaybackModel model, Action<Action> dispatch)
     {
         _bind = bind;
         _detach = detach;
-        _onPlaying = onPlaying;
-        _onError = onError;
+        _model = model;
+        _dispatch = dispatch;
         _session = new ForegroundPlaybackSession(PlayOnSurface, ReleasePlayer);
     }
 
     public bool HasStream => _session.HasStream;
     public bool IsForeground => _session.IsForeground;
 
-    public void SetForeground(bool foreground) => _session.SetForeground(foreground);
+    public void SetForeground(bool foreground)
+    {
+        _model.Apply(new(foreground ? PlayerPlaybackCommandKind.Resume : PlayerPlaybackCommandKind.Suspend,
+            _model.Snapshot.Token.Generation));
+        _session.SetForeground(foreground);
+    }
     public void SetSurfaceReady(bool ready) => _session.SetSurfaceReady(ready);
     public void Play(string streamUrl) => _session.Play(streamUrl);
-    public void StopAndDetach() => _session.Stop();
+    public void StopAndDetach()
+    {
+        _model.Apply(new(PlayerPlaybackCommandKind.Stop, _model.Snapshot.Token.Generation));
+        _session.Stop();
+    }
 
     private void PlayOnSurface(string streamUrl)
     {
-        _libVlc ??= new LibVLC(enableDebugLogs: false);
-        _mediaPlayer ??= new MediaPlayer(_libVlc);
-        _mediaPlayer.Playing -= OnPlaying;
-        _mediaPlayer.Playing += OnPlaying;
-        _mediaPlayer.EncounteredError -= OnError;
-        _mediaPlayer.EncounteredError += OnError;
-        _bind(_mediaPlayer);
-        _currentMedia?.Dispose();
-        _currentMedia = CreateMedia(streamUrl);
-        if (!_mediaPlayer.Play(_currentMedia))
-            throw new InvalidOperationException("VLC не смог начать воспроизведение потока.");
+        if (!_model.CanStart(streamUrl)) return;
+        ReleasePlayer();
+        var token = _model.Snapshot.Token;
+        try
+        {
+            _libVlc ??= new LibVLC(enableDebugLogs: false);
+            var player = _mediaPlayer = new MediaPlayer(_libVlc);
+            void Report(PlayerPlaybackCommandKind kind, float percent = 0) => _dispatch(() =>
+            {
+                if (!_disposed && ReferenceEquals(player, _mediaPlayer))
+                    _model.Apply(new(kind, token.Generation, token.Epoch, Percent: percent));
+            });
+            EventHandler<EventArgs> playing = (_, _) => Report(PlayerPlaybackCommandKind.Playing);
+            EventHandler<EventArgs> error = (_, _) => Report(PlayerPlaybackCommandKind.Fail);
+            EventHandler<EventArgs> opening = (_, _) => Report(PlayerPlaybackCommandKind.Opening);
+            EventHandler<EventArgs> paused = (_, _) => Report(PlayerPlaybackCommandKind.Pause);
+            EventHandler<EventArgs> ended = (_, _) => Report(PlayerPlaybackCommandKind.End);
+            EventHandler<MediaPlayerBufferingEventArgs> buffering = (_, e) => Report(PlayerPlaybackCommandKind.Buffering, e.Cache);
+            player.Playing += playing;
+            player.EncounteredError += error;
+            player.EndReached += ended;
+            player.Opening += opening;
+            player.Paused += paused;
+            player.Buffering += buffering;
+            _unsubscribe = () =>
+            {
+                player.Playing -= playing;
+                player.EncounteredError -= error;
+                player.EndReached -= ended;
+                player.Opening -= opening;
+                player.Paused -= paused;
+                player.Buffering -= buffering;
+            };
+            _bind(player);
+            _currentMedia = CreateMedia(streamUrl);
+            if (!player.Play(_currentMedia))
+                throw new InvalidOperationException("VLC не смог начать воспроизведение потока.");
+        }
+        catch (Exception ex)
+        {
+            _model.Apply(new(PlayerPlaybackCommandKind.Fail, token.Generation, token.Epoch, Cause: ex));
+            ReleasePlayer();
+        }
     }
-
-    private void OnPlaying(object? sender, EventArgs e) => _onPlaying();
-    private void OnError(object? sender, EventArgs e) => _onError();
 
     private Media CreateMedia(string rawUrl)
     {
@@ -92,11 +131,8 @@ internal sealed class MauiPlaybackController : IDisposable
         var player = _mediaPlayer;
         _mediaPlayer = null;
         _currentMedia = null;
-        if (player != null)
-        {
-            player.Playing -= OnPlaying;
-            player.EncounteredError -= OnError;
-        }
+        _unsubscribe?.Invoke();
+        _unsubscribe = null;
         // Live streams may not support Pause. Stop closes demux/network activity and a
         // new MediaPlayer is created on foreground entry, with a new Android vout.
         try { player?.Stop(); }
