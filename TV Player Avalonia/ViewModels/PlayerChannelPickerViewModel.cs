@@ -36,7 +36,7 @@ public sealed class PlayerChannelPickerViewModel : TV_Player.ObservableViewModel
     public void SetChannels(IEnumerable<M3UInfo> channels)
     {
         _programs = channels.ToList();
-        _currentProgramIndex = _programs.FindIndex(IsCurrentChannel);
+        _currentProgramIndex = TV_Player.ChannelSelection.FindIndex(_programs, _currentProgram);
         if (_currentProgramIndex < 0) _currentProgramIndex = 0;
         RefreshChannelPickerItems();
     }
@@ -44,19 +44,10 @@ public sealed class PlayerChannelPickerViewModel : TV_Player.ObservableViewModel
     public void SyncCurrentChannel(M3UInfo channel)
     {
         _currentProgram = channel;
-        foreach (var item in ChannelPickerItems) item.IsCurrent = IsCurrentChannel(item.Channel);
+        foreach (var item in ChannelPickerItems) item.IsCurrent = TV_Player.ChannelSelection.IsSameChannel(item.Channel, _currentProgram);
         _updatingChannelPickerSelection = true;
         SelectedChannelPickerItem = ChannelPickerItems.FirstOrDefault(item => item.IsCurrent);
         _updatingChannelPickerSelection = false;
-    }
-
-    private bool IsCurrentChannel(M3UInfo program)
-    {
-        if (!string.IsNullOrWhiteSpace(_currentProgram.ProviderId) && !string.IsNullOrWhiteSpace(_currentProgram.ChannelId))
-            return program.ProviderId == _currentProgram.ProviderId && program.ChannelId == _currentProgram.ChannelId;
-
-        return ReferenceEquals(program, _currentProgram) ||
-               (program.Name == _currentProgram.Name && program.Url == _currentProgram.Url);
     }
 
     private void RefreshChannelPickerItems()
@@ -64,7 +55,7 @@ public sealed class PlayerChannelPickerViewModel : TV_Player.ObservableViewModel
         _updatingChannelPickerSelection = true;
         ChannelPickerItems.Clear();
         foreach (var program in _programs)
-            ChannelPickerItems.Add(new ChannelPickerItem(program, IsCurrentChannel(program)));
+            ChannelPickerItems.Add(new ChannelPickerItem(program, TV_Player.ChannelSelection.IsSameChannel(program, _currentProgram)));
         SelectedChannelPickerItem = ChannelPickerItems.FirstOrDefault(item => item.IsCurrent);
         _updatingChannelPickerSelection = false;
     }
@@ -74,10 +65,7 @@ public sealed class PlayerChannelPickerViewModel : TV_Player.ObservableViewModel
         if (item == null)
             return;
 
-        var index = _programs.FindIndex(program =>
-            !string.IsNullOrWhiteSpace(item.Channel.ProviderId)
-                ? program.ProviderId == item.Channel.ProviderId && program.ChannelId == item.Channel.ChannelId
-                : ReferenceEquals(program, item.Channel) || (program.Name == item.Channel.Name && program.Url == item.Channel.Url));
+        var index = TV_Player.ChannelSelection.FindIndex(_programs, item.Channel);
         if (index < 0)
             return;
 
@@ -95,7 +83,7 @@ public sealed class PlayerChannelPickerViewModel : TV_Player.ObservableViewModel
         if (_programs.Count < 2 || direction == 0)
             return;
 
-        var nextIndex = (_currentProgramIndex + Math.Sign(direction) + _programs.Count) % _programs.Count;
+        var nextIndex = TV_Player.ChannelSelection.NextIndex(_currentProgramIndex, _programs.Count, direction);
         _currentProgramIndex = nextIndex;
         _currentProgram = _programs[nextIndex];
         SyncCurrentChannel(_currentProgram);
