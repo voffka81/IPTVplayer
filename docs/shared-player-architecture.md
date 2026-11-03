@@ -48,3 +48,18 @@
 - CI must run the full cross-platform shared suite; Android build must run on shared changes, with manual Ally/gamepad and Android touch verification before release.
 - Track coverage per new shared module as a diagnostic, not a substitute for scenario assertions; avoid arbitrary repository-wide percentage targets.
 - A PR is not considered complete when required tests fail or have not run; document any unautomated device checks.
+
+
+## Implemented player presentation policy
+
+- `Core/Presentation/PlayerUiController` owns mutually exclusive overlays and the
+  four-second auto-hide deadline. It accepts explicit time; suspend/dispose reject
+  late updates. MAUI supplies a dispatcher timer via `MauiPlayerUiController`.
+- `Core/Presentation/ChannelSelectionState` owns ordered channels and current
+  identity for both MAUI and Avalonia. Synchronizing data does not request a new
+  stream; user selection updates state before publishing `ChannelRequested`.
+- `Core/Input/PlayerRemoteInputRouter` routes Android remote keys by overlay
+  context, preserving native button confirmation. Platform controls own focus
+  rendering and scrolling, while playback adapters continue owning native video.
+- Device validation steps and the remote key map are in
+  [Android remote smoke checks](android-remote-smoke.md).

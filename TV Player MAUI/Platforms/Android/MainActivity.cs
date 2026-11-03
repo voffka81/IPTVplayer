@@ -5,6 +5,7 @@ using Android.OS;
 using Android.Views;
 using Android.Widget;
 using Microsoft.Maui;
+using TV_Player.Input;
 using NativeView = Android.Views.View;
 
 namespace TV_Player.Maui;
@@ -19,12 +20,56 @@ public class MainActivity : MauiAppCompatActivity
     private Bitmap? _privacySnapshotBitmap;
     private PixelCopyFinishedListener? _pixelCopyListener;
 
+    // Only the visible player subscribes. Other pages retain Android's normal key handling.
+    public static event Func<PlayerRemoteKey, bool, bool>? PlayerKeyPressed;
+    private readonly HashSet<Keycode> _handledPlayerKeys = new();
+
+    public override bool DispatchKeyEvent(KeyEvent? e)
+    {
+        if (e == null) return base.DispatchKeyEvent(e);
+        if (e.Action == KeyEventActions.Up && _handledPlayerKeys.Remove(e.KeyCode)) return true;
+        if (e.Action != KeyEventActions.Down) return base.DispatchKeyEvent(e);
+        PlayerRemoteKey? key = e.KeyCode switch
+        {
+            Keycode.DpadLeft => PlayerRemoteKey.Left,
+            Keycode.DpadRight => PlayerRemoteKey.Right,
+            Keycode.DpadUp => PlayerRemoteKey.Up,
+            Keycode.DpadDown => PlayerRemoteKey.Down,
+            Keycode.DpadCenter or Keycode.Enter or Keycode.NumpadEnter => PlayerRemoteKey.Confirm,
+            Keycode.Back => PlayerRemoteKey.Back,
+            _ => null
+        };
+        if (key == null) return base.DispatchKeyEvent(e);
+        // Do not let a held OK reopen/close overlays or a held Back pop multiple pages.
+        if (e.RepeatCount > 0 && _handledPlayerKeys.Contains(e.KeyCode) &&
+            key is PlayerRemoteKey.Confirm or PlayerRemoteKey.Back) return true;
+        if (key != PlayerRemoteKey.Back) _usingRemote = true;
+        var nativeControlFocused = CurrentFocus is Android.Widget.Button or Android.Widget.EditText;
+        if (PlayerKeyPressed?.Invoke(key.Value, nativeControlFocused) != true)
+            return base.DispatchKeyEvent(e);
+        _handledPlayerKeys.Add(e.KeyCode);
+        return true;
+    }
+
+    private bool _usingRemote;
+    public bool IsRemoteNavigation => _usingRemote ||
+        (Resources?.Configuration?.UiMode & Android.Content.Res.UiMode.TypeMask) == Android.Content.Res.UiMode.TypeTelevision;
+
+    public void FocusPlayerSurface()
+    {
+        if (!IsRemoteNavigation) return;
+        if (Window?.DecorView is not { } root) return;
+        root.FocusableInTouchMode = true;
+        root.RequestFocus();
+    }
+
     public static event Action? AppPausing;
     public static event Action? AppResumed;
 
     protected override void OnPause()
     {
         _isBackgrounded = true;
+        _handledPlayerKeys.Clear();
         AppPausing?.Invoke();
         if (!_pixelCopyPending && _privacySnapshotView == null)
             CaptureBlurredVideoFrame();
