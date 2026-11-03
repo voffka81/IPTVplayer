@@ -2,6 +2,7 @@
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:vlc="clr-namespace:LibVLCSharp.MAUI;assembly=LibVLCSharp.MAUI"
+             xmlns:controls="clr-namespace:TV_Player.Maui.Controls"
              x:Class="TV_Player.Maui.PlayerPage"
              Padding="0"
              NavigationPage.HasNavigationBar="False">
@@ -35,9 +36,7 @@
         <Label x:Name="ProgramEndLabel" Grid.Row="1" Grid.Column="2" FontSize="12" TextColor="#8DD2FF" HorizontalOptions="End" VerticalTextAlignment="Center" Margin="8,0,0,0" />
       </Grid>
       <Label x:Name="StatusLabel" Grid.Row="1" FontSize="14" TextColor="#8DD2FF" />
-      <ScrollView x:Name="ProgramGuideList" Grid.Row="2" Orientation="Horizontal" IsVisible="False" HeightRequest="84">
-        <HorizontalStackLayout x:Name="ProgramGuideItems" Spacing="8" />
-      </ScrollView>
+      <controls:ProgramGuideCarousel x:Name="ProgramGuideList" Grid.Row="2" IsVisible="False" HeightRequest="84" />
       <ScrollView x:Name="ChannelPicker" Grid.Row="3" Orientation="Horizontal" IsVisible="False" HeightRequest="92">
         <HorizontalStackLayout x:Name="ChannelPickerItems" Spacing="8" />
       </ScrollView>
