@@ -47,8 +47,9 @@ Run on a phone and Xiaomi Android TV 14 with the same test playlist:
    duplicate channel changes or timer/subscription growth.
 
 Automated Core and Avalonia tests cover policy and selection, not native Android
-focus, installation or actual video playback. Record device results in the PR;
-#65/#75 and Android TV release acceptance remain pending those checks.
+focus, installation or actual video playback. Record device results in the PR using the [smoke result template](player-smoke.md).
+Physical TV acceptance remains tracked in #73; implemented policy tasks do not
+by themselves prove installation, focus or decoded video on a TV.
 
 ## Video surface startup regression
 

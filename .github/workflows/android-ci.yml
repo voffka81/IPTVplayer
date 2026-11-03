@@ -1,16 +1,7 @@
 name: Android APK build
 
 on:
-  pull_request:
-    paths:
-      - '.github/workflows/android-ci.yml'
-      - '.github/workflows/release.yml'
-      - 'scripts/**'
-      - 'TV Player MAUI/**'
-      - 'TV Player Core/**'
-      - 'TV Player Plugin.Abstractions/**'
-      - 'global.json'
-      - 'NuGet.Config'
+  workflow_call:
   workflow_dispatch:
 
 permissions:
