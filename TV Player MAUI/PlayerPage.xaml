@@ -37,9 +37,7 @@
       </Grid>
       <Label x:Name="StatusLabel" Grid.Row="1" FontSize="14" TextColor="#8DD2FF" />
       <controls:ProgramGuideCarousel x:Name="ProgramGuideList" Grid.Row="2" IsVisible="False" HeightRequest="84" />
-      <ScrollView x:Name="ChannelPicker" Grid.Row="3" Orientation="Horizontal" IsVisible="False" HeightRequest="92">
-        <HorizontalStackLayout x:Name="ChannelPickerItems" Spacing="8" />
-      </ScrollView>
+      <controls:ChannelPickerView x:Name="ChannelPicker" Grid.Row="3" IsVisible="False" HeightRequest="92" />
     </Grid>
     <BoxView x:Name="PrivacyOverlay" Grid.Row="0" Grid.Column="0" IsVisible="False" InputTransparent="True" BackgroundColor="#F2050A12" />
   </Grid>
