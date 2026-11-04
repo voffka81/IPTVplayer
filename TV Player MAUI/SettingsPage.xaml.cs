@@ -11,6 +11,7 @@ public partial class SettingsPage : ContentPage
     private readonly List<ProviderSourceConfiguration> _providerSources;
     private readonly List<ProviderSettingEntry> _providerSettings = new();
     private IChannelProviderPlugin? _selectedProvider;
+    private Android.Views.View? _settingsRemoteTarget;
 
     public SettingsPage(AppSession session)
     {
@@ -35,6 +36,7 @@ public partial class SettingsPage : ContentPage
     protected override void OnAppearing()
     {
         base.OnAppearing();
+        _settingsRemoteTarget = null;
         if (DeviceLayout.IsTelevision)
             MainActivity.PlayerKeyPressed += OnSettingsRemoteKey;
     }
@@ -63,11 +65,13 @@ public partial class SettingsPage : ContentPage
         }
         Collect(root);
         if (controls.Count == 0) return false;
-        var index = controls.IndexOf(root.FindFocus()!);
+        var index = controls.IndexOf(_settingsRemoteTarget ?? root.FindFocus()!);
         var direction = key == TV_Player.Input.PlayerRemoteKey.Down ? 1 : -1;
         var next = index < 0 ? (direction > 0 ? 0 : controls.Count - 1)
             : Math.Clamp(index + direction, 0, controls.Count - 1);
         var target = controls[next];
+        _settingsRemoteTarget = target;
+        Android.Util.Log.Info("TVSettingsFocus", $"Move {direction}: {index} -> {next}, controls={controls.Count}");
         _ = RevealSettingsControlAsync(target, root);
         return true;
     }
