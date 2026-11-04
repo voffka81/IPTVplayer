@@ -42,17 +42,20 @@ namespace TV_Player
             //string m3uLink = "http://pl.da-tv.vip/a71e77fa/835b3216/tv.m3u";
             try
             {
+                using var loadTimeout = CancellationTokenSource.CreateLinkedTokenSource(_cts.Token);
+                loadTimeout.CancelAfter(TimeSpan.FromSeconds(30));
+                var loadToken = loadTimeout.Token;
                 List<M3UInfo> programs;
                 string guideLink = string.Empty;
                 if (Provider is M3UChannelProvider m3uProvider)
                 {
-                    var result = await m3uProvider.LoadPlaylistAsync(_cts.Token);
+                    var result = await m3uProvider.LoadPlaylistAsync(loadToken).WaitAsync(loadToken);
                     programs = result.programList;
                     guideLink = result.programGuide;
                 }
                 else
                 {
-                    var channels = await Provider.GetChannelsAsync(_cts.Token);
+                    var channels = await Provider.GetChannelsAsync(loadToken).WaitAsync(loadToken);
                     programs = channels.Select(channel => new M3UInfo
                     {
                         ProviderId = Provider.Id,
@@ -91,7 +94,9 @@ namespace TV_Player
                 System.Diagnostics.Debug.WriteLine($"[ProgramsData] ERROR downloading programs: {ex.Message}");
                 if (!_cts.IsCancellationRequested)
                 {
-                    loadErrors.OnNext(ex.GetBaseException().Message);
+                    loadErrors.OnNext(ex is OperationCanceledException
+                        ? "Источник не ответил за 30 секунд. Проверьте доступ к интернету в эмуляторе, DNS и VPN на компьютере."
+                        : ex.GetBaseException().Message);
                 }
             }
         }

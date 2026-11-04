@@ -439,6 +439,8 @@ public class SettingsViewModel : TV_Player.ObservableViewModelBase
         SettingsSaveMessage = canSavePlaylists && canSaveProviderSources
             ? "Settings saved."
             : "Valid settings were saved; fix the errors shown below to save the remaining edits.";
+        if (canSavePlaylists && canSaveProviderSources)
+            OnBackCommand();
     }
 }
 
