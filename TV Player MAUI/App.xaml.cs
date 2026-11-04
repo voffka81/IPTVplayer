@@ -6,6 +6,7 @@ public partial class App : Application
 {
     public App()
     {
+        TV_Player.ViewModels.SettingsModel.LoadSettings();
         InitializeComponent();
         MainPage = new NavigationPage(new PlaylistPage(AppSession.Current))
         {

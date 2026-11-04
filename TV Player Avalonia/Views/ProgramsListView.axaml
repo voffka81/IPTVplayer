@@ -1,11 +1,12 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:loc="clr-namespace:TV_Player.AvaloniaApp.Localization"
              xmlns:asyncImageLoader="clr-namespace:AsyncImageLoader;assembly=AsyncImageLoader.Avalonia"
              x:Class="TV_Player.AvaloniaApp.Views.ProgramsListView">
   <Grid RowDefinitions="Auto,*">
     <TextBox Grid.Row="0"
              Margin="7,0,7,8"
-             Watermark="Поиск каналов"
+             Watermark="{loc:T Key=T8381a827f861}"
              Text="{Binding SearchText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
     <ListBox Grid.Row="1"
              ItemsSource="{Binding Programs}"

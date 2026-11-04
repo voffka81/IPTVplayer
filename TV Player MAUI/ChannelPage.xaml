@@ -1,10 +1,11 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:loc="clr-namespace:TV_Player.Maui.Localization"
              x:Class="TV_Player.Maui.ChannelPage"
-             Title="Каналы">
+             Title="{loc:T Key=Tf31014368cbf}">
   <Grid RowDefinitions="Auto,*" RowSpacing="12">
-    <Entry x:Name="SearchEntry" Placeholder="Поиск каналов" TextChanged="OnSearchChanged" />
+    <Entry x:Name="SearchEntry" Placeholder="{loc:T Key=T8381a827f861}" TextChanged="OnSearchChanged" />
     <CollectionView x:Name="ChannelsView" Grid.Row="1" SelectionMode="None">
       <CollectionView.ItemsLayout><GridItemsLayout x:Name="ChannelGridLayout" Orientation="Vertical" Span="3" HorizontalItemSpacing="10" VerticalItemSpacing="12" /></CollectionView.ItemsLayout>
       <CollectionView.ItemTemplate>

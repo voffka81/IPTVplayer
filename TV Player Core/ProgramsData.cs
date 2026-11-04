@@ -92,7 +92,7 @@ namespace TV_Player
                 if (!_cts.IsCancellationRequested)
                 {
                     loadErrors.OnNext(ex is OperationCanceledException
-                        ? "Источник не ответил после трёх попыток загрузки. Проверьте доступ к интернету в эмуляторе, DNS и VPN на компьютере."
+                        ? TV_Player.Localization.I18n.Get("Tf0897abc0f0c")
                         : ex.GetBaseException().Message);
                 }
             }

@@ -8,6 +8,13 @@ namespace TV_Player.AvaloniaApp.ViewModels;
 
 public class SettingsViewModel : TV_Player.ObservableViewModelBase
 {
+    public IReadOnlyList<string> LanguageNames => TV_Player.Localization.I18n.LanguageNames;
+    private int _languageIndex = SettingsModel.Language == "ru" ? 0 : 1;
+    public int LanguageIndex
+    {
+        get => _languageIndex;
+        set => SetProperty(ref _languageIndex, value);
+    }
     private string _playlistName = string.Empty;
     public string PlaylistName
     {
@@ -165,8 +172,8 @@ public class SettingsViewModel : TV_Player.ObservableViewModelBase
             TVPlayerViewModel.Instance.ProviderRegistry.Plugins.OrderBy(plugin => plugin.Name));
         PluginLoadErrors = string.Join(Environment.NewLine, TVPlayerViewModel.Instance.ProviderRegistry.LoadErrors);
         PluginAvailabilityMessage = AvailableProviderPlugins.Count == 0
-            ? "No provider plugins are installed yet."
-            : "Select a plugin, then fill in its source settings.";
+            ? TV_Player.Localization.I18n.Get("Ta42ea273052f")
+            : TV_Player.Localization.I18n.Get("Td45c31b7ee6f");
         PluginSources = new ObservableCollection<ProviderSourceConfiguration>(
             (SettingsModel.ProviderSources ?? new List<ProviderSourceConfiguration>()).Select(CloneProviderSource));
         PluginSources.CollectionChanged += OnPluginSourcesChanged;
@@ -215,7 +222,7 @@ public class SettingsViewModel : TV_Player.ObservableViewModelBase
         {
             foreach (var source in matchingSources)
                 source.Enabled = false;
-            PluginSourceMessage = $"{entry.Name} disabled. Its source and name are kept in Sources.";
+            PluginSourceMessage = TV_Player.Localization.I18n.Format("T5a5a3d044b37", entry.Name);
             return;
         }
 
@@ -223,7 +230,7 @@ public class SettingsViewModel : TV_Player.ObservableViewModelBase
         {
             foreach (var source in matchingSources)
                 source.Enabled = true;
-            PluginSourceMessage = $"{entry.Name} enabled.";
+            PluginSourceMessage = TV_Player.Localization.I18n.Format("T352d5b117b44", entry.Name);
             return;
         }
 
@@ -235,7 +242,7 @@ public class SettingsViewModel : TV_Player.ObservableViewModelBase
         catch (Exception ex)
         {
             entry.SetEnabled(false, notify: false);
-            PluginSourceError = $"Could not read settings for {entry.Name}: {ex.Message}";
+            PluginSourceError = TV_Player.Localization.I18n.Format("T5f815b0d3173", entry.Name, ex.Message);
             return;
         }
 
@@ -244,7 +251,7 @@ public class SettingsViewModel : TV_Player.ObservableViewModelBase
         if (missingSetting != null)
         {
             entry.SetEnabled(false, notify: false);
-            PluginSourceError = $"{entry.Name} needs a value for {missingSetting.Label} before it can be enabled.";
+            PluginSourceError = TV_Player.Localization.I18n.Format("T840cb7323886", entry.Name, missingSetting.Label);
             return;
         }
 
@@ -253,7 +260,7 @@ public class SettingsViewModel : TV_Player.ObservableViewModelBase
             PluginSources.Any(source => source.Name.Equals(sourceName, StringComparison.OrdinalIgnoreCase)))
         {
             entry.SetEnabled(false, notify: false);
-            PluginSourceError = $"The default source name '{sourceName}' is already in use. Rename that source first.";
+            PluginSourceError = TV_Player.Localization.I18n.Format("T43a15549e794", sourceName);
             return;
         }
 
@@ -267,7 +274,7 @@ public class SettingsViewModel : TV_Player.ObservableViewModelBase
                 StringComparer.OrdinalIgnoreCase)
         };
         PluginSources.Add(configuration);
-        PluginSourceMessage = $"{sourceName} enabled and added to Sources. Save changes to keep it.";
+        PluginSourceMessage = TV_Player.Localization.I18n.Format("Td2052dfa7f64", sourceName);
     }
 
     private void RefreshPluginSettingEditors()
@@ -284,7 +291,7 @@ public class SettingsViewModel : TV_Player.ObservableViewModelBase
         }
         catch (Exception ex)
         {
-            PluginSourceError = $"Could not read plugin settings: {ex.Message}";
+            PluginSourceError = TV_Player.Localization.I18n.Format("Tfc44bb9959bb", ex.Message);
         }
     }
 
@@ -333,20 +340,20 @@ public class SettingsViewModel : TV_Player.ObservableViewModelBase
         var plugin = SelectedProviderPlugin;
         if (plugin == null)
         {
-            PluginSourceError = "No provider plugins are installed.";
+            PluginSourceError = TV_Player.Localization.I18n.Get("T6a36f87c7468");
             return;
         }
 
         if (string.IsNullOrWhiteSpace(name))
         {
-            PluginSourceError = "Enter a name for this source.";
+            PluginSourceError = TV_Player.Localization.I18n.Get("T68432be97cc3");
             return;
         }
 
         if (Playlists.Any(pair => pair.Name.Equals(name, StringComparison.OrdinalIgnoreCase)) ||
             PluginSources.Any(source => source.Name.Equals(name, StringComparison.OrdinalIgnoreCase)))
         {
-            PluginSourceError = "A playlist or provider source with this name already exists.";
+            PluginSourceError = TV_Player.Localization.I18n.Get("T0601c14b0070");
             return;
         }
 
@@ -354,7 +361,7 @@ public class SettingsViewModel : TV_Player.ObservableViewModelBase
             setting.IsRequired && string.IsNullOrWhiteSpace(setting.Value));
         if (missingSetting != null)
         {
-            PluginSourceError = $"Enter a value for {missingSetting.Label}.";
+            PluginSourceError = TV_Player.Localization.I18n.Format("T16234b3ed850", missingSetting.Label);
             return;
         }
 
@@ -370,7 +377,7 @@ public class SettingsViewModel : TV_Player.ObservableViewModelBase
         PluginSources.Add(configuration);
         NewPluginSourceName = string.Empty;
         RefreshPluginSettingEditors();
-        PluginSourceMessage = $"Source '{name}' added. Click Save changes to keep it.";
+        PluginSourceMessage = TV_Player.Localization.I18n.Format("T6ea6c44622b9", name);
     }
 
     private void OnPluginSourceDeleteCommand(ProviderSourceConfiguration? source)
@@ -393,19 +400,19 @@ public class SettingsViewModel : TV_Player.ObservableViewModelBase
         var canSavePlaylists = true;
         if (names.Any(string.IsNullOrWhiteSpace))
         {
-            PlaylistError = "Every playlist needs a name.";
+            PlaylistError = TV_Player.Localization.I18n.Get("Tb0f1152ec2ee");
             canSavePlaylists = false;
         }
         else if (names.Distinct(StringComparer.OrdinalIgnoreCase).Count() != names.Count ||
                  names.Any(name => PluginSources.Any(source => source.Name.Equals(name, StringComparison.OrdinalIgnoreCase))))
         {
-            PlaylistError = "Playlist names must be unique.";
+            PlaylistError = TV_Player.Localization.I18n.Get("Tac666cbe36e8");
             canSavePlaylists = false;
         }
         else if (Playlists.Any(entry => !Uri.TryCreate(entry.Url.Trim(), UriKind.Absolute, out var uri) ||
                                         (uri.Scheme != Uri.UriSchemeHttp && uri.Scheme != Uri.UriSchemeHttps)))
         {
-            PlaylistError = "Every playlist needs a valid HTTP or HTTPS URL.";
+            PlaylistError = TV_Player.Localization.I18n.Get("T799d82ceefea");
             canSavePlaylists = false;
         }
 
@@ -415,10 +422,15 @@ public class SettingsViewModel : TV_Player.ObservableViewModelBase
             !providerNames.Any(name => names.Any(playlistName =>
                 string.Equals(name, playlistName, StringComparison.OrdinalIgnoreCase)));
         if (!canSaveProviderSources)
-            PluginSourceError = "Provider source names must be non-empty and unique across all sources.";
+            PluginSourceError = TV_Player.Localization.I18n.Get("Tf7181f174827");
 
         // VLC is the only engine connected to the Avalonia video surface.
         SettingsModel.PlaybackEngine = "vlc";
+        if (canSavePlaylists && canSaveProviderSources)
+        {
+            SettingsModel.Language = LanguageIndex == 0 ? "ru" : "en";
+            TV_Player.Localization.I18n.SetLanguage(SettingsModel.Language);
+        }
         SettingsModel.StartFullScreen = StartFullScreen;
         SettingsModel.StartFromLastScreen = StartLastScreen;
         if (canSavePlaylists)
@@ -437,8 +449,8 @@ public class SettingsViewModel : TV_Player.ObservableViewModelBase
         SettingsModel.SaveSetttings();
         TVPlayerViewModel.Instance.InitializeTVWithData();
         SettingsSaveMessage = canSavePlaylists && canSaveProviderSources
-            ? "Settings saved."
-            : "Valid settings were saved; fix the errors shown below to save the remaining edits.";
+            ? TV_Player.Localization.I18n.Get("Tae493e21cd43")
+            : TV_Player.Localization.I18n.Get("T1cd12062a7cb");
         if (canSavePlaylists && canSaveProviderSources)
             OnBackCommand();
     }
@@ -486,8 +498,8 @@ public sealed class PluginSettingEditor : TV_Player.ObservableViewModelBase
     public PluginSettingEditor(PluginSettingDefinition definition)
     {
         Key = definition.Key;
-        Label = definition.Label;
-        Description = definition.Description;
+        Label = TV_Player.Localization.I18n.TranslateKnown(definition.Label);
+        Description = definition.Description == null ? null : TV_Player.Localization.I18n.TranslateKnown(definition.Description);
         IsRequired = definition.IsRequired;
         _value = definition.DefaultValue ?? string.Empty;
     }
@@ -505,8 +517,8 @@ public sealed class ProviderPluginToggleEntry : TV_Player.ObservableViewModelBas
     public bool CanEnable => _hasConfiguredSource || HasUsableDefaults();
 
     public string StatusText => _hasConfiguredSource
-        ? (_isEnabled ? "Source configured" : "Source configured, currently disabled")
-        : CanEnable ? "Default source will be added when enabled" : "Requires settings before it can be enabled";
+        ? (_isEnabled ? TV_Player.Localization.I18n.Get("Te92cc38813f9") : TV_Player.Localization.I18n.Get("T82f628545854"))
+        : CanEnable ? TV_Player.Localization.I18n.Get("T851bf3886cc2") : TV_Player.Localization.I18n.Get("T937096daecb5");
 
     public bool IsEnabled
     {

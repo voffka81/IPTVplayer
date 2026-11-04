@@ -24,6 +24,8 @@ public partial class SettingsPage : ContentPage
             buttonStyle.Setters.Add(new Setter { Property = VisualElement.HeightRequestProperty, Value = 48d });
         }
         _session = session;
+        LanguagePicker.ItemsSource = TV_Player.Localization.I18n.LanguageNames.ToList();
+        LanguagePicker.SelectedIndex = SettingsModel.Language == "ru" ? 0 : 1;
         _items = SettingsModel.Playlists.Select(pair => new PlaylistItem(pair.Key, pair.Value)).ToList();
         _providerSources = SettingsModel.ProviderSources.Select(CloneSource).ToList();
         RefreshPlaylistView();
@@ -100,19 +102,19 @@ public partial class SettingsPage : ContentPage
         if (string.IsNullOrWhiteSpace(name) || !Uri.TryCreate(url, UriKind.Absolute, out var uri) ||
             (uri.Scheme != Uri.UriSchemeHttp && uri.Scheme != Uri.UriSchemeHttps))
         {
-            StatusLabel.Text = "Укажите имя и корректную HTTP/HTTPS ссылку.";
+            StatusLabel.Text = TV_Player.Localization.I18n.Get("T0481a0dc1daf");
             return;
         }
         if (_items.Any(item => item.Name.Equals(name, StringComparison.OrdinalIgnoreCase)) ||
             _providerSources.Any(source => source.Name.Equals(name, StringComparison.OrdinalIgnoreCase)))
         {
-            StatusLabel.Text = "Источник с таким именем уже существует.";
+            StatusLabel.Text = TV_Player.Localization.I18n.Get("T767b248ef680");
             return;
         }
         _items.Add(new PlaylistItem(name, url!));
         RefreshPlaylistView();
         NameEntry.Text = UrlEntry.Text = string.Empty;
-        StatusLabel.Text = "Добавлено. Нажмите «Сохранить».";
+        StatusLabel.Text = TV_Player.Localization.I18n.Get("Te6fc663afd7f");
     }
 
     private void OnDeleteClicked(object sender, EventArgs e)
@@ -143,14 +145,14 @@ public partial class SettingsPage : ContentPage
             if (!string.IsNullOrWhiteSpace(definition.Description))
                 ProviderSettingsLayout.Children.Add(new Label
                 {
-                    Text = definition.Description,
+                    Text = TV_Player.Localization.I18n.TranslateKnown(definition.Description),
                     FontSize = 12,
                     TextColor = Color.FromArgb("#91A6BF")
                 });
 
             var entry = new Entry
             {
-                Placeholder = definition.Label + (definition.IsRequired ? " *" : string.Empty),
+                Placeholder = TV_Player.Localization.I18n.TranslateKnown(definition.Label) + (definition.IsRequired ? " *" : string.Empty),
                 Text = definition.DefaultValue ?? string.Empty,
                 Keyboard = Uri.TryCreate(definition.DefaultValue, UriKind.Absolute, out _) ? Keyboard.Url : Keyboard.Default
             };
@@ -165,20 +167,20 @@ public partial class SettingsPage : ContentPage
         var name = ProviderNameEntry.Text?.Trim();
         if (provider == null || string.IsNullOrWhiteSpace(name))
         {
-            StatusLabel.Text = "Выберите провайдера и укажите имя источника.";
+            StatusLabel.Text = TV_Player.Localization.I18n.Get("T9a1d6cbbfcb1");
             return;
         }
         if (_items.Any(item => item.Name.Equals(name, StringComparison.OrdinalIgnoreCase)) ||
             _providerSources.Any(source => source.Name.Equals(name, StringComparison.OrdinalIgnoreCase)))
         {
-            StatusLabel.Text = "Источник с таким именем уже существует.";
+            StatusLabel.Text = TV_Player.Localization.I18n.Get("T767b248ef680");
             return;
         }
         var missing = _providerSettings.FirstOrDefault(setting =>
             setting.Definition.IsRequired && string.IsNullOrWhiteSpace(setting.Entry.Text));
         if (missing != null)
         {
-            StatusLabel.Text = $"Заполните поле «{missing.Definition.Label}».";
+            StatusLabel.Text = TV_Player.Localization.I18n.Format("Tf13de46c617e", missing.Definition.Label);
             return;
         }
 
@@ -194,7 +196,7 @@ public partial class SettingsPage : ContentPage
         ProviderSourceView.ItemsSource = null;
         ProviderSourceView.ItemsSource = _providerSources;
         ProviderNameEntry.Text = provider.Name;
-        StatusLabel.Text = "Источник добавлен. Нажмите «Сохранить».";
+        StatusLabel.Text = TV_Player.Localization.I18n.Get("T5f44984beb63");
     }
 
     private void OnProviderSourceDeleteClicked(object sender, EventArgs e)
@@ -207,13 +209,24 @@ public partial class SettingsPage : ContentPage
 
     private async void OnSaveClicked(object sender, EventArgs e)
     {
+        var language = LanguagePicker.SelectedIndex == 0 ? "ru" : "en";
+        var languageChanged = language != SettingsModel.Language;
+        SettingsModel.Language = language;
+        TV_Player.Localization.I18n.SetLanguage(language);
         SettingsModel.Playlists = _items.ToDictionary(item => item.Name, item => item.Url);
         SettingsModel.PlaylistOrder = _items.Select(item => item.Name).ToList();
         SettingsModel.ProviderSources = _providerSources;
         SettingsModel.SaveSetttings();
-        StatusLabel.Text = "Настройки сохранены.";
+        StatusLabel.Text = TV_Player.Localization.I18n.Get("Tdb022e4a824b");
         await _session.ReloadSourcesAsync();
-        await Navigation.PopAsync();
+        if (languageChanged && Window is { } window)
+            window.Page = new NavigationPage(new PlaylistPage(_session))
+            {
+                BarBackgroundColor = Color.FromArgb("#080F19"),
+                BarTextColor = Colors.White
+            };
+        else
+            await Navigation.PopAsync();
     }
 
     public sealed record PlaylistItem(string Name, string Url);

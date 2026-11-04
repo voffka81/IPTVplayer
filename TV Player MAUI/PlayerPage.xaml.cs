@@ -133,12 +133,12 @@ public partial class PlayerPage : ContentPage
         if (_isClosing) return;
         StatusLabel.Text = status switch
         {
-            PlayerStatus.Resolving => "Получение потока…",
-            PlayerStatus.Connecting => "Подключение…",
-            PlayerStatus.NoStream => "Для этого канала нет ссылки на поток.",
-            PlayerStatus.ResolutionFailed => "Не удалось получить поток. Попробуйте открыть канал заново.",
-            PlayerStatus.PlaybackFailed or PlayerStatus.EngineUnavailable => "VLC не смог открыть поток. Попробуйте другой канал или откройте этот канал заново.",
-            PlayerStatus.Ended => "Поток завершён.",
+            PlayerStatus.Resolving => TV_Player.Localization.I18n.Get("Tefac38a47b39"),
+            PlayerStatus.Connecting => TV_Player.Localization.I18n.Get("Te2449ea8e46e"),
+            PlayerStatus.NoStream => TV_Player.Localization.I18n.Get("T6ea3b303fc1d"),
+            PlayerStatus.ResolutionFailed => TV_Player.Localization.I18n.Get("T48bbb9b16cbb"),
+            PlayerStatus.PlaybackFailed or PlayerStatus.EngineUnavailable => TV_Player.Localization.I18n.Get("Ta8b49386e99e"),
+            PlayerStatus.Ended => TV_Player.Localization.I18n.Get("Tc8f3eebc2626"),
             _ => string.Empty
         };
         if (state.Phase == PlayerPlaybackPhase.Playing && _pageVisible && _appActive) RefreshVideoSurfaceSize();
@@ -368,7 +368,7 @@ public partial class PlayerPage : ContentPage
             ProgramProgress.Progress = 0;
             return;
         }
-        ProgramTitleLabel.Text = state.IsNextProgram ? $"Далее: {program.Title}" : program.Title;
+        ProgramTitleLabel.Text = state.IsNextProgram ? TV_Player.Localization.I18n.Format("T8cf91c781caf", program.Title) : program.Title;
         ProgramStartLabel.Text = program.TimeLabels.Start;
         ProgramEndLabel.Text = program.TimeLabels.End;
         ProgramProgress.Progress = program.Progress;

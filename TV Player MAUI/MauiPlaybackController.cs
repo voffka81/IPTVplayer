@@ -78,7 +78,7 @@ internal sealed class MauiPlaybackController : IDisposable
             _bind(player);
             _currentMedia = CreateMedia(streamUrl);
             if (!player.Play(_currentMedia))
-                throw new InvalidOperationException("VLC не смог начать воспроизведение потока.");
+                throw new InvalidOperationException(TV_Player.Localization.I18n.Get("T1381e4353d98"));
         }
         catch (Exception ex)
         {
