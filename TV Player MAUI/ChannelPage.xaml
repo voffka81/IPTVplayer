@@ -11,12 +11,14 @@
         <DataTemplate>
           <Border HeightRequest="142" Padding="8" BackgroundColor="#162130" Stroke="#304054" StrokeThickness="1">
             <Border.StrokeShape><RoundRectangle CornerRadius="12" /></Border.StrokeShape>
-            <Border.GestureRecognizers>
-              <TapGestureRecognizer Tapped="OnChannelTapped" />
-            </Border.GestureRecognizers>
-            <Grid RowDefinitions="*,Auto" RowSpacing="6">
-              <Image Source="{Binding Logo}" HeightRequest="82" WidthRequest="100" Aspect="AspectFit" />
-              <Label Grid.Row="1" Text="{Binding Name}" FontSize="15" LineBreakMode="WordWrap" MaxLines="2" HorizontalTextAlignment="Center" VerticalTextAlignment="Center" />
+            <Grid>
+              <Grid RowDefinitions="*,Auto" RowSpacing="6" InputTransparent="True">
+                <Image Source="{Binding Logo}" HeightRequest="82" WidthRequest="100" Aspect="AspectFit" />
+                <Label Grid.Row="1" Text="{Binding Name}" FontSize="15" LineBreakMode="WordWrap" MaxLines="2" HorizontalTextAlignment="Center" VerticalTextAlignment="Center" />
+              </Grid>
+              <Button Text="" BackgroundColor="Transparent" BorderColor="Transparent" BorderWidth="0" Padding="0"
+                      AutomationProperties.Name="{Binding Name}"
+                      Clicked="OnChannelTapped" Focused="OnChannelFocused" Unfocused="OnChannelUnfocused" />
             </Grid>
           </Border>
         </DataTemplate>

@@ -46,7 +46,27 @@ public partial class ChannelPage : ContentPage
         .Where(channel => string.IsNullOrWhiteSpace(SearchEntry.Text) || channel.Name.Contains(SearchEntry.Text, StringComparison.CurrentCultureIgnoreCase))
         .Select(channel => new ChannelTile(channel.Name, channel.Logo, channel)).ToList();
 
-    private async void OnChannelTapped(object sender, TappedEventArgs e)
+    private void OnChannelFocused(object? sender, FocusEventArgs e)
+    {
+        if ((sender as Element)?.Parent?.Parent is Border border)
+        {
+            border.BackgroundColor = Color.FromArgb("#244765");
+            border.Stroke = Color.FromArgb("#7BD0FF");
+            border.StrokeThickness = 3;
+        }
+    }
+
+    private void OnChannelUnfocused(object? sender, FocusEventArgs e)
+    {
+        if ((sender as Element)?.Parent?.Parent is Border border)
+        {
+            border.BackgroundColor = Color.FromArgb("#162130");
+            border.Stroke = Color.FromArgb("#304054");
+            border.StrokeThickness = 1;
+        }
+    }
+
+    private async void OnChannelTapped(object? sender, EventArgs e)
     {
         if ((sender as BindableObject)?.BindingContext is ChannelTile { Channel: not null } tile)
             await Navigation.PushAsync(new PlayerPage(tile.Channel, _allChannels, _session.CurrentSource!));
