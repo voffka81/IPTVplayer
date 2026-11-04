@@ -15,7 +15,8 @@ internal static class TvFocusOutline
                 view is not (Button or Entry or Picker))
                 return;
 
-            var native = handler.PlatformView;
+            if (handler.PlatformView is not Android.Views.View native)
+                return;
             var density = native.Resources?.DisplayMetrics?.Density ?? 1f;
             int Dp(float value) => Math.Max(1, (int)Math.Round(value * density));
             GradientDrawable Ring(string color, int width)
