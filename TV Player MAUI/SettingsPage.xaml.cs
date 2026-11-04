@@ -32,6 +32,49 @@ public partial class SettingsPage : ContentPage
 
     private async void OnUpdatesClicked(object sender, EventArgs e) => await Navigation.PushAsync(new UpdatePage());
 
+    protected override void OnAppearing()
+    {
+        base.OnAppearing();
+        if (DeviceLayout.IsTelevision)
+            MainActivity.PlayerKeyPressed += OnSettingsRemoteKey;
+    }
+
+    protected override void OnDisappearing()
+    {
+        MainActivity.PlayerKeyPressed -= OnSettingsRemoteKey;
+        base.OnDisappearing();
+    }
+
+    private bool OnSettingsRemoteKey(TV_Player.Input.PlayerRemoteKey key, bool nativeControlFocused)
+    {
+        if (key is not (TV_Player.Input.PlayerRemoteKey.Up or TV_Player.Input.PlayerRemoteKey.Down) ||
+            SettingsScroll.Handler?.PlatformView is not Android.Views.ViewGroup root || !root.HasWindowFocus)
+            return false;
+
+        var controls = new List<Android.Views.View>();
+        void Collect(Android.Views.View view)
+        {
+            if (!view.IsShown || !view.Enabled) return;
+            if (view.Focusable && view is Android.Widget.Button or Android.Widget.EditText or Android.Widget.Spinner)
+                controls.Add(view);
+            else if (view is Android.Views.ViewGroup group)
+                for (var i = 0; i < group.ChildCount; i++)
+                    if (group.GetChildAt(i) is { } child) Collect(child);
+        }
+        Collect(root);
+        if (controls.Count == 0) return false;
+        var index = controls.IndexOf(root.FindFocus()!);
+        var direction = key == TV_Player.Input.PlayerRemoteKey.Down ? 1 : -1;
+        var next = index < 0 ? (direction > 0 ? 0 : controls.Count - 1)
+            : Math.Clamp(index + direction, 0, controls.Count - 1);
+        var target = controls[next];
+        if (!target.RequestFocus()) return false;
+        var rectangle = new Android.Graphics.Rect();
+        target.GetDrawingRect(rectangle);
+        target.RequestRectangleOnScreen(rectangle, true);
+        return true;
+    }
+
     private void OnAddClicked(object sender, EventArgs e)
     {
         var name = NameEntry.Text?.Trim();
