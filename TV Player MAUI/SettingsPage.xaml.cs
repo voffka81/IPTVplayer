@@ -19,7 +19,7 @@ public partial class SettingsPage : ContentPage
         {
             SettingsScroll.MaximumWidthRequest = 760;
             SettingsScroll.HorizontalOptions = LayoutOptions.Start;
-            var buttonStyle = (Style)Resources[typeof(Button)];
+            var buttonStyle = (Style)Resources["SettingsButtonStyle"];
             buttonStyle.Setters.Add(new Setter { Property = VisualElement.HeightRequestProperty, Value = 48d });
         }
         _session = session;
