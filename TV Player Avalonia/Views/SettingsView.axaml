@@ -32,10 +32,20 @@
     <Style Selector="Button:focus /template/ ContentPresenter">
       <Setter Property="Background" Value="#285578" />
       <Setter Property="BorderBrush" Value="#FFD600" />
-      <Setter Property="BorderThickness" Value="2" />
+      <Setter Property="BorderThickness" Value="3" />
     </Style>
     <Style Selector="Button:pressed /template/ ContentPresenter">
       <Setter Property="Background" Value="#3975A1" />
+    </Style>
+    <Style Selector="Button:focus">
+      <Setter Property="Effect"><DropShadowEffect Color="#55B9FF" BlurRadius="18" OffsetX="0" OffsetY="0" Opacity="0.9" /></Setter>
+    </Style>
+    <Style Selector="Button.settings-tab.active">
+      <Setter Property="Effect"><DropShadowEffect Color="#55B9FF" BlurRadius="14" OffsetX="0" OffsetY="0" Opacity="0.8" /></Setter>
+    </Style>
+    <Style Selector="Button.settings-tab.active /template/ ContentPresenter">
+      <Setter Property="BorderBrush" Value="#7BD0FF" />
+      <Setter Property="BorderThickness" Value="3" />
     </Style>
   </UserControl.Styles>
 
