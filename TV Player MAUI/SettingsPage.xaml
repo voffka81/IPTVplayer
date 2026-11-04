@@ -4,7 +4,7 @@
              x:Class="TV_Player.Maui.SettingsPage"
              Title="Настройки">
   <ContentPage.Resources>
-    <Style TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
+    <Style TargetType="Button" BasedOn="{StaticResource BaseButtonStyle}">
       <Setter Property="HorizontalOptions" Value="Start" />
       <Setter Property="VerticalOptions" Value="Center" />
       <Setter Property="MinimumHeightRequest" Value="48" />
