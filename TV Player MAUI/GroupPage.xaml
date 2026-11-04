@@ -3,9 +3,10 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="TV_Player.Maui.GroupPage"
              Title="Группы">
-  <Grid RowDefinitions="Auto,*" RowSpacing="12">
+  <Grid RowDefinitions="Auto,Auto,*" RowSpacing="12">
     <Entry x:Name="SearchEntry" Placeholder="Поиск групп" TextChanged="OnSearchChanged" />
-    <CollectionView x:Name="GroupsView" Grid.Row="1" SelectionMode="None">
+    <Label x:Name="LoadStatus" Grid.Row="1" Text="Загрузка плейлиста…" TextColor="#91C9FF" />
+    <CollectionView x:Name="GroupsView" Grid.Row="2" SelectionMode="None">
       <CollectionView.ItemsLayout><GridItemsLayout x:Name="GroupGridLayout" Orientation="Vertical" Span="2" HorizontalItemSpacing="12" VerticalItemSpacing="12" /></CollectionView.ItemsLayout>
       <CollectionView.ItemTemplate>
         <DataTemplate>

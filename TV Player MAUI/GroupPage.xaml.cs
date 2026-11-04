@@ -9,6 +9,7 @@ public partial class GroupPage : ContentPage
     private readonly AppSession _session;
     private readonly List<GroupInfo> _allGroups = new();
     private IDisposable? _groupSubscription;
+    private IDisposable? _errorSubscription;
 
     public GroupPage(AppSession session, string sourceName)
     {
@@ -26,7 +27,13 @@ public partial class GroupPage : ContentPage
         {
             _allGroups.Clear();
             _allGroups.AddRange(groups);
+            LoadStatus.Text = groups.Count == 0 ? "В плейлисте нет каналов." : string.Empty;
             ApplyFilter();
+        }));
+        _errorSubscription?.Dispose();
+        _errorSubscription = _session.CurrentSource.LoadErrors.Subscribe(error => MainThread.BeginInvokeOnMainThread(() =>
+        {
+            LoadStatus.Text = $"Не удалось загрузить плейлист: {error}";
         }));
     }
 
@@ -34,6 +41,8 @@ public partial class GroupPage : ContentPage
     {
         _groupSubscription?.Dispose();
         _groupSubscription = null;
+        _errorSubscription?.Dispose();
+        _errorSubscription = null;
         base.OnDisappearing();
     }
 

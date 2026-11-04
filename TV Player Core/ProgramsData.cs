@@ -11,6 +11,8 @@ namespace TV_Player
         private readonly ReplaySubject<List<M3UInfo>> programsSubject = new ReplaySubject<List<M3UInfo>>();
         private readonly ReplaySubject<List<GroupInfo>> groupsSubject = new ReplaySubject<List<GroupInfo>>();
         private readonly ReplaySubject<Unit> programGuideSubject = new ReplaySubject<Unit>();
+        private readonly ReplaySubject<string> loadErrors = new(1);
+        public IObservable<string> LoadErrors => loadErrors;
         public IObservable<List<M3UInfo>> AllPrograms => programsSubject;
         public IObservable<List<GroupInfo>> GroupsInformation => groupsSubject;
         public IObservable<Unit> ProgramGuideInfo => programGuideSubject;
@@ -87,7 +89,10 @@ namespace TV_Player
             catch (Exception ex)
             {
                 System.Diagnostics.Debug.WriteLine($"[ProgramsData] ERROR downloading programs: {ex.Message}");
-                throw;
+                if (!_cts.IsCancellationRequested)
+                {
+                    loadErrors.OnNext(ex.GetBaseException().Message);
+                }
             }
         }
 
