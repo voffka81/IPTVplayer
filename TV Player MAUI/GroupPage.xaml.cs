@@ -59,9 +59,16 @@ public partial class GroupPage : ContentPage
         LoadStatus.Text = "Загрузка плейлиста…";
         _groupSubscription?.Dispose();
         _errorSubscription?.Dispose();
-        await _session.ReloadSourcesAsync();
-        _session.SelectSource(Title);
-        SubscribeToSource();
+        try
+        {
+            _session.ReloadSource(Title);
+            SubscribeToSource();
+        }
+        catch (Exception error)
+        {
+            LoadStatus.Text = $"Не удалось загрузить источник: {error.Message}";
+            RetryButton.IsVisible = true;
+        }
     }
 
     private void OnSearchChanged(object sender, TextChangedEventArgs e) => ApplyFilter();
