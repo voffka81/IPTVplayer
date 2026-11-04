@@ -33,13 +33,13 @@ public partial class GroupPage : ContentPage
             RetryButton.IsVisible = groups.Count == 0;
             _allGroups.Clear();
             _allGroups.AddRange(groups);
-            LoadStatus.Text = groups.Count == 0 ? "В плейлисте нет каналов." : string.Empty;
+            LoadStatus.Text = groups.Count == 0 ? TV_Player.Localization.I18n.Get("Tf901d2dc9965") : string.Empty;
             ApplyFilter();
         }));
         _errorSubscription?.Dispose();
         _errorSubscription = _session.CurrentSource.LoadErrors.Subscribe(error => MainThread.BeginInvokeOnMainThread(() =>
         {
-            LoadStatus.Text = $"Не удалось загрузить плейлист: {error}";
+            LoadStatus.Text = TV_Player.Localization.I18n.Format("T2acfa47c3d0e", error);
             RetryButton.IsVisible = true;
         }));
     }
@@ -56,7 +56,7 @@ public partial class GroupPage : ContentPage
     private void OnRetryClicked(object sender, EventArgs e)
     {
         RetryButton.IsVisible = false;
-        LoadStatus.Text = "Загрузка плейлиста…";
+        LoadStatus.Text = TV_Player.Localization.I18n.Get("T8ead34a86610");
         _groupSubscription?.Dispose();
         _errorSubscription?.Dispose();
         try
@@ -66,7 +66,7 @@ public partial class GroupPage : ContentPage
         }
         catch (Exception error)
         {
-            LoadStatus.Text = $"Не удалось загрузить источник: {error.Message}";
+            LoadStatus.Text = TV_Player.Localization.I18n.Format("Td9dd05a865bb", error.Message);
             RetryButton.IsVisible = true;
         }
     }

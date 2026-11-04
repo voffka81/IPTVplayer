@@ -1,5 +1,6 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:loc="clr-namespace:TV_Player.AvaloniaApp.Localization"
              x:Class="TV_Player.AvaloniaApp.Views.SettingsView">
   <UserControl.Styles>
     <Style Selector="Button.settings-tab">
@@ -53,27 +54,27 @@
     <Grid Grid.Row="0" ColumnDefinitions="180,*">
       <Border Grid.Column="0" Margin="0,0,14,0" Background="#101A28" BorderBrush="#24364B" BorderThickness="1" CornerRadius="16" Padding="10">
         <StackPanel Spacing="8">
-          <TextBlock Text="SETTINGS" Foreground="#7188A3" FontSize="11" FontWeight="Bold" Margin="12,10,0,8" />
+          <TextBlock Text="{loc:T Key=T02f6ea12816a}" Foreground="#7188A3" FontSize="11" FontWeight="Bold" Margin="12,10,0,8" />
           <Button Classes="settings-tab" Classes.active="{Binding IsSourcesSection}" Command="{Binding ShowSourcesSectionCommand}">
             <StackPanel Orientation="Horizontal" Spacing="12" VerticalAlignment="Center">
               <TextBlock Text="▤" FontSize="18" />
-              <TextBlock Text="Sources" FontSize="15" />
+              <TextBlock Text="{loc:T Key=Tcaf85b0888d7}" FontSize="15" />
             </StackPanel>
           </Button>
           <Button Classes="settings-tab" Classes.active="{Binding IsPluginsSection}" Command="{Binding ShowPluginsSectionCommand}">
             <StackPanel Orientation="Horizontal" Spacing="12" VerticalAlignment="Center">
               <TextBlock Text="◈" FontSize="18" />
-              <TextBlock Text="Plugins" FontSize="15" />
+              <TextBlock Text="{loc:T Key=T9514b7ff4860}" FontSize="15" />
             </StackPanel>
           </Button>
           <Button Classes="settings-tab" Classes.active="{Binding IsPlaybackSection}" Command="{Binding ShowPlaybackSectionCommand}">
             <StackPanel Orientation="Horizontal" Spacing="12" VerticalAlignment="Center">
               <TextBlock Text="⚙" FontSize="18" />
-              <TextBlock Text="Playback" FontSize="15" />
+              <TextBlock Text="{loc:T Key=T2db1db07062e}" FontSize="15" />
             </StackPanel>
           </Button>
           <Border Height="1" Background="#26384D" Margin="4,10" />
-          <TextBlock Text="Changes apply when saved" Foreground="#7188A3" FontSize="12" TextWrapping="Wrap" Margin="10,0" />
+          <TextBlock Text="{loc:T Key=T8e2e5e6c3aae}" Foreground="#7188A3" FontSize="12" TextWrapping="Wrap" Margin="10,0" />
         </StackPanel>
       </Border>
 
@@ -82,16 +83,16 @@
           <!-- Sources -->
           <Grid IsVisible="{Binding IsSourcesSection}" RowDefinitions="Auto,Auto,*,Auto">
             <StackPanel Spacing="4">
-              <TextBlock Text="Sources" Foreground="#F5F8FF" FontSize="22" FontWeight="SemiBold" />
-                <TextBlock Text="Manage M3U playlists and provider sources." Foreground="#91A6BF" FontSize="13" />
+              <TextBlock Text="{loc:T Key=Tcaf85b0888d7}" Foreground="#F5F8FF" FontSize="22" FontWeight="SemiBold" />
+                <TextBlock Text="{loc:T Key=T6097d240f685}" Foreground="#91A6BF" FontSize="13" />
             </StackPanel>
             <Border Grid.Row="1" Margin="0,14,0,0" Background="#141F2E" BorderBrush="#273B53" BorderThickness="1" CornerRadius="13" Padding="14">
               <StackPanel Spacing="6">
                 <Grid ColumnDefinitions="*,*,Auto">
-                  <TextBox Margin="0,0,5,0" Text="{Binding PlaylistURL}" Watermark="Playlist URL" />
-                  <TextBox Grid.Column="1" Margin="5,0" Text="{Binding PlaylistName}" Watermark="Playlist name" />
+                  <TextBox Margin="0,0,5,0" Text="{Binding PlaylistURL}" Watermark="{loc:T Key=T498c686fc285}" />
+                  <TextBox Grid.Column="1" Margin="5,0" Text="{Binding PlaylistName}" Watermark="{loc:T Key=T159728ef5a61}" />
                   <Button Grid.Column="2" Classes="handheld-primary" Command="{Binding AddPlaylistCommand}" Padding="14,0">
-                    <TextBlock Text="Add playlist" />
+                    <TextBlock Text="{loc:T Key=T2b0f2e4097a7}" />
                   </Button>
                 </Grid>
                 <TextBlock Text="{Binding PlaylistError}" Foreground="#FF9B91" FontSize="12" TextWrapping="Wrap" />
@@ -108,8 +109,8 @@
                 <ListBox.ItemTemplate>
                   <DataTemplate>
                     <Grid ColumnDefinitions="*,2*,Auto,Auto,Auto" MinHeight="56">
-                      <TextBox Text="{Binding Name, Mode=TwoWay}" Watermark="Playlist name" Margin="2" VerticalAlignment="Center" />
-                      <TextBox Grid.Column="1" Text="{Binding Url, Mode=TwoWay}" Watermark="Playlist URL" Margin="2" VerticalAlignment="Center" />
+                      <TextBox Text="{Binding Name, Mode=TwoWay}" Watermark="{loc:T Key=T159728ef5a61}" Margin="2" VerticalAlignment="Center" />
+                      <TextBox Grid.Column="1" Text="{Binding Url, Mode=TwoWay}" Watermark="{loc:T Key=T498c686fc285}" Margin="2" VerticalAlignment="Center" />
                       <Button Grid.Column="2" Classes="toolbar-flat" Width="40" Height="40" CommandParameter="{Binding}" Command="{Binding DataContext.PlaylistMoveUpCommand, RelativeSource={RelativeSource AncestorType=UserControl}}">
                         <TextBlock Text="↑" FontSize="18" />
                       </Button>
@@ -126,17 +127,17 @@
             </Border>
             <Border Grid.Row="3" Margin="0,12,0,0" Background="#141F2E" BorderBrush="#273B53" BorderThickness="1" CornerRadius="13" Padding="10">
               <StackPanel Spacing="6">
-                <TextBlock Text="Provider sources" Foreground="#F5F8FF" FontSize="14" FontWeight="SemiBold" Margin="4,0,4,2" />
+                <TextBlock Text="{loc:T Key=T3885d596b1b9}" Foreground="#F5F8FF" FontSize="14" FontWeight="SemiBold" Margin="4,0,4,2" />
                 <ScrollViewer MaxHeight="130" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
                   <ItemsControl ItemsSource="{Binding PluginSources}">
                     <ItemsControl.ItemTemplate>
                       <DataTemplate>
                         <Grid ColumnDefinitions="*,Auto,Auto" MinHeight="48" Margin="4,1">
                           <StackPanel VerticalAlignment="Center" Spacing="2">
-                            <TextBox Text="{Binding Name, Mode=TwoWay}" Watermark="Source name" />
+                            <TextBox Text="{Binding Name, Mode=TwoWay}" Watermark="{loc:T Key=T1939968f47d1}" />
                             <TextBlock Text="{Binding PluginId}" Foreground="#91A6BF" FontSize="11" />
                           </StackPanel>
-                          <CheckBox Grid.Column="1" IsChecked="{Binding Enabled}" IsEnabled="False" Content="Enabled" VerticalAlignment="Center" Margin="8,0" />
+                          <CheckBox Grid.Column="1" IsChecked="{Binding Enabled}" IsEnabled="False" Content="{loc:T Key=T92c1cdfdf4cb}" VerticalAlignment="Center" Margin="8,0" />
                           <Button Grid.Column="2" Classes="handheld-danger" Width="40" Height="40" CommandParameter="{Binding}" Command="{Binding DataContext.PluginSourceDeleteCommand, RelativeSource={RelativeSource AncestorType=UserControl}}">
                             <TextBlock Text="−" FontSize="20" />
                           </Button>
@@ -145,7 +146,7 @@
                     </ItemsControl.ItemTemplate>
                   </ItemsControl>
                 </ScrollViewer>
-                <TextBlock IsVisible="{Binding IsNoProviderSources}" Text="No provider sources added yet." Foreground="#7188A3" FontSize="12" Margin="4,0" />
+                <TextBlock IsVisible="{Binding IsNoProviderSources}" Text="{loc:T Key=T95a0a6a26590}" Foreground="#7188A3" FontSize="12" Margin="4,0" />
               </StackPanel>
             </Border>
           </Grid>
@@ -154,8 +155,8 @@
           <ScrollViewer IsVisible="{Binding IsPluginsSection}" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
             <StackPanel Spacing="14">
               <StackPanel Spacing="4">
-                <TextBlock Text="Provider plugins" Foreground="#F5F8FF" FontSize="22" FontWeight="SemiBold" />
-                <TextBlock Text="Enable a plugin to add its default source. Rename sources in the Sources tab." Foreground="#91A6BF" FontSize="13" TextWrapping="Wrap" />
+                <TextBlock Text="{loc:T Key=T88909f7f9961}" Foreground="#F5F8FF" FontSize="22" FontWeight="SemiBold" />
+                <TextBlock Text="{loc:T Key=T586472d53ede}" Foreground="#91A6BF" FontSize="13" TextWrapping="Wrap" />
               </StackPanel>
               <Border Background="#141F2E" BorderBrush="#273B53" BorderThickness="1" CornerRadius="13" Padding="16">
                 <StackPanel Spacing="10">
@@ -183,20 +184,23 @@
 
           <!-- Playback -->
           <StackPanel IsVisible="{Binding IsPlaybackSection}" Spacing="14">
+            <TextBlock Text="{loc:T Key=Ta4fe65264ef7}" FontSize="16" />
+            <ComboBox ItemsSource="{Binding LanguageNames}" SelectedIndex="{Binding LanguageIndex, Mode=TwoWay}" HorizontalAlignment="Stretch" />
+            <TextBlock Text="{loc:T Key=Tf7fbcb826f13}" Foreground="#91A6BF" TextWrapping="Wrap" />
             <StackPanel Spacing="4">
-              <TextBlock Text="Playback" Foreground="#F5F8FF" FontSize="22" FontWeight="SemiBold" />
-              <TextBlock Text="Choose how the player starts and displays video." Foreground="#91A6BF" FontSize="13" />
+              <TextBlock Text="{loc:T Key=T2db1db07062e}" Foreground="#F5F8FF" FontSize="22" FontWeight="SemiBold" />
+              <TextBlock Text="{loc:T Key=T3cd2437dcd8b}" Foreground="#91A6BF" FontSize="13" />
             </StackPanel>
             <Border Background="#141F2E" BorderBrush="#273B53" BorderThickness="1" CornerRadius="13" Padding="16">
               <StackPanel Spacing="12">
-                <TextBlock Text="Active playback engine" Foreground="#A9BDD5" FontSize="13" />
+                <TextBlock Text="{loc:T Key=Tf0ed30a3879b}" Foreground="#A9BDD5" FontSize="13" />
                 <TextBlock Text="VLC" Foreground="#F5F8FF" FontSize="16" FontWeight="SemiBold" />
               </StackPanel>
             </Border>
             <Border Background="#141F2E" BorderBrush="#273B53" BorderThickness="1" CornerRadius="13" Padding="12">
               <StackPanel>
-                <CheckBox IsChecked="{Binding StartFullScreen}" Content="Start fullscreen" />
-                <CheckBox IsChecked="{Binding StartLastScreen}" Content="Remember last channel" />
+                <CheckBox IsChecked="{Binding StartFullScreen}" Content="{loc:T Key=T46bc70ddb768}" />
+                <CheckBox IsChecked="{Binding StartLastScreen}" Content="{loc:T Key=T67172354ae98}" />
               </StackPanel>
             </Border>
           </StackPanel>
@@ -210,7 +214,7 @@
         <TextBlock Text="{Binding PlaylistError}" Foreground="#FF9B91" FontSize="12" TextWrapping="Wrap" />
       </StackPanel>
       <Button Grid.Column="1" Classes="handheld-primary" Command="{Binding SaveCommand}" Padding="20,0">
-        <TextBlock Text="Save changes" />
+        <TextBlock Text="{loc:T Key=Tdd0ae7a5cbcf}" />
       </Button>
     </Grid>
   </Grid>

@@ -57,7 +57,7 @@ public partial class PlaylistPage : ContentPage
             if (updater.IsStoreBuild) return;
             var result = await updater.CheckAsync(token);
             if (token.IsCancellationRequested || result.Update == null) return;
-            UpdateAvailableButton.Text = $"Доступна версия {result.Update.Manifest.VersionName} — обновить";
+            UpdateAvailableButton.Text = TV_Player.Localization.I18n.Format("T7936d51640cf", result.Update.Manifest.VersionName);
             UpdateAvailableButton.IsVisible = true;
         }
         catch (Exception ex) when (ex is not OutOfMemoryException)

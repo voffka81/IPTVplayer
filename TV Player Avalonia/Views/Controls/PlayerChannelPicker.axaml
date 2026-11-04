@@ -1,5 +1,6 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:loc="clr-namespace:TV_Player.AvaloniaApp.Localization"
              xmlns:asyncImageLoader="clr-namespace:AsyncImageLoader;assembly=AsyncImageLoader.Avalonia"
              x:Class="TV_Player.AvaloniaApp.Views.Controls.PlayerChannelPicker">
   <UserControl.Styles>
@@ -18,7 +19,7 @@
                 Margin="18,0,18,8"
                 IsVisible="{Binding ChannelPickerVisible}">
           <StackPanel Spacing="6">
-            <TextBlock Text="КАНАЛЫ В ГРУППЕ" Foreground="#91A6BF" FontSize="11" FontWeight="Bold" />
+            <TextBlock Text="{loc:T Key=T1fb211e3e38b}" Foreground="#91A6BF" FontSize="11" FontWeight="Bold" />
             <ListBox x:Name="ChannelPickerList"
                      Height="82"
                      Classes="channel-picker-list"

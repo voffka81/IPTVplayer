@@ -1,13 +1,14 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:loc="clr-namespace:TV_Player.Maui.Localization"
              x:Class="TV_Player.Maui.GroupPage"
-             Title="Группы">
+             Title="{loc:T Key=Tcd8c58735108}">
   <Grid RowDefinitions="Auto,Auto,*" RowSpacing="12">
-    <Entry x:Name="SearchEntry" Placeholder="Поиск групп" TextChanged="OnSearchChanged" />
+    <Entry x:Name="SearchEntry" Placeholder="{loc:T Key=Tf66b64fcbfe3}" TextChanged="OnSearchChanged" />
     <VerticalStackLayout Grid.Row="1" Spacing="8">
-      <Label x:Name="LoadStatus" Text="Загрузка плейлиста…" TextColor="#91C9FF" />
-      <Button x:Name="RetryButton" Text="Повторить загрузку" IsVisible="False" HorizontalOptions="Start" Clicked="OnRetryClicked" />
+      <Label x:Name="LoadStatus" Text="{loc:T Key=T8ead34a86610}" TextColor="#91C9FF" />
+      <Button x:Name="RetryButton" Text="{loc:T Key=T298e41327fee}" IsVisible="False" HorizontalOptions="Start" Clicked="OnRetryClicked" />
     </VerticalStackLayout>
     <CollectionView x:Name="GroupsView" Grid.Row="2" SelectionMode="None">
       <CollectionView.ItemsLayout><GridItemsLayout x:Name="GroupGridLayout" Orientation="Vertical" Span="2" HorizontalItemSpacing="12" VerticalItemSpacing="12" /></CollectionView.ItemsLayout>

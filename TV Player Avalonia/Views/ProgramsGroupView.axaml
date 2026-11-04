@@ -1,10 +1,11 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:loc="clr-namespace:TV_Player.AvaloniaApp.Localization"
              x:Class="TV_Player.AvaloniaApp.Views.ProgramsGroupView">
   <Grid RowDefinitions="Auto,*">
     <TextBox Grid.Row="0"
              Margin="7,0,7,8"
-             Watermark="Поиск групп"
+             Watermark="{loc:T Key=Tf66b64fcbfe3}"
              Text="{Binding SearchText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
     <ListBox Grid.Row="1"
              ItemsSource="{Binding Programs}"

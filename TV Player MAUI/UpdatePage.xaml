@@ -1,20 +1,21 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-             x:Class="TV_Player.Maui.UpdatePage" Title="Обновления приложения">
+             xmlns:loc="clr-namespace:TV_Player.Maui.Localization"
+             x:Class="TV_Player.Maui.UpdatePage" Title="{loc:T Key=T1eb91e3a5236}">
   <ScrollView>
     <VerticalStackLayout Spacing="14" Padding="4,10">
       <Label x:Name="InstalledLabel" FontSize="18" />
-      <Label Text="Канал обновлений" />
-      <Picker x:Name="ChannelPicker" Title="Канал обновлений" SelectedIndexChanged="OnChannelChanged" />
-      <Label Text="Release — стабильные версии. Dev — стабильные и тестовые версии. Понижение версии не выполняется." FontSize="13" TextColor="#91A6BF" />
-      <Button x:Name="CheckButton" Text="Проверить обновления" Clicked="OnCheckClicked" />
+      <Label Text="{loc:T Key=Td495cb058e1c}" />
+      <Picker x:Name="ChannelPicker" Title="{loc:T Key=Td495cb058e1c}" SelectedIndexChanged="OnChannelChanged" />
+      <Label Text="{loc:T Key=Tcd2bafb202ff}" FontSize="13" TextColor="#91A6BF" />
+      <Button x:Name="CheckButton" Text="{loc:T Key=T93b08f7b1465}" Clicked="OnCheckClicked" />
       <Label x:Name="UpdateStatus" TextColor="#8DD2FF" />
       <Label x:Name="AvailableLabel" FontAttributes="Bold" />
       <ProgressBar x:Name="DownloadProgress" IsVisible="False" ProgressColor="#55B9FF" />
-      <Button x:Name="DownloadButton" Text="Скачать обновление" IsVisible="False" Clicked="OnDownloadClicked" />
-      <Button x:Name="InstallButton" Text="Установить обновление" IsVisible="False" Clicked="OnInstallClicked" />
-      <Button x:Name="CancelButton" Text="Отменить" IsVisible="False" Clicked="OnCancelClicked" />
+      <Button x:Name="DownloadButton" Text="{loc:T Key=T0a8113a0b99c}" IsVisible="False" Clicked="OnDownloadClicked" />
+      <Button x:Name="InstallButton" Text="{loc:T Key=T8a858910555f}" IsVisible="False" Clicked="OnInstallClicked" />
+      <Button x:Name="CancelButton" Text="{loc:T Key=T7c47f7292ba4}" IsVisible="False" Clicked="OnCancelClicked" />
       <Label x:Name="ReleaseNotes" FontSize="14" />
     </VerticalStackLayout>
   </ScrollView>

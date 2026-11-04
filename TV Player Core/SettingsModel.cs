@@ -37,6 +37,7 @@ namespace TV_Player.ViewModels
         public static string[] HiddenGroups { get; set; }
         // Used by the Avalonia frontend. VLC remains the default for existing installations.
         public static string PlaybackEngine { get; set; } = "vlc";
+        public static string Language { get; set; } = TV_Player.Localization.I18n.Language;
 
         public static void SaveSetttings()
         {
@@ -53,6 +54,7 @@ namespace TV_Player.ViewModels
                 Program,
                 HiddenGroups,
                 PlaybackEngine,
+                Language,
             };
 
             // Serialize the object to JSON
@@ -77,7 +79,8 @@ namespace TV_Player.ViewModels
                 StartFromLastScreen = default(bool),
                 StartFullScreen = default(bool),
                 HiddenGroups = default(string[]),
-                PlaybackEngine = default(string)
+                PlaybackEngine = default(string),
+                Language = default(string)
             };
             if (File.Exists(SettingsFilePath))
             {
@@ -101,6 +104,8 @@ namespace TV_Player.ViewModels
             HiddenGroups = loadedData.HiddenGroups;
             // VLC is the only backend currently connected to the video surfaces.
             PlaybackEngine = "vlc";
+            Language = TV_Player.Localization.I18n.Normalize(loadedData.Language);
+            TV_Player.Localization.I18n.SetLanguage(Language);
         }
     }
 }

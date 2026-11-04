@@ -10,6 +10,7 @@ public partial class App : Application
 {
     public override void Initialize()
     {
+        TV_Player.ViewModels.SettingsModel.LoadSettings();
         AvaloniaXamlLoader.Load(this);
     }
 

@@ -130,7 +130,7 @@ public class TVPlayerViewModel : IDisposable
     public void ShowPlaylistsGroupScreen()
     {
         SettingsModel.LastScreen = nameof(ProgramsGroupViewModel);
-        TopPanelVisible(true, "Playlists");
+        TopPanelVisible(true, TV_Player.Localization.I18n.Get("Tdcd0a4d2c65a"));
         SetPageContext(new PlaylistsGroupViewModel());
     }
 
@@ -141,7 +141,7 @@ public class TVPlayerViewModel : IDisposable
         CurrentProgramsData = selectedData.Value;
 
         SettingsModel.LastScreen = nameof(ProgramsGroupViewModel);
-        TopPanelVisible(true, "Groups");
+        TopPanelVisible(true, TV_Player.Localization.I18n.Get("T39bbb719fa2b"));
         SetBackButtonAction(ShowPlaylistsGroupScreen);
         SetPageContext(new ProgramsGroupViewModel());
     }
@@ -167,7 +167,7 @@ public class TVPlayerViewModel : IDisposable
 
     public void ShowSettingsScreen()
     {
-        TopPanelVisible(true, "Settings");
+        TopPanelVisible(true, TV_Player.Localization.I18n.Get("T74a883a037bc"));
         SetBackButtonAction(SelectScreen);
         SetPageContext(new SettingsViewModel());
     }

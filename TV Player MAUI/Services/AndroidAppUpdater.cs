@@ -32,7 +32,7 @@ public sealed class AndroidAppUpdater
 
     public async Task<UpdateCheckResult> CheckAsync(CancellationToken cancellationToken)
     {
-        if (IsStoreBuild) throw new InvalidOperationException("Обновите приложение через Google Play.");
+        if (IsStoreBuild) throw new InvalidOperationException(TV_Player.Localization.I18n.Get("Tac6e51c31c70"));
         using var timeout = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
         timeout.CancelAfter(TimeSpan.FromSeconds(45));
         return await _service.CheckAsync(Channel, InstalledVersionCode, (int)Build.VERSION.SdkInt, timeout.Token);
@@ -40,11 +40,11 @@ public sealed class AndroidAppUpdater
 
     public async Task<string> DownloadAsync(AvailableUpdate update, IProgress<DownloadProgress> progress, CancellationToken token)
     {
-        if (IsStoreBuild) throw new InvalidOperationException("Обновите приложение через Google Play.");
+        if (IsStoreBuild) throw new InvalidOperationException(TV_Player.Localization.I18n.Get("Tac6e51c31c70"));
         Directory.CreateDirectory(CacheDirectory);
         using var storage = new StatFs(CacheDirectory);
         if (storage.AvailableBytes < update.Manifest.Size + 50L * 1024 * 1024)
-            throw new IOException("Недостаточно свободного места для обновления.");
+            throw new IOException(TV_Player.Localization.I18n.Get("T814ef67e77f8"));
         using var timeout = CancellationTokenSource.CreateLinkedTokenSource(token);
         timeout.CancelAfter(TimeSpan.FromMinutes(15));
         var path = await _service.DownloadAsync(update, CacheDirectory, progress, timeout.Token);
@@ -54,31 +54,31 @@ public sealed class AndroidAppUpdater
 
     public void ValidateApk(string path, AndroidUpdateManifest manifest)
     {
-        if (manifest.VersionCode <= InstalledVersionCode) throw new InvalidDataException("Понижение или повторная установка версии запрещены.");
+        if (manifest.VersionCode <= InstalledVersionCode) throw new InvalidDataException(TV_Player.Localization.I18n.Get("T87abebd5599c"));
         var flags = OperatingSystem.IsAndroidVersionAtLeast(28) ? PackageInfoFlags.SigningCertificates : PackageInfoFlags.Signatures;
         using var installed = Manager.GetPackageInfo(Context.PackageName!, flags)!;
         using var candidate = Manager.GetPackageArchiveInfo(path, flags)
-            ?? throw new InvalidDataException("Android не распознал APK.");
+            ?? throw new InvalidDataException(TV_Player.Localization.I18n.Get("Tded2eb8477ba"));
         if (candidate.PackageName != AndroidUpdatePolicy.PackageId || GetVersionCode(candidate) != manifest.VersionCode ||
             candidate.VersionName != manifest.VersionName)
-            throw new InvalidDataException("Пакет или версия APK не совпадает с релизом.");
+            throw new InvalidDataException(TV_Player.Localization.I18n.Get("T8ba9343e8198"));
         if (!Certificates(installed).SequenceEqual(Certificates(candidate)))
-            throw new InvalidDataException("Подпись APK отличается от установленного приложения.");
+            throw new InvalidDataException(TV_Player.Localization.I18n.Get("Ta6f1e1205bd8"));
         if (candidate.ApplicationInfo == null || (OperatingSystem.IsAndroidVersionAtLeast(24) &&
             (int)candidate.ApplicationInfo.MinSdkVersion > (int)Build.VERSION.SdkInt))
-            throw new InvalidDataException("APK несовместим с версией Android.");
+            throw new InvalidDataException(TV_Player.Localization.I18n.Get("Te69559f2dfcc"));
         using var zip = ZipFile.OpenRead(path);
         var abis = zip.Entries.Where(entry => entry.FullName.StartsWith("lib/", StringComparison.Ordinal))
             .Select(entry => entry.FullName.Split('/')).Where(parts => parts.Length > 2).Select(parts => parts[1]).ToHashSet();
         if (abis.Count > 0 && !(Build.SupportedAbis ?? Array.Empty<string>()).Any(abis.Contains))
-            throw new InvalidDataException("APK несовместим с процессором устройства.");
+            throw new InvalidDataException(TV_Player.Localization.I18n.Get("Tdda9cbc9193f"));
     }
 
     private static string[] Certificates(PackageInfo info)
     {
         var signatures = OperatingSystem.IsAndroidVersionAtLeast(28)
             ? info.SigningInfo?.GetApkContentsSigners() : info.Signatures;
-        if (signatures == null || signatures.Count == 0) throw new InvalidDataException("Не удалось проверить подпись APK.");
+        if (signatures == null || signatures.Count == 0) throw new InvalidDataException(TV_Player.Localization.I18n.Get("Tda75806d3b67"));
         return signatures.Select(signature => Convert.ToHexString(SHA256.HashData(signature.ToByteArray()!)))
             .Order(StringComparer.Ordinal).ToArray();
     }
@@ -96,9 +96,9 @@ public sealed class AndroidAppUpdater
 
     public void Install(string path, AndroidUpdateManifest manifest)
     {
-        if (IsStoreBuild) throw new InvalidOperationException("Обновите приложение через Google Play.");
+        if (IsStoreBuild) throw new InvalidOperationException(TV_Player.Localization.I18n.Get("Tac6e51c31c70"));
         ValidateApk(path, manifest);
-        if (!CanInstall) throw new InvalidOperationException("Разрешите установку обновлений для IPTV Player.");
+        if (!CanInstall) throw new InvalidOperationException(TV_Player.Localization.I18n.Get("Td12f74816ca1"));
         var uri = AndroidX.Core.Content.FileProvider.GetUriForFile(Context, Context.PackageName + ".updates", new Java.IO.File(path));
         var intent = new Intent(Intent.ActionView);
         intent.SetDataAndType(uri, "application/vnd.android.package-archive");

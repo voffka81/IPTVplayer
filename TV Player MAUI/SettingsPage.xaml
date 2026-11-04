@@ -1,8 +1,9 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:loc="clr-namespace:TV_Player.Maui.Localization"
              x:Class="TV_Player.Maui.SettingsPage"
-             Title="Настройки">
+             Title="{loc:T Key=T985b5e0f2ccf}">
   <ContentPage.Resources>
     <Style x:Key="SettingsButtonStyle" TargetType="Button" BasedOn="{StaticResource BaseButtonStyle}">
       <Setter Property="HorizontalOptions" Value="Start" />
@@ -24,11 +25,14 @@
   </ContentPage.Resources>
   <ScrollView x:Name="SettingsScroll">
     <VerticalStackLayout Spacing="14" Padding="4,10">
-      <Button Text="Обновления приложения" Clicked="OnUpdatesClicked" />
-      <Label Text="Плейлисты" FontSize="22" FontAttributes="Bold" />
-      <Entry x:Name="NameEntry" Placeholder="Название плейлиста" />
-      <Entry x:Name="UrlEntry" Placeholder="Ссылка M3U (HTTP или HTTPS)" Keyboard="Url" />
-      <Button Text="Добавить плейлист" Clicked="OnAddClicked" />
+      <Label Text="{loc:T Key=Ta4fe65264ef7}" FontSize="22" FontAttributes="Bold" />
+      <Picker x:Name="LanguagePicker" Title="{loc:T Key=Ta4fe65264ef7}" />
+      <Label Text="{loc:T Key=Tf7fbcb826f13}" FontSize="12" TextColor="#91A6BF" />
+      <Button Text="{loc:T Key=T1eb91e3a5236}" Clicked="OnUpdatesClicked" />
+      <Label Text="{loc:T Key=T2efea0f8794f}" FontSize="22" FontAttributes="Bold" />
+      <Entry x:Name="NameEntry" Placeholder="{loc:T Key=T717012565e0a}" />
+      <Entry x:Name="UrlEntry" Placeholder="{loc:T Key=T5acf19644b59}" Keyboard="Url" />
+      <Button Text="{loc:T Key=T0668b644541d}" Clicked="OnAddClicked" />
       <Label x:Name="StatusLabel" TextColor="#8DD2FF" />
       <CollectionView x:Name="PlaylistView" IsVisible="False" HeightRequest="0" SelectionMode="None">
         <CollectionView.ItemTemplate>
@@ -38,16 +42,16 @@
                 <Label Text="{Binding Name}" FontAttributes="Bold" />
                 <Label Text="{Binding Url}" FontSize="12" TextColor="#91A6BF" LineBreakMode="TailTruncation" />
               </VerticalStackLayout>
-              <Button Grid.Column="1" Text="Удалить" Clicked="OnDeleteClicked" />
+              <Button Grid.Column="1" Text="{loc:T Key=Tbe99b1361201}" Clicked="OnDeleteClicked" />
             </Grid>
           </DataTemplate>
         </CollectionView.ItemTemplate>
       </CollectionView>
-      <Label Text="Провайдеры" FontSize="22" FontAttributes="Bold" />
-      <Picker x:Name="ProviderPicker" Title="Выберите провайдера" ItemDisplayBinding="{Binding Name}" SelectedIndexChanged="OnProviderSelected" />
-      <Entry x:Name="ProviderNameEntry" Placeholder="Название источника" />
+      <Label Text="{loc:T Key=Tb8c9ac5404d3}" FontSize="22" FontAttributes="Bold" />
+      <Picker x:Name="ProviderPicker" Title="{loc:T Key=T3bcf0a2f7f5a}" ItemDisplayBinding="{Binding Name}" SelectedIndexChanged="OnProviderSelected" />
+      <Entry x:Name="ProviderNameEntry" Placeholder="{loc:T Key=T5ff3243ebc7c}" />
       <VerticalStackLayout x:Name="ProviderSettingsLayout" Spacing="8" />
-      <Button Text="Добавить источник провайдера" Clicked="OnAddProviderSourceClicked" />
+      <Button Text="{loc:T Key=Tb6a4dccf11d5}" Clicked="OnAddProviderSourceClicked" />
       <CollectionView x:Name="ProviderSourceView" HeightRequest="280" SelectionMode="None">
         <CollectionView.ItemTemplate>
           <DataTemplate>
@@ -56,12 +60,12 @@
                 <Label Text="{Binding Name}" FontAttributes="Bold" />
                 <Label Text="{Binding PluginId}" FontSize="12" TextColor="#91A6BF" />
               </VerticalStackLayout>
-              <Button Grid.Column="1" Text="Удалить" Clicked="OnProviderSourceDeleteClicked" />
+              <Button Grid.Column="1" Text="{loc:T Key=Tbe99b1361201}" Clicked="OnProviderSourceDeleteClicked" />
             </Grid>
           </DataTemplate>
         </CollectionView.ItemTemplate>
       </CollectionView>
-      <Button Text="Сохранить" Clicked="OnSaveClicked" />
+      <Button Text="{loc:T Key=Tb4d30cae5289}" Clicked="OnSaveClicked" />
     </VerticalStackLayout>
   </ScrollView>
 </ContentPage>

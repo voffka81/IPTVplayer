@@ -1,0 +1,542 @@
+{
+  "T985b5e0f2ccf": {
+    "ru": "Настройки",
+    "en": "Settings"
+  },
+  "Tf31014368cbf": {
+    "ru": "Каналы",
+    "en": "Channels"
+  },
+  "Tcd8c58735108": {
+    "ru": "Группы",
+    "en": "Groups"
+  },
+  "Tf66b64fcbfe3": {
+    "ru": "Поиск групп",
+    "en": "Search groups"
+  },
+  "T8381a827f861": {
+    "ru": "Поиск каналов",
+    "en": "Search channels"
+  },
+  "T8ead34a86610": {
+    "ru": "Загрузка плейлиста…",
+    "en": "Loading playlist…"
+  },
+  "T298e41327fee": {
+    "ru": "Повторить загрузку",
+    "en": "Retry loading"
+  },
+  "Tf901d2dc9965": {
+    "ru": "В плейлисте нет каналов.",
+    "en": "The playlist contains no channels."
+  },
+  "T2acfa47c3d0e": {
+    "ru": "Не удалось загрузить плейлист: {0}",
+    "en": "Could not load playlist: {0}"
+  },
+  "Td9dd05a865bb": {
+    "ru": "Не удалось загрузить источник: {0}",
+    "en": "Could not load source: {0}"
+  },
+  "T1eb91e3a5236": {
+    "ru": "Обновления приложения",
+    "en": "App updates"
+  },
+  "T2efea0f8794f": {
+    "ru": "Плейлисты",
+    "en": "Playlists"
+  },
+  "T717012565e0a": {
+    "ru": "Название плейлиста",
+    "en": "Playlist name"
+  },
+  "T5acf19644b59": {
+    "ru": "Ссылка M3U (HTTP или HTTPS)",
+    "en": "M3U URL (HTTP or HTTPS)"
+  },
+  "T0668b644541d": {
+    "ru": "Добавить плейлист",
+    "en": "Add playlist"
+  },
+  "Tbe99b1361201": {
+    "ru": "Удалить",
+    "en": "Delete"
+  },
+  "Tb8c9ac5404d3": {
+    "ru": "Провайдеры",
+    "en": "Providers"
+  },
+  "T3bcf0a2f7f5a": {
+    "ru": "Выберите провайдера",
+    "en": "Choose provider"
+  },
+  "T5ff3243ebc7c": {
+    "ru": "Название источника",
+    "en": "Source name"
+  },
+  "Tb6a4dccf11d5": {
+    "ru": "Добавить источник провайдера",
+    "en": "Add provider source"
+  },
+  "Tb4d30cae5289": {
+    "ru": "Сохранить",
+    "en": "Save"
+  },
+  "Td495cb058e1c": {
+    "ru": "Канал обновлений",
+    "en": "Update channel"
+  },
+  "Tcd2bafb202ff": {
+    "ru": "Release — стабильные версии. Dev — стабильные и тестовые версии. Понижение версии не выполняется.",
+    "en": "Release: stable versions. Dev: stable and test versions. Downgrades are not supported."
+  },
+  "T93b08f7b1465": {
+    "ru": "Проверить обновления",
+    "en": "Check for updates"
+  },
+  "T0a8113a0b99c": {
+    "ru": "Скачать обновление",
+    "en": "Download update"
+  },
+  "T8a858910555f": {
+    "ru": "Установить обновление",
+    "en": "Install update"
+  },
+  "T7c47f7292ba4": {
+    "ru": "Отменить",
+    "en": "Cancel"
+  },
+  "T4486dc86b37b": {
+    "ru": "Выбор канала",
+    "en": "Choose channel"
+  },
+  "T94971eb5535f": {
+    "ru": "Отключить или включить звук Windows",
+    "en": "Mute or unmute Windows audio"
+  },
+  "T0d7b923d849f": {
+    "ru": "Общая громкость Windows",
+    "en": "Windows master volume"
+  },
+  "T1fb211e3e38b": {
+    "ru": "КАНАЛЫ В ГРУППЕ",
+    "en": "CHANNELS IN GROUP"
+  },
+  "Teff4c9858b9d": {
+    "ru": "Буферизация…",
+    "en": "Buffering…"
+  },
+  "Te9649fc0e116": {
+    "ru": "Закрыть программу передач",
+    "en": "Close program guide"
+  },
+  "Tefac38a47b39": {
+    "ru": "Получение потока…",
+    "en": "Resolving stream…"
+  },
+  "Te2449ea8e46e": {
+    "ru": "Подключение…",
+    "en": "Connecting…"
+  },
+  "T6ea3b303fc1d": {
+    "ru": "Для этого канала нет ссылки на поток.",
+    "en": "No stream URL is available for this channel."
+  },
+  "T48bbb9b16cbb": {
+    "ru": "Не удалось получить поток. Попробуйте открыть канал заново.",
+    "en": "Could not resolve stream. Try opening the channel again."
+  },
+  "Ta8b49386e99e": {
+    "ru": "VLC не смог открыть поток. Попробуйте другой канал или откройте этот канал заново.",
+    "en": "VLC could not open the stream. Try another channel or reopen this one."
+  },
+  "Tc8f3eebc2626": {
+    "ru": "Поток завершён.",
+    "en": "Stream ended."
+  },
+  "T1381e4353d98": {
+    "ru": "VLC не смог начать воспроизведение потока.",
+    "en": "VLC could not start stream playback."
+  },
+  "T8cf91c781caf": {
+    "ru": "Далее: {0}",
+    "en": "Next: {0}"
+  },
+  "T7936d51640cf": {
+    "ru": "Доступна версия {0} — обновить",
+    "en": "Version {0} available — update"
+  },
+  "T0481a0dc1daf": {
+    "ru": "Укажите имя и корректную HTTP/HTTPS ссылку.",
+    "en": "Enter a name and a valid HTTP/HTTPS URL."
+  },
+  "T767b248ef680": {
+    "ru": "Источник с таким именем уже существует.",
+    "en": "A source with this name already exists."
+  },
+  "Te6fc663afd7f": {
+    "ru": "Добавлено. Нажмите «Сохранить».",
+    "en": "Added. Select Save to keep changes."
+  },
+  "T9a1d6cbbfcb1": {
+    "ru": "Выберите провайдера и укажите имя источника.",
+    "en": "Choose a provider and enter a source name."
+  },
+  "Tf13de46c617e": {
+    "ru": "Заполните поле «{0}».",
+    "en": "Enter a value for {0}."
+  },
+  "T5f44984beb63": {
+    "ru": "Источник добавлен. Нажмите «Сохранить».",
+    "en": "Source added. Select Save to keep changes."
+  },
+  "Tdb022e4a824b": {
+    "ru": "Настройки сохранены.",
+    "en": "Settings saved."
+  },
+  "T56de2d982241": {
+    "ru": "Установлена версия {0} ({1})",
+    "en": "Installed version {0} ({1})"
+  },
+  "T169a319f79dd": {
+    "ru": "APK готов. Нажмите «Установить обновление» и подтвердите установку Android.",
+    "en": "APK ready. Select Install update and confirm in Android."
+  },
+  "Te61e89117c28": {
+    "ru": "Для этой установки обновления доступны через Google Play.",
+    "en": "Updates for this installation are available through Google Play."
+  },
+  "T3c79086e779e": {
+    "ru": "Проверка обновлений…",
+    "en": "Checking for updates…"
+  },
+  "T71439f9e99e9": {
+    "ru": "Доступно обновление. Скачивание начнётся после нажатия кнопки.",
+    "en": "An update is available. Select Download update to start."
+  },
+  "T86f96cd8c85a": {
+    "ru": "В выбранном канале более новой версии нет. Понижение версии не выполняется.",
+    "en": "No newer version is available in this channel. Downgrades are not supported."
+  },
+  "T035b8311150a": {
+    "ru": "В выбранном канале пока нет совместимых опубликованных APK.",
+    "en": "No compatible APK has been published in this channel yet."
+  },
+  "T25b97088046f": {
+    "ru": "Доступна версия {0} ({1})",
+    "en": "Available version {0} ({1})"
+  },
+  "Tc5c284232a10": {
+    "ru": "Загружено {0:F1} из {1:F1} МБ",
+    "en": "Downloaded {0:F1} of {1:F1} MB"
+  },
+  "T7d604c92dc15": {
+    "ru": "APK проверен. Нажмите «Установить обновление». Android запросит подтверждение.",
+    "en": "APK verified. Select Install update. Android will ask for confirmation."
+  },
+  "T441fa3dbda52": {
+    "ru": "Разрешите установку из этого источника, вернитесь и снова нажмите «Установить обновление».",
+    "en": "Allow installation from this source, return here, and select Install update again."
+  },
+  "Tde459516621d": {
+    "ru": "Подтвердите обновление в установщике Android. При отмене можно повторить установку.",
+    "en": "Confirm the update in the Android installer. You can retry if cancelled."
+  },
+  "T0a170d46c187": {
+    "ru": "Не удалось начать установку: ",
+    "en": "Could not start installation: "
+  },
+  "T8a066b9b21ae": {
+    "ru": "Отменено. Можно повторить.",
+    "en": "Cancelled. You can retry."
+  },
+  "Tdb5f446b3fb0": {
+    "ru": "Время ожидания истекло. Проверьте сеть и повторите.",
+    "en": "Request timed out. Check your connection and retry."
+  },
+  "Td2b90a91f484": {
+    "ru": "Не удалось обновить приложение: ",
+    "en": "Could not update the app: "
+  },
+  "Tda8725a18704": {
+    "ru": " Можно повторить.",
+    "en": " You can retry."
+  },
+  "Tac6e51c31c70": {
+    "ru": "Обновите приложение через Google Play.",
+    "en": "Update the app through Google Play."
+  },
+  "T814ef67e77f8": {
+    "ru": "Недостаточно свободного места для обновления.",
+    "en": "Not enough free space for the update."
+  },
+  "T87abebd5599c": {
+    "ru": "Понижение или повторная установка версии запрещены.",
+    "en": "Downgrades and reinstalling the same version are not allowed."
+  },
+  "Tded2eb8477ba": {
+    "ru": "Android не распознал APK.",
+    "en": "Android could not recognize the APK."
+  },
+  "T8ba9343e8198": {
+    "ru": "Пакет или версия APK не совпадает с релизом.",
+    "en": "The APK package or version does not match the release."
+  },
+  "Ta6f1e1205bd8": {
+    "ru": "Подпись APK отличается от установленного приложения.",
+    "en": "The APK signature does not match the installed app."
+  },
+  "Te69559f2dfcc": {
+    "ru": "APK несовместим с версией Android.",
+    "en": "The APK is incompatible with this Android version."
+  },
+  "Tdda9cbc9193f": {
+    "ru": "APK несовместим с процессором устройства.",
+    "en": "The APK is incompatible with this device processor."
+  },
+  "Tda75806d3b67": {
+    "ru": "Не удалось проверить подпись APK.",
+    "en": "Could not verify the APK signature."
+  },
+  "Td12f74816ca1": {
+    "ru": "Разрешите установку обновлений для IPTV Player.",
+    "en": "Allow update installation for IPTV Player."
+  },
+  "Tf0897abc0f0c": {
+    "ru": "Источник не ответил после трёх попыток загрузки. Проверьте доступ к интернету в эмуляторе, DNS и VPN на компьютере.",
+    "en": "The source did not respond after three attempts. Check the network connection, DNS, and VPN."
+  },
+  "T02f6ea12816a": {
+    "ru": "НАСТРОЙКИ",
+    "en": "SETTINGS"
+  },
+  "Tcaf85b0888d7": {
+    "ru": "Источники",
+    "en": "Sources"
+  },
+  "T9514b7ff4860": {
+    "ru": "Плагины",
+    "en": "Plugins"
+  },
+  "T2db1db07062e": {
+    "ru": "Воспроизведение",
+    "en": "Playback"
+  },
+  "T8e2e5e6c3aae": {
+    "ru": "Изменения применяются при сохранении",
+    "en": "Changes apply when saved"
+  },
+  "T6097d240f685": {
+    "ru": "Управление плейлистами M3U и источниками провайдеров.",
+    "en": "Manage M3U playlists and provider sources."
+  },
+  "T498c686fc285": {
+    "ru": "Ссылка на плейлист",
+    "en": "Playlist URL"
+  },
+  "T159728ef5a61": {
+    "ru": "Название плейлиста",
+    "en": "Playlist name"
+  },
+  "T2b0f2e4097a7": {
+    "ru": "Добавить плейлист",
+    "en": "Add playlist"
+  },
+  "T3885d596b1b9": {
+    "ru": "Источники провайдеров",
+    "en": "Provider sources"
+  },
+  "T1939968f47d1": {
+    "ru": "Название источника",
+    "en": "Source name"
+  },
+  "T92c1cdfdf4cb": {
+    "ru": "Включён",
+    "en": "Enabled"
+  },
+  "T95a0a6a26590": {
+    "ru": "Источники провайдеров ещё не добавлены.",
+    "en": "No provider sources added yet."
+  },
+  "T88909f7f9961": {
+    "ru": "Плагины провайдеров",
+    "en": "Provider plugins"
+  },
+  "T586472d53ede": {
+    "ru": "Включите плагин, чтобы добавить его источник. Переименовать источник можно в разделе «Источники».",
+    "en": "Enable a plugin to add its default source. Rename sources in the Sources tab."
+  },
+  "T3cd2437dcd8b": {
+    "ru": "Настройте запуск плеера и отображение видео.",
+    "en": "Choose how the player starts and displays video."
+  },
+  "Tf0ed30a3879b": {
+    "ru": "Движок воспроизведения",
+    "en": "Active playback engine"
+  },
+  "T46bc70ddb768": {
+    "ru": "Запускать на весь экран",
+    "en": "Start fullscreen"
+  },
+  "T67172354ae98": {
+    "ru": "Запоминать последний канал",
+    "en": "Remember last channel"
+  },
+  "Tdd0ae7a5cbcf": {
+    "ru": "Сохранить изменения",
+    "en": "Save changes"
+  },
+  "Ta42ea273052f": {
+    "ru": "Плагины провайдеров ещё не установлены.",
+    "en": "No provider plugins are installed yet."
+  },
+  "Td45c31b7ee6f": {
+    "ru": "Выберите плагин и заполните настройки его источника.",
+    "en": "Select a plugin, then fill in its source settings."
+  },
+  "T5a5a3d044b37": {
+    "ru": "{0} отключён. Источник и его имя сохранены в разделе «Источники».",
+    "en": "{0} disabled. Its source and name are kept in Sources."
+  },
+  "T352d5b117b44": {
+    "ru": "{0} включён.",
+    "en": "{0} enabled."
+  },
+  "T5f815b0d3173": {
+    "ru": "Не удалось прочитать настройки {0}: {1}",
+    "en": "Could not read settings for {0}: {1}"
+  },
+  "T840cb7323886": {
+    "ru": "Для включения {0} заполните поле «{1}».",
+    "en": "{0} needs a value for {1} before it can be enabled."
+  },
+  "T43a15549e794": {
+    "ru": "Имя источника «{0}» уже используется. Сначала переименуйте его.",
+    "en": "The default source name '{0}' is already in use. Rename that source first."
+  },
+  "Td2052dfa7f64": {
+    "ru": "{0} включён и добавлен в источники. Сохраните изменения.",
+    "en": "{0} enabled and added to Sources. Save changes to keep it."
+  },
+  "Tfc44bb9959bb": {
+    "ru": "Не удалось прочитать настройки плагина: {0}",
+    "en": "Could not read plugin settings: {0}"
+  },
+  "T6a36f87c7468": {
+    "ru": "Плагины провайдеров не установлены.",
+    "en": "No provider plugins are installed."
+  },
+  "T68432be97cc3": {
+    "ru": "Введите название источника.",
+    "en": "Enter a name for this source."
+  },
+  "T0601c14b0070": {
+    "ru": "Плейлист или источник с таким именем уже существует.",
+    "en": "A playlist or provider source with this name already exists."
+  },
+  "T16234b3ed850": {
+    "ru": "Заполните поле «{0}».",
+    "en": "Enter a value for {0}."
+  },
+  "T6ea6c44622b9": {
+    "ru": "Источник «{0}» добавлен. Сохраните изменения.",
+    "en": "Source '{0}' added. Click Save changes to keep it."
+  },
+  "Tb0f1152ec2ee": {
+    "ru": "Каждому плейлисту нужно название.",
+    "en": "Every playlist needs a name."
+  },
+  "Tac666cbe36e8": {
+    "ru": "Названия плейлистов должны быть уникальными.",
+    "en": "Playlist names must be unique."
+  },
+  "T799d82ceefea": {
+    "ru": "Каждому плейлисту нужна корректная ссылка HTTP или HTTPS.",
+    "en": "Every playlist needs a valid HTTP or HTTPS URL."
+  },
+  "Tf7181f174827": {
+    "ru": "Названия источников не должны быть пустыми или повторяться.",
+    "en": "Provider source names must be non-empty and unique across all sources."
+  },
+  "Tae493e21cd43": {
+    "ru": "Настройки сохранены.",
+    "en": "Settings saved."
+  },
+  "T1cd12062a7cb": {
+    "ru": "Корректные настройки сохранены. Исправьте ошибки для сохранения остальных изменений.",
+    "en": "Valid settings were saved; fix the errors shown below to save the remaining edits."
+  },
+  "Te92cc38813f9": {
+    "ru": "Источник настроен",
+    "en": "Source configured"
+  },
+  "T82f628545854": {
+    "ru": "Источник настроен, но отключён",
+    "en": "Source configured, currently disabled"
+  },
+  "T851bf3886cc2": {
+    "ru": "Источник будет добавлен при включении",
+    "en": "Default source will be added when enabled"
+  },
+  "T937096daecb5": {
+    "ru": "Для включения нужно заполнить настройки",
+    "en": "Requires settings before it can be enabled"
+  },
+  "Ta7ab307b018b": {
+    "ru": "Для этого канала нет ссылки на поток.",
+    "en": "No stream URL available for this channel."
+  },
+  "Tac7e57a9520a": {
+    "ru": "Не удалось получить поток. Откройте канал заново.",
+    "en": "Cannot resolve stream. Try opening the channel again."
+  },
+  "Tbe8efa4990f8": {
+    "ru": "Ошибка воспроизведения. Поток недоступен или не поддерживается.",
+    "en": "Playback error. The stream may be unavailable or unsupported."
+  },
+  "T3088b87433c6": {
+    "ru": "VLC недоступен. Откройте плеер заново.",
+    "en": "VLC is unavailable. Try opening the player again."
+  },
+  "T9e78d065d014": {
+    "ru": "Поток завершён.",
+    "en": "Stream ended."
+  },
+  "Tdcd0a4d2c65a": {
+    "ru": "Плейлисты",
+    "en": "Playlists"
+  },
+  "T39bbb719fa2b": {
+    "ru": "Группы",
+    "en": "Groups"
+  },
+  "T74a883a037bc": {
+    "ru": "Настройки",
+    "en": "Settings"
+  },
+  "Ta4fe65264ef7": {
+    "ru": "Язык",
+    "en": "Language"
+  },
+  "Tf7fbcb826f13": {
+    "ru": "Язык интерфейса изменится после сохранения.",
+    "en": "The interface language changes after saving."
+  },
+  "T790aefb88d4b": {
+    "ru": "Перезапустите приложение для смены языка.",
+    "en": "Restart the app to change the language."
+  },
+  "ProviderCatalogUrl": {
+    "en": "Channel catalog URL",
+    "ru": "Ссылка на каталог каналов"
+  },
+  "ProviderEpgUrl": {
+    "en": "XMLTV guide URL",
+    "ru": "Ссылка на программу передач XMLTV"
+  },
+  "ProviderEpgHelp": {
+    "en": "Public Polish XMLTV guide. Matching is enabled only for channels with a known guide ID.",
+    "ru": "Общедоступная польская программа передач XMLTV. Сопоставление работает только для каналов с известным идентификатором."
+  }
+}

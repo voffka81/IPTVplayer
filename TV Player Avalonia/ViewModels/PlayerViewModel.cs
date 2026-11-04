@@ -96,11 +96,11 @@ public class PlayerViewModel : TV_Player.ObservableViewModelBase, IDisposable
         RaisePropertyChanged(nameof(FallbackStreamUrls));
         SetPlaybackStatus(state.Status switch
         {
-            PlayerStatus.NoStream => "No stream URL available for this channel.",
-            PlayerStatus.ResolutionFailed => "Cannot resolve stream. Try opening the channel again.",
-            PlayerStatus.PlaybackFailed => "Playback error. The stream may be unavailable or unsupported.",
-            PlayerStatus.EngineUnavailable => "VLC is unavailable. Try opening the player again.",
-            PlayerStatus.Ended => "Stream ended.",
+            PlayerStatus.NoStream => TV_Player.Localization.I18n.Get("Ta7ab307b018b"),
+            PlayerStatus.ResolutionFailed => TV_Player.Localization.I18n.Get("Tac7e57a9520a"),
+            PlayerStatus.PlaybackFailed => TV_Player.Localization.I18n.Get("Tbe8efa4990f8"),
+            PlayerStatus.EngineUnavailable => TV_Player.Localization.I18n.Get("T3088b87433c6"),
+            PlayerStatus.Ended => TV_Player.Localization.I18n.Get("T9e78d065d014"),
             _ => string.Empty
         });
         // Source changes start native playback. Loading/progress updates must not replay it.

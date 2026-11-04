@@ -10,6 +10,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <EmbeddedResource Include="Localization\translations.json" LogicalName="TV_Player.Localization.translations.json" />
     <ProjectReference Include="..\\TV Player Plugin.Abstractions\\TV Player Plugin.Abstractions.csproj" />
   </ItemGroup>
 

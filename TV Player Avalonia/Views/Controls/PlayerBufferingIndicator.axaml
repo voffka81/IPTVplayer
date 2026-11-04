@@ -1,8 +1,9 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:loc="clr-namespace:TV_Player.AvaloniaApp.Localization"
              x:Class="TV_Player.AvaloniaApp.Views.Controls.PlayerBufferingIndicator">
   <StackPanel Spacing="6" HorizontalAlignment="Center" VerticalAlignment="Center">
-    <TextBlock Text="Буферизация…" FontSize="15" Foreground="#F5F8FF" HorizontalAlignment="Center" />
+    <TextBlock Text="{loc:T Key=Teff4c9858b9d}" FontSize="15" Foreground="#F5F8FF" HorizontalAlignment="Center" />
     <ProgressBar Width="180" Height="8" IsIndeterminate="True" Foreground="#8DD2FF" />
   </StackPanel>
 </UserControl>
