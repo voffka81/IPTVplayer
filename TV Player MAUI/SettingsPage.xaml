@@ -21,13 +21,13 @@
       </Style.Triggers>
     </Style>
   </ContentPage.Resources>
-  <ScrollView MaximumWidthRequest="760" HorizontalOptions="Start">
+  <ScrollView x:Name="SettingsScroll">
     <VerticalStackLayout Spacing="14" Padding="4,10">
-      <Button HorizontalOptions="Start" HeightRequest="48" Text="Обновления приложения" Clicked="OnUpdatesClicked" />
+      <Button Text="Обновления приложения" Clicked="OnUpdatesClicked" />
       <Label Text="Плейлисты" FontSize="22" FontAttributes="Bold" />
       <Entry x:Name="NameEntry" Placeholder="Название плейлиста" />
       <Entry x:Name="UrlEntry" Placeholder="Ссылка M3U (HTTP или HTTPS)" Keyboard="Url" />
-      <Button HorizontalOptions="Start" HeightRequest="48" Text="Добавить плейлист" Clicked="OnAddClicked" />
+      <Button Text="Добавить плейлист" Clicked="OnAddClicked" />
       <Label x:Name="StatusLabel" TextColor="#8DD2FF" />
       <CollectionView x:Name="PlaylistView" IsVisible="False" HeightRequest="0" SelectionMode="None">
         <CollectionView.ItemTemplate>
@@ -37,7 +37,7 @@
                 <Label Text="{Binding Name}" FontAttributes="Bold" />
                 <Label Text="{Binding Url}" FontSize="12" TextColor="#91A6BF" LineBreakMode="TailTruncation" />
               </VerticalStackLayout>
-              <Button HorizontalOptions="Start" HeightRequest="48" Grid.Column="1" Text="Удалить" Clicked="OnDeleteClicked" />
+              <Button Grid.Column="1" Text="Удалить" Clicked="OnDeleteClicked" />
             </Grid>
           </DataTemplate>
         </CollectionView.ItemTemplate>
@@ -46,7 +46,7 @@
       <Picker x:Name="ProviderPicker" Title="Выберите провайдера" ItemDisplayBinding="{Binding Name}" SelectedIndexChanged="OnProviderSelected" />
       <Entry x:Name="ProviderNameEntry" Placeholder="Название источника" />
       <VerticalStackLayout x:Name="ProviderSettingsLayout" Spacing="8" />
-      <Button HorizontalOptions="Start" HeightRequest="48" Text="Добавить источник провайдера" Clicked="OnAddProviderSourceClicked" />
+      <Button Text="Добавить источник провайдера" Clicked="OnAddProviderSourceClicked" />
       <CollectionView x:Name="ProviderSourceView" HeightRequest="280" SelectionMode="None">
         <CollectionView.ItemTemplate>
           <DataTemplate>
@@ -55,12 +55,12 @@
                 <Label Text="{Binding Name}" FontAttributes="Bold" />
                 <Label Text="{Binding PluginId}" FontSize="12" TextColor="#91A6BF" />
               </VerticalStackLayout>
-              <Button HorizontalOptions="Start" HeightRequest="48" Grid.Column="1" Text="Удалить" Clicked="OnProviderSourceDeleteClicked" />
+              <Button Grid.Column="1" Text="Удалить" Clicked="OnProviderSourceDeleteClicked" />
             </Grid>
           </DataTemplate>
         </CollectionView.ItemTemplate>
       </CollectionView>
-      <Button HorizontalOptions="Start" HeightRequest="48" Text="Сохранить" Clicked="OnSaveClicked" />
+      <Button Text="Сохранить" Clicked="OnSaveClicked" />
     </VerticalStackLayout>
   </ScrollView>
 </ContentPage>
