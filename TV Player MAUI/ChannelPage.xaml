@@ -18,7 +18,26 @@
               </Grid>
               <Button Text="" BackgroundColor="Transparent" BorderColor="Transparent" BorderWidth="0" Padding="0"
                       AutomationProperties.Name="{Binding Name}"
-                      Clicked="OnChannelTapped" Focused="OnChannelFocused" Unfocused="OnChannelUnfocused" />
+                      Clicked="OnChannelTapped">
+                <VisualStateManager.VisualStateGroups>
+                  <VisualStateGroupList>
+                    <VisualStateGroup x:Name="CommonStates">
+                      <VisualState x:Name="Normal">
+                        <VisualState.Setters>
+                          <Setter Property="BorderColor" Value="Transparent" />
+                          <Setter Property="BorderWidth" Value="0" />
+                        </VisualState.Setters>
+                      </VisualState>
+                      <VisualState x:Name="Focused">
+                        <VisualState.Setters>
+                          <Setter Property="BorderColor" Value="{StaticResource FocusBorder}" />
+                          <Setter Property="BorderWidth" Value="3" />
+                        </VisualState.Setters>
+                      </VisualState>
+                    </VisualStateGroup>
+                  </VisualStateGroupList>
+                </VisualStateManager.VisualStateGroups>
+              </Button>
             </Grid>
           </Border>
         </DataTemplate>
