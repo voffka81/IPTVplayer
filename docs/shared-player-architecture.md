@@ -1,4 +1,35 @@
-# Shared player architecture — migration plan
+# Shared player architecture
+
+## Current implementation
+
+| Owner | Responsibility |
+| --- | --- |
+| Core `PlayerPresentationModel` | Channel commands/title, shared selection, independent stream/EPG requests, stale-result protection, guide projection and status codes. No UI framework or native VLC types. |
+| Core `PlayerPlaybackModel`, `ForegroundPlaybackSession`, `PlaybackSurfaceGate` | Explicit playback transitions, attempt tokens and foreground/surface readiness contracts. |
+| MAUI `PlayerPage` and Avalonia ViewModels | Render/bind snapshots, localized text, UI timers, overlays, focus and platform navigation. |
+| `MauiPlaybackController` | Android LibVLC/player/media ownership, native events and foreground stop/fresh-surface restart. |
+| `AvaloniaPlaybackController` + `LibVlcPlaybackEngine` | Native desktop events, media/options, fallback URLs, compatibility retry, watchdog and startup reconciliation. |
+| Avalonia `PlayerView` + `PlaybackHostLease` | Native host and MediaPlayer ownership. Detach host, dispose adapter/media, then dispose player; cleanup is idempotent and failed detachment retains resources for retry. UI input/audio/layout remain platform code. |
+
+Neither view resolves provider streams or projects EPG itself. Native controller
+callbacks retain the model/attempt identity captured before playback, and disposed
+controllers cannot mutate a new player. Source/provider ownership stays with
+`ProgramsData`; closing the player disposes presentation requests, timers and
+subscriptions without disposing a shared provider.
+
+The legacy Core `PlaybackSession`/`PlaybackCallbackGuard` APIs remain for compatibility
+and their tests; current clients use `PlayerPlaybackModel` attempt tokens. Optional
+MPV integration is separate future work. Native phone/TV/desktop results must be
+recorded with the [manual checklist](player-smoke.md); unit tests and CI do not prove
+decoded frames or platform focus.
+
+## Migration history and future work
+
+The sections below preserve the original plan. The shared presentation and thin
+player-view work from roadmap #64 is implemented in Core (no extra Application
+assembly was necessary). Broader caching/network, MPV and platform-service work
+below is separate from that roadmap.
+
 
 ## Non-negotiable boundaries
 - **Core/Application (platform-neutral):** playlist loading, provider resolution, EPG, playback session state machine, navigation commands, focus context, caching, cancellation and diagnostics.
