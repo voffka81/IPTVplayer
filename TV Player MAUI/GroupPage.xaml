@@ -12,13 +12,28 @@
         <DataTemplate>
           <Border HeightRequest="108" Padding="12,8" BackgroundColor="#162130" Stroke="#304054" StrokeThickness="1">
             <Border.StrokeShape><RoundRectangle CornerRadius="12" /></Border.StrokeShape>
-            <Border.GestureRecognizers>
-              <TapGestureRecognizer Tapped="OnGroupTapped" />
-            </Border.GestureRecognizers>
-            <VerticalStackLayout Spacing="4" VerticalOptions="Center">
+
+            <Grid>
+            <VerticalStackLayout Spacing="4" VerticalOptions="Center" InputTransparent="True">
               <Label Text="{Binding Name}" FontSize="18" HorizontalTextAlignment="Center" />
               <Label Text="{Binding Count}" FontSize="13" TextColor="#91C9FF" HorizontalTextAlignment="Center" />
             </VerticalStackLayout>
+              <Button Text="" AutomationProperties.Name="{Binding Name}" BackgroundColor="Transparent" BorderColor="Transparent" BorderWidth="0" Padding="0" Clicked="OnGroupTapped">
+                <VisualStateManager.VisualStateGroups>
+                  <VisualStateGroupList>
+                    <VisualStateGroup x:Name="CommonStates">
+                      <VisualState x:Name="Normal" />
+                      <VisualState x:Name="Focused">
+                        <VisualState.Setters>
+                          <Setter Property="BorderColor" Value="{StaticResource FocusBorder}" />
+                          <Setter Property="BorderWidth" Value="3" />
+                        </VisualState.Setters>
+                      </VisualState>
+                    </VisualStateGroup>
+                  </VisualStateGroupList>
+                </VisualStateManager.VisualStateGroups>
+              </Button>
+            </Grid>
           </Border>
         </DataTemplate>
       </CollectionView.ItemTemplate>
