@@ -22,9 +22,15 @@ public partial class GroupPage : ContentPage
     protected override void OnAppearing()
     {
         base.OnAppearing();
+        SubscribeToSource();
+    }
+
+    private void SubscribeToSource()
+    {
         _groupSubscription?.Dispose();
         _groupSubscription = _session.CurrentSource!.GroupsInformation.Subscribe(groups => MainThread.BeginInvokeOnMainThread(() =>
         {
+            RetryButton.IsVisible = groups.Count == 0;
             _allGroups.Clear();
             _allGroups.AddRange(groups);
             LoadStatus.Text = groups.Count == 0 ? "В плейлисте нет каналов." : string.Empty;
@@ -34,6 +40,7 @@ public partial class GroupPage : ContentPage
         _errorSubscription = _session.CurrentSource.LoadErrors.Subscribe(error => MainThread.BeginInvokeOnMainThread(() =>
         {
             LoadStatus.Text = $"Не удалось загрузить плейлист: {error}";
+            RetryButton.IsVisible = true;
         }));
     }
 
@@ -46,12 +53,30 @@ public partial class GroupPage : ContentPage
         base.OnDisappearing();
     }
 
+    private void OnRetryClicked(object sender, EventArgs e)
+    {
+        RetryButton.IsVisible = false;
+        LoadStatus.Text = "Загрузка плейлиста…";
+        _groupSubscription?.Dispose();
+        _errorSubscription?.Dispose();
+        try
+        {
+            _session.ReloadSource(Title);
+            SubscribeToSource();
+        }
+        catch (Exception error)
+        {
+            LoadStatus.Text = $"Не удалось загрузить источник: {error.Message}";
+            RetryButton.IsVisible = true;
+        }
+    }
+
     private void OnSearchChanged(object sender, TextChangedEventArgs e) => ApplyFilter();
     private void ApplyFilter() => GroupsView.ItemsSource = _allGroups
         .Where(group => string.IsNullOrWhiteSpace(SearchEntry.Text) || group.Name.Contains(SearchEntry.Text, StringComparison.CurrentCultureIgnoreCase))
         .ToList();
 
-    private async void OnGroupTapped(object sender, TappedEventArgs e)
+    private async void OnGroupTapped(object sender, EventArgs e)
     {
         if ((sender as BindableObject)?.BindingContext is GroupInfo group)
             await Navigation.PushAsync(new ChannelPage(_session, group));

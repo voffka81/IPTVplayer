@@ -293,10 +293,11 @@ internal sealed class ViksTvProvider : IChannelProvider, IChannelProgramGuideSou
 
         try
         {
-            using var response = await _httpClient.SendAsync(request, cancellationToken);
+            using var response = await _httpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cancellationToken);
             Log($"HTTP {(int)response.StatusCode} {response.StatusCode} for {response.RequestMessage?.RequestUri ?? uri}");
             response.EnsureSuccessStatusCode();
             var html = await response.Content.ReadAsStringAsync(cancellationToken);
+            Log($"Catalog/page body received: {html.Length} characters");
             return await _parser.ParseDocumentAsync(html, cancellationToken);
         }
         catch (Exception ex) when (ex is not OperationCanceledException)

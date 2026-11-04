@@ -198,10 +198,11 @@ internal sealed class KlubnichkaProvider : IChannelProvider, IProgramGuideSource
             if (referrer != null)
                 request.Headers.Referrer = referrer;
 
-            using var response = await _httpClient.SendAsync(request, cancellationToken);
+            using var response = await _httpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cancellationToken);
             Log($"HTTP {(int)response.StatusCode} {response.StatusCode} for {FormatUriForLog(response.RequestMessage?.RequestUri ?? uri)}");
             response.EnsureSuccessStatusCode();
             var html = await response.Content.ReadAsStringAsync(cancellationToken);
+            Log($"Catalog/page body received: {html.Length} characters");
             return await _parser.ParseDocumentAsync(html, cancellationToken);
         }
         catch (Exception ex) when (ex is not OperationCanceledException)
