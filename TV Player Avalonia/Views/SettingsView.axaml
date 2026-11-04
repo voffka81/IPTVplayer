@@ -21,6 +21,22 @@
       <Setter Property="Foreground" Value="#F5F8FF" />
       <Setter Property="BorderBrush" Value="#3B91CC" />
     </Style>
+    <Style Selector="Button.settings-tab.active /template/ ContentPresenter">
+      <Setter Property="Background" Value="#1A4263" />
+      <Setter Property="BorderBrush" Value="#3B91CC" />
+    </Style>
+    <Style Selector="Button:pointerover /template/ ContentPresenter">
+      <Setter Property="Background" Value="#285578" />
+      <Setter Property="BorderBrush" Value="#55B9FF" />
+    </Style>
+    <Style Selector="Button:focus /template/ ContentPresenter">
+      <Setter Property="Background" Value="#285578" />
+      <Setter Property="BorderBrush" Value="#FFD600" />
+      <Setter Property="BorderThickness" Value="2" />
+    </Style>
+    <Style Selector="Button:pressed /template/ ContentPresenter">
+      <Setter Property="Background" Value="#3975A1" />
+    </Style>
   </UserControl.Styles>
 
   <Grid RowDefinitions="*,Auto" Margin="12">
@@ -74,7 +90,7 @@
             <Border Grid.Row="2" Margin="0,14,0,0" Background="#141F2E" BorderBrush="#273B53" BorderThickness="1" CornerRadius="13" Padding="8">
               <ListBox ItemsSource="{Binding Playlists}" Background="Transparent" BorderThickness="0">
                 <ListBox.ItemContainerTheme>
-                  <ControlTheme TargetType="ListBoxItem">
+                  <ControlTheme TargetType="ListBoxItem" BasedOn="{StaticResource {x:Type ListBoxItem}}">
                     <Setter Property="HorizontalContentAlignment" Value="Stretch" />
                     <Setter Property="Padding" Value="8,3" />
                   </ControlTheme>
