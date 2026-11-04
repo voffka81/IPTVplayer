@@ -6,6 +6,7 @@ public static class MauiProgram
 {
     public static MauiApp CreateMauiApp()
     {
+        TvFocusOutline.Register();
         var builder = MauiApp.CreateBuilder();
         builder
             .UseMauiApp<App>()
