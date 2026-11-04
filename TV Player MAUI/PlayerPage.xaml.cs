@@ -24,6 +24,7 @@ public partial class PlayerPage : ContentPage
     private bool _isClosing;
     private bool _pageVisible;
     private bool _appActive = true;
+    private bool _restoreGuideFocusToProgramInfo;
 #if ANDROID
     private LibVLCSharp.Platforms.Android.VideoView? _nativeVideoView;
     private VideoSurfaceCallback? _surfaceCallback;
@@ -257,7 +258,11 @@ public partial class PlayerPage : ContentPage
             await ChannelPicker.ScrollSelectedChannelIntoViewAsync();
     }
 
-    private void OnGuideInfoTapped(object? sender, TappedEventArgs e) => _ui.ToggleGuide();
+    private void OnGuideInfoTapped(object? sender, EventArgs e)
+    {
+        _restoreGuideFocusToProgramInfo = _ui.State.ProgramGuideVisible;
+        _ui.ToggleGuide();
+    }
 
     private void RenderPlayerUi(PlayerUiState state)
     {
@@ -271,13 +276,33 @@ public partial class PlayerPage : ContentPage
         if (!state.ProgramGuideVisible) ProgramGuideList.CancelPendingFocus();
         if (pickerOpened && IsRemoteNavigation) _ = ChannelPicker.FocusSelectedChannelAsync();
         else if (guideOpened && IsRemoteNavigation) ProgramGuideList.FocusFirstProgram();
-        else if (!state.ChannelPickerVisible && !state.ProgramGuideVisible) FocusPlayerSurface();
+        else if (!state.ChannelPickerVisible && !state.ProgramGuideVisible)
+        {
+            if (_restoreGuideFocusToProgramInfo && ProgramInfoPanel.IsVisible && IsRemoteNavigation)
+                ProgramInfoButton.Focus();
+            else
+                FocusPlayerSurface();
+            _restoreGuideFocusToProgramInfo = false;
+        }
     }
 
     private bool OnRemoteKeyPressed(PlayerRemoteKey key, bool nativeControlFocused)
     {
         if (_isClosing) return false;
         var context = PlayerInputRouter.GetContext(_ui.State.ProgramGuideVisible, _ui.State.ChannelPickerVisible);
+        if (nativeControlFocused) _ui.Show();
+        if (context == PlayerInputContext.ProgramGuide && key == PlayerRemoteKey.Up)
+        {
+            if (ProgramInfoPanel.IsVisible) ProgramInfoButton.Focus();
+            else
+            {
+                _ui.CloseOverlay();
+                PickerButton.Focus();
+            }
+            return true;
+        }
+        if (key == PlayerRemoteKey.Confirm && context == PlayerInputContext.ProgramGuide && ProgramInfoButton.IsFocused)
+            return false;
         var result = PlayerRemoteInputRouter.Route(key, context, nativeControlFocused);
         switch (result.Action)
         {
@@ -289,7 +314,10 @@ public partial class PlayerPage : ContentPage
             case PlayerRemoteAction.OpenGuide:
                 if (ProgramInfoPanel.IsVisible) _ui.ToggleGuide(); else _ui.Show();
                 break;
-            case PlayerRemoteAction.CloseOverlay: _ui.CloseOverlay(); break;
+            case PlayerRemoteAction.CloseOverlay:
+                _restoreGuideFocusToProgramInfo = context == PlayerInputContext.ProgramGuide && ProgramInfoPanel.IsVisible;
+                _ui.CloseOverlay();
+                break;
             case PlayerRemoteAction.LeavePlayer: _ = LeavePlayerAsync(); break;
         }
         return true;

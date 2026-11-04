@@ -25,17 +25,35 @@
       <Button Text="‹" FontSize="30" Padding="0" Clicked="OnBackClicked" />
       <Label x:Name="ChannelTitle" Grid.Column="1" FontSize="19" FontAttributes="Bold" VerticalTextAlignment="Center" LineBreakMode="TailTruncation" />
       <Label x:Name="ClockLabel" Grid.Column="2" FontSize="17" VerticalTextAlignment="Center" Margin="8,0" />
-      <Button Grid.Column="3" Text="☷" Padding="0" Clicked="OnPickerClicked" />
+      <Button x:Name="PickerButton" Grid.Column="3" Text="☷" Padding="0" Clicked="OnPickerClicked" />
     </Grid>
     <Grid x:Name="PlayerBottomBar" Grid.Row="0" Grid.Column="0" RowDefinitions="Auto,Auto,Auto,Auto" BackgroundColor="#E609101B" Padding="12,8" VerticalOptions="End">
       <Grid x:Name="ProgramInfoPanel" IsVisible="False" RowDefinitions="Auto,Auto" ColumnDefinitions="Auto,*,Auto" Padding="4,2,4,8">
-        <Grid.GestureRecognizers>
-          <TapGestureRecognizer Tapped="OnGuideInfoTapped" />
-        </Grid.GestureRecognizers>
         <Label x:Name="ProgramTitleLabel" Grid.ColumnSpan="2" FontSize="16" LineBreakMode="TailTruncation" />
         <Label x:Name="ProgramStartLabel" Grid.Row="1" FontSize="12" TextColor="#8DD2FF" VerticalTextAlignment="Center" Margin="0,0,8,0" />
         <ProgressBar x:Name="ProgramProgress" Grid.Row="1" Grid.Column="1" Progress="0" ProgressColor="#55B9FF" VerticalOptions="Center" />
         <Label x:Name="ProgramEndLabel" Grid.Row="1" Grid.Column="2" FontSize="12" TextColor="#8DD2FF" HorizontalOptions="End" VerticalTextAlignment="Center" Margin="8,0,0,0" />
+        <Button x:Name="ProgramInfoButton" Grid.RowSpan="2" Grid.ColumnSpan="3" Text="" BackgroundColor="Transparent" BorderColor="Transparent" BorderWidth="0" Padding="0"
+                AutomationProperties.Name="{Binding Source={x:Reference ProgramTitleLabel}, Path=Text}" Clicked="OnGuideInfoTapped">
+          <VisualStateManager.VisualStateGroups>
+            <VisualStateGroupList>
+              <VisualStateGroup x:Name="CommonStates">
+                <VisualState x:Name="Normal">
+                  <VisualState.Setters>
+                    <Setter Property="BorderColor" Value="Transparent" />
+                    <Setter Property="BorderWidth" Value="0" />
+                  </VisualState.Setters>
+                </VisualState>
+                <VisualState x:Name="Focused">
+                  <VisualState.Setters>
+                    <Setter Property="BorderColor" Value="{StaticResource FocusBorder}" />
+                    <Setter Property="BorderWidth" Value="3" />
+                  </VisualState.Setters>
+                </VisualState>
+              </VisualStateGroup>
+            </VisualStateGroupList>
+          </VisualStateManager.VisualStateGroups>
+        </Button>
       </Grid>
       <Label x:Name="StatusLabel" Grid.Row="1" FontSize="14" TextColor="#8DD2FF" />
       <controls:ProgramGuideCarousel x:Name="ProgramGuideList" Grid.Row="2" IsVisible="False" HeightRequest="84" />
