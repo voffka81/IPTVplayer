@@ -3,6 +3,12 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="TV_Player.Maui.PlaylistPage"
              Title="IPTV Player">
+  <ContentPage.Resources>
+    <Style x:Key="SourceButtonStyle" TargetType="Button" BasedOn="{StaticResource BaseButtonStyle}">
+      <Setter Property="HeightRequest" Value="108" />
+      <Setter Property="FontSize" Value="19" />
+    </Style>
+  </ContentPage.Resources>
   <Grid RowDefinitions="Auto,Auto,*" RowSpacing="14">
     <Grid ColumnDefinitions="*,Auto,Auto" Padding="4,8">
       <Label Text="IPTV Player" FontSize="25" FontAttributes="Bold" VerticalOptions="Center" />
@@ -14,7 +20,7 @@
       <CollectionView.ItemsLayout><GridItemsLayout Orientation="Vertical" Span="2" HorizontalItemSpacing="12" VerticalItemSpacing="12" /></CollectionView.ItemsLayout>
       <CollectionView.ItemTemplate>
         <DataTemplate>
-          <Button Text="{Binding Name}" HeightRequest="108" FontSize="19" Clicked="OnSourceClicked" />
+          <Button Text="{Binding Name}" Style="{DynamicResource SourceButtonStyle}" Clicked="OnSourceClicked" />
         </DataTemplate>
       </CollectionView.ItemTemplate>
     </CollectionView>

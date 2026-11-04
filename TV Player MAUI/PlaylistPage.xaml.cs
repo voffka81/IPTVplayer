@@ -12,6 +12,16 @@ public partial class PlaylistPage : ContentPage
     public PlaylistPage(AppSession session)
     {
         InitializeComponent();
+        if (DeviceLayout.IsTelevision)
+        {
+            SourcesView.ItemsLayout = new LinearItemsLayout(ItemsLayoutOrientation.Vertical) { ItemSpacing = 12 };
+            var sourceStyle = (Style)Resources["SourceButtonStyle"];
+            sourceStyle.Setters.First(setter => setter.Property == VisualElement.HeightRequestProperty).Value = 64d;
+            sourceStyle.Setters.Add(new Setter { Property = VisualElement.WidthRequestProperty, Value = 320d });
+            sourceStyle.Setters.Add(new Setter { Property = View.HorizontalOptionsProperty, Value = LayoutOptions.Start });
+            UpdateAvailableButton.HorizontalOptions = LayoutOptions.Start;
+            UpdateAvailableButton.HeightRequest = 48;
+        }
         _session = session;
         BindingContext = this;
         ClockLabel.Text = DateTime.Now.ToString("HH:mm");

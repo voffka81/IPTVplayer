@@ -15,6 +15,13 @@ public partial class SettingsPage : ContentPage
     public SettingsPage(AppSession session)
     {
         InitializeComponent();
+        if (DeviceLayout.IsTelevision)
+        {
+            SettingsScroll.MaximumWidthRequest = 760;
+            SettingsScroll.HorizontalOptions = LayoutOptions.Start;
+            var buttonStyle = (Style)Resources["SettingsButtonStyle"];
+            buttonStyle.Setters.Add(new Setter { Property = VisualElement.HeightRequestProperty, Value = 48d });
+        }
         _session = session;
         _items = SettingsModel.Playlists.Select(pair => new PlaylistItem(pair.Key, pair.Value)).ToList();
         _providerSources = SettingsModel.ProviderSources.Select(CloneSource).ToList();

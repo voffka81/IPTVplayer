@@ -4,7 +4,7 @@
              x:Class="TV_Player.Maui.SettingsPage"
              Title="Настройки">
   <ContentPage.Resources>
-    <Style TargetType="Button" BasedOn="{StaticResource BaseButtonStyle}">
+    <Style x:Key="SettingsButtonStyle" TargetType="Button" BasedOn="{StaticResource BaseButtonStyle}">
       <Setter Property="HorizontalOptions" Value="Start" />
       <Setter Property="VerticalOptions" Value="Center" />
       <Setter Property="MinimumHeightRequest" Value="48" />
@@ -20,8 +20,9 @@
         </Trigger>
       </Style.Triggers>
     </Style>
+    <Style TargetType="Button" BasedOn="{StaticResource SettingsButtonStyle}" />
   </ContentPage.Resources>
-  <ScrollView>
+  <ScrollView x:Name="SettingsScroll">
     <VerticalStackLayout Spacing="14" Padding="4,10">
       <Button Text="Обновления приложения" Clicked="OnUpdatesClicked" />
       <Label Text="Плейлисты" FontSize="22" FontAttributes="Bold" />
