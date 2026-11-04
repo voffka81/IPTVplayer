@@ -9,12 +9,12 @@
       <Label x:Name="ClockLabel" Grid.Column="1" FontSize="18" VerticalOptions="Center" Margin="0,0,8,0" />
       <Button Grid.Column="2" Text="⚙" WidthRequest="48" HeightRequest="48" Padding="0" Clicked="OnSettingsClicked" />
     </Grid>
-    <Button x:Name="UpdateAvailableButton" Grid.Row="1" IsVisible="False" Clicked="OnUpdateClicked" />
+    <Button HorizontalOptions="Start" HeightRequest="48" x:Name="UpdateAvailableButton" Grid.Row="1" IsVisible="False" Clicked="OnUpdateClicked" />
     <CollectionView x:Name="SourcesView" Grid.Row="2" ItemsSource="{Binding Sources}" SelectionMode="None">
-      <CollectionView.ItemsLayout><GridItemsLayout Orientation="Vertical" Span="2" HorizontalItemSpacing="12" VerticalItemSpacing="12" /></CollectionView.ItemsLayout>
+      <CollectionView.ItemsLayout><LinearItemsLayout Orientation="Vertical" ItemSpacing="12" /></CollectionView.ItemsLayout>
       <CollectionView.ItemTemplate>
         <DataTemplate>
-          <Button Text="{Binding Name}" HeightRequest="108" FontSize="19" Clicked="OnSourceClicked" />
+          <Button Text="{Binding Name}" HorizontalOptions="Start" WidthRequest="320" HeightRequest="64" FontSize="19" Clicked="OnSourceClicked" />
         </DataTemplate>
       </CollectionView.ItemTemplate>
     </CollectionView>
