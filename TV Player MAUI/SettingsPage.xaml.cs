@@ -54,7 +54,7 @@ public partial class SettingsPage : ContentPage
         var controls = new List<Android.Views.View>();
         void Collect(Android.Views.View view)
         {
-            if (!view.IsShown || !view.Enabled) return;
+            if (view.Visibility != Android.Views.ViewStates.Visible || !view.Enabled) return;
             if (view.Focusable && view is Android.Widget.Button or Android.Widget.EditText or Android.Widget.Spinner)
                 controls.Add(view);
             else if (view is Android.Views.ViewGroup group)
@@ -68,11 +68,25 @@ public partial class SettingsPage : ContentPage
         var next = index < 0 ? (direction > 0 ? 0 : controls.Count - 1)
             : Math.Clamp(index + direction, 0, controls.Count - 1);
         var target = controls[next];
-        if (!target.RequestFocus()) return false;
-        var rectangle = new Android.Graphics.Rect();
-        target.GetDrawingRect(rectangle);
-        target.RequestRectangleOnScreen(rectangle, true);
+        _ = RevealSettingsControlAsync(target, root);
         return true;
+    }
+
+    private async Task RevealSettingsControlAsync(Android.Views.View target, Android.Views.View root)
+    {
+        var targetPosition = new int[2];
+        var viewportPosition = new int[2];
+        target.GetLocationInWindow(targetPosition);
+        root.GetLocationInWindow(viewportPosition);
+        var density = root.Resources?.DisplayMetrics?.Density ?? 1f;
+        var viewportHeight = root.Height / density;
+        var top = (targetPosition[1] - viewportPosition[1]) / density;
+        var bottom = top + target.Height / density;
+        var scroll = SettingsScroll.ScrollY;
+        if (top < 16) scroll += top - 16;
+        else if (bottom > viewportHeight - 16) scroll += bottom - viewportHeight + 16;
+        await SettingsScroll.ScrollToAsync(0, Math.Max(0, scroll), false);
+        if (target.IsAttachedToWindow && root.HasWindowFocus) target.RequestFocus();
     }
 
     private void OnAddClicked(object sender, EventArgs e)
