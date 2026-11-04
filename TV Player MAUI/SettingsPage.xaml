@@ -9,6 +9,16 @@
       <Setter Property="VerticalOptions" Value="Center" />
       <Setter Property="MinimumHeightRequest" Value="48" />
       <Setter Property="Padding" Value="18,10" />
+      <Style.Triggers>
+        <Trigger TargetType="Button" Property="IsFocused" Value="True">
+          <Setter Property="BorderColor" Value="#7BD0FF" />
+          <Setter Property="BorderWidth" Value="3" />
+          <Setter Property="BackgroundColor" Value="#234B70" />
+          <Setter Property="Shadow">
+            <Setter.Value><Shadow Brush="#55B9FF" Offset="0,0" Radius="18" Opacity="0.9" /></Setter.Value>
+          </Setter>
+        </Trigger>
+      </Style.Triggers>
     </Style>
   </ContentPage.Resources>
   <ScrollView>

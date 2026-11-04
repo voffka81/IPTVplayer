@@ -28,24 +28,6 @@
       <Setter Property="BorderWidth" Value="1" />
       <Setter Property="CornerRadius" Value="12" />
       <Setter Property="Padding" Value="12,8" />
-      <Setter Property="VisualStateManager.VisualStateGroups">
-        <VisualStateGroupList>
-          <VisualStateGroup x:Name="CommonStates">
-            <VisualState x:Name="Normal" />
-            <VisualState x:Name="Disabled" />
-            <VisualState x:Name="Focused">
-              <VisualState.Setters>
-                <Setter Property="BorderColor" Value="#7BD0FF" />
-                <Setter Property="BorderWidth" Value="3" />
-                <Setter Property="BackgroundColor" Value="#234B70" />
-                <Setter Property="Shadow">
-                  <Setter.Value><Shadow Brush="#55B9FF" Offset="0,0" Radius="18" Opacity="0.9" /></Setter.Value>
-                </Setter>
-              </VisualState.Setters>
-            </VisualState>
-          </VisualStateGroup>
-        </VisualStateGroupList>
-      </Setter>
     </Style>
   </Application.Resources>
 </Application>
