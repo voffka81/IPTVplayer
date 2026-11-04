@@ -145,6 +145,7 @@ public partial class SettingsPage : ContentPage
         SettingsModel.SaveSetttings();
         StatusLabel.Text = "Настройки сохранены.";
         await _session.ReloadSourcesAsync();
+        await Navigation.PopAsync();
     }
 
     public sealed record PlaylistItem(string Name, string Url);

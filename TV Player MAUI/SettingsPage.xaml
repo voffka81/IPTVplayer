@@ -3,6 +3,14 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="TV_Player.Maui.SettingsPage"
              Title="Настройки">
+  <ContentPage.Resources>
+    <Style TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
+      <Setter Property="HorizontalOptions" Value="Start" />
+      <Setter Property="VerticalOptions" Value="Center" />
+      <Setter Property="MinimumHeightRequest" Value="48" />
+      <Setter Property="Padding" Value="18,10" />
+    </Style>
+  </ContentPage.Resources>
   <ScrollView>
     <VerticalStackLayout Spacing="14" Padding="4,10">
       <Button Text="Обновления приложения" Clicked="OnUpdatesClicked" />
