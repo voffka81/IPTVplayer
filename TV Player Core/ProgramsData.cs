@@ -42,20 +42,17 @@ namespace TV_Player
             //string m3uLink = "http://pl.da-tv.vip/a71e77fa/835b3216/tv.m3u";
             try
             {
-                using var loadTimeout = CancellationTokenSource.CreateLinkedTokenSource(_cts.Token);
-                loadTimeout.CancelAfter(TimeSpan.FromSeconds(30));
-                var loadToken = loadTimeout.Token;
                 List<M3UInfo> programs;
                 string guideLink = string.Empty;
                 if (Provider is M3UChannelProvider m3uProvider)
                 {
-                    var result = await m3uProvider.LoadPlaylistAsync(loadToken).WaitAsync(loadToken);
+                    var result = await LoadWithRetryAsync(token => m3uProvider.LoadPlaylistAsync(token));
                     programs = result.programList;
                     guideLink = result.programGuide;
                 }
                 else
                 {
-                    var channels = await Provider.GetChannelsAsync(loadToken).WaitAsync(loadToken);
+                    var channels = await LoadWithRetryAsync(token => Provider.GetChannelsAsync(token));
                     programs = channels.Select(channel => new M3UInfo
                     {
                         ProviderId = Provider.Id,
@@ -95,12 +92,31 @@ namespace TV_Player
                 if (!_cts.IsCancellationRequested)
                 {
                     loadErrors.OnNext(ex is OperationCanceledException
-                        ? "Источник не ответил за 30 секунд. Проверьте доступ к интернету в эмуляторе, DNS и VPN на компьютере."
+                        ? "Источник не ответил после трёх попыток загрузки. Проверьте доступ к интернету в эмуляторе, DNS и VPN на компьютере."
                         : ex.GetBaseException().Message);
                 }
             }
         }
 
+        private async Task<T> LoadWithRetryAsync<T>(Func<CancellationToken, Task<T>> load)
+        {
+            var lifetime = _cts.Token;
+            for (var attempt = 1; ; attempt++)
+            {
+                lifetime.ThrowIfCancellationRequested();
+                using var timeout = CancellationTokenSource.CreateLinkedTokenSource(lifetime);
+                timeout.CancelAfter(TimeSpan.FromSeconds(30));
+                try
+                {
+                    return await load(timeout.Token).WaitAsync(timeout.Token);
+                }
+                catch (Exception ex) when (attempt < 3 && !lifetime.IsCancellationRequested &&
+                    (ex is System.Net.Http.HttpRequestException or OperationCanceledException or TimeoutException))
+                {
+                    await Task.Delay(TimeSpan.FromSeconds(2), lifetime);
+                }
+            }
+        }
         public Task<ProgramGuide> GetGuideByProgram(string channelID)
         {
             return GetGuideByProgram(new M3UInfo { TvgID = channelID, TvgName = string.Empty, Name = string.Empty });

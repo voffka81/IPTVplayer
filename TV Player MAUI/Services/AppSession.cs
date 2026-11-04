@@ -52,6 +52,21 @@ public sealed class AppSession : IDisposable
         return Task.CompletedTask;
     }
 
+    public void ReloadSource(string name)
+    {
+        ProgramsData replacement;
+        if (SettingsModel.Playlists.TryGetValue(name, out var url))
+            replacement = new ProgramsData(name, url);
+        else
+        {
+            var configuration = SettingsModel.ProviderSources.First(source => source.Enabled && source.Name == name);
+            replacement = new ProgramsData(name, _providerRegistry.CreateProvider(configuration));
+        }
+        if (Sources.TryGetValue(name, out var previous)) previous.Dispose();
+        Sources[name] = replacement;
+        SelectSource(name);
+    }
+
     public void SelectSource(string name)
     {
         CurrentSourceName = name;

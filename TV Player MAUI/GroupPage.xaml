@@ -5,7 +5,10 @@
              Title="Группы">
   <Grid RowDefinitions="Auto,Auto,*" RowSpacing="12">
     <Entry x:Name="SearchEntry" Placeholder="Поиск групп" TextChanged="OnSearchChanged" />
-    <Label x:Name="LoadStatus" Grid.Row="1" Text="Загрузка плейлиста…" TextColor="#91C9FF" />
+    <VerticalStackLayout Grid.Row="1" Spacing="8">
+      <Label x:Name="LoadStatus" Text="Загрузка плейлиста…" TextColor="#91C9FF" />
+      <Button x:Name="RetryButton" Text="Повторить загрузку" IsVisible="False" HorizontalOptions="Start" Clicked="OnRetryClicked" />
+    </VerticalStackLayout>
     <CollectionView x:Name="GroupsView" Grid.Row="2" SelectionMode="None">
       <CollectionView.ItemsLayout><GridItemsLayout x:Name="GroupGridLayout" Orientation="Vertical" Span="2" HorizontalItemSpacing="12" VerticalItemSpacing="12" /></CollectionView.ItemsLayout>
       <CollectionView.ItemTemplate>

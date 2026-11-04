@@ -22,9 +22,15 @@ public partial class GroupPage : ContentPage
     protected override void OnAppearing()
     {
         base.OnAppearing();
+        SubscribeToSource();
+    }
+
+    private void SubscribeToSource()
+    {
         _groupSubscription?.Dispose();
         _groupSubscription = _session.CurrentSource!.GroupsInformation.Subscribe(groups => MainThread.BeginInvokeOnMainThread(() =>
         {
+            RetryButton.IsVisible = groups.Count == 0;
             _allGroups.Clear();
             _allGroups.AddRange(groups);
             LoadStatus.Text = groups.Count == 0 ? "В плейлисте нет каналов." : string.Empty;
@@ -34,6 +40,7 @@ public partial class GroupPage : ContentPage
         _errorSubscription = _session.CurrentSource.LoadErrors.Subscribe(error => MainThread.BeginInvokeOnMainThread(() =>
         {
             LoadStatus.Text = $"Не удалось загрузить плейлист: {error}";
+            RetryButton.IsVisible = true;
         }));
     }
 
@@ -44,6 +51,17 @@ public partial class GroupPage : ContentPage
         _errorSubscription?.Dispose();
         _errorSubscription = null;
         base.OnDisappearing();
+    }
+
+    private void OnRetryClicked(object sender, EventArgs e)
+    {
+        RetryButton.IsVisible = false;
+        LoadStatus.Text = "Загрузка плейлиста…";
+        _groupSubscription?.Dispose();
+        _errorSubscription?.Dispose();
+        await _session.ReloadSourcesAsync();
+        _session.SelectSource(Title);
+        SubscribeToSource();
     }
 
     private void OnSearchChanged(object sender, TextChangedEventArgs e) => ApplyFilter();
